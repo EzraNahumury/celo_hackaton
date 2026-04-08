@@ -1,47 +1,48 @@
-# StakeFlow - Payroll Streaming dengan Yield di Celo
+# Trickle - Payroll Streaming di Celo
 
-> **"Gaji kamu menghasilkan yield bahkan sebelum sampai ke dompetmu."**
+> **"Digaji setiap detik. Didukung oleh stablecoin Celo."**
 
-StakeFlow adalah platform payroll streaming terdesentralisasi yang dibangun sebagai **MiniApp untuk MiniPay** di blockchain **Celo**. Terinspirasi dari [LlamaPay](https://llamapay.io/), StakeFlow membawa payroll streaming ke level berikutnya dengan **men-staking dana payroll yang menganggur di Aave V3** — sehingga karyawan tidak hanya menerima gaji, tapi juga mendapatkan yield tambahan di atasnya.
+Trickle adalah platform payroll streaming terdesentralisasi yang dibangun sebagai **MiniApp untuk MiniPay** di blockchain **Celo**. Terinspirasi dari [LlamaPay](https://llamapay.io/), Trickle membawa streaming gaji real-time ke ekosistem stablecoin Celo — memungkinkan pemberi kerja membayar karyawan **per-detik** menggunakan cUSD, USDC, dan USDT.
 
 ---
 
 ## Pernyataan Masalah
 
-Solusi payroll crypto tradisional (seperti LlamaPay) melakukan streaming gaji secara real-time, yang memang bagus. Tapi dana yang didepositkan hanya **diam saja** di smart contract, tidak menghasilkan apa-apa. Ini adalah peluang yang terlewatkan:
+Di pasar negara berkembang, payroll itu bermasalah:
 
-- **Pemberi kerja** mengunci sejumlah besar modal yang tidak menghasilkan return sama sekali
-- **Karyawan** hanya menerima gaji pokok tanpa manfaat tambahan
-- **Miliaran dolar** cadangan payroll di DeFi tidak produktif
+- **Pekerja menunggu berminggu-minggu atau berbulan-bulan** untuk menerima gaji mereka, menciptakan tekanan arus kas
+- **Tidak ada solusi payroll streaming di Celo** — padahal Celo memiliki infrastruktur stablecoin terbaik untuk pembayaran mobile
+- **LlamaPay tidak di-deploy di Celo** — pekerja di ekosistem Celo tidak punya akses ke streaming gaji real-time
+- **Payroll tradisional berbasis batch** — pembayaran bulanan atau dua mingguan yang tidak sesuai dengan cara orang menggunakan uang (harian)
 
-Sementara itu, protokol lending seperti Aave di Celo menawarkan **0.5% - 2.6% APY** untuk stablecoin. Kenapa tidak membuat modal yang menganggur itu bekerja?
+Sementara itu, Celo memiliki **14M+ pengguna MiniPay**, biaya transaksi sub-sen, dan dukungan stablecoin native — infrastruktur sempurna untuk payroll streaming, tapi belum ada yang membangunnya.
 
 ## Solusi
 
-**StakeFlow** menyelesaikan masalah ini dengan mengintegrasikan payroll streaming dengan DeFi yield:
+**Trickle** membawa payroll streaming real-time ke Celo:
 
-1. Pemberi kerja mendepositkan stablecoin ke StakeFlow
-2. Dana **otomatis disuplai ke Aave V3 di Celo**, menghasilkan yield
-3. Gaji di-streaming ke karyawan secara **real-time (per-detik)**
-4. Ketika karyawan withdraw, mereka menerima **gaji + yield staking proporsional**
+1. Pemberi kerja mendepositkan stablecoin (cUSD, USDC, atau USDT) ke Trickle
+2. Membuat stream gaji ke setiap karyawan dengan rate per-detik
+3. Karyawan bisa **withdraw gaji yang sudah didapat kapan saja** — tidak perlu menunggu hari gajian
+4. Semuanya berjalan melalui **MiniPay**, wallet mobile yang sudah digunakan jutaan orang
 
-Ini menciptakan situasi win-win: karyawan mendapat lebih, dan protokol mendorong aktivitas onchain nyata di Celo.
+Simpel. Tanpa kompleksitas. Hanya streaming gaji yang didukung stablecoin Celo.
 
 ---
 
 ## Keunggulan Utama vs LlamaPay
 
-| Fitur | LlamaPay | StakeFlow |
+| Fitur | LlamaPay | Trickle |
 |-------|----------|-----------|
 | Streaming gaji real-time | Ya | Ya |
 | Deploy di Celo | **Tidak** | **Ya** |
 | Integrasi MiniPay | **Tidak** | **Ya** |
-| Yield dari deposit menganggur | **Tidak** (dana diam saja) | **Ya** (staking Aave V3) |
-| Karyawan dapat yield tambahan | **Tidak** | **Ya** |
 | Mobile-first (MiniPay) | **Tidak** (web saja) | **Ya** |
-| Dukungan stablecoin (cUSD, USDC, USDT) | Chain terbatas | **Stablecoin native Celo** |
+| Dukungan stablecoin native Celo (cUSD) | **Tidak** | **Ya** |
+| Dukungan stablecoin (USDC, USDT) | Chain terbatas | **Native di Celo** |
+| Biaya withdrawal sub-sen | Tergantung chain | **Ya** (Celo) |
 
-**LlamaPay tidak di-deploy di Celo** — ini adalah celah yang jelas di pasar. StakeFlow mengisi celah ini sambil menambahkan yield generation sebagai value proposition yang unik.
+**LlamaPay tidak di-deploy di Celo** — ini adalah celah yang jelas di pasar. Trickle mengisi celah ini dengan membawa payroll streaming ke 14M+ pengguna MiniPay Celo dengan dukungan stablecoin native.
 
 ---
 
@@ -51,52 +52,40 @@ Ini menciptakan situasi win-win: karyawan mendapat lebih, dan protokol mendorong
 
 ```
 ┌─────────────┐     Deposit Stablecoin      ┌──────────────────┐
-│  Pemberi     │ ──────────────────────────> │  StakeFlow       │
+│  Pemberi     │ ──────────────────────────> │  Trickle       │
 │  Kerja       │                             │  Smart Contract  │
 └─────────────┘                             └────────┬─────────┘
                                                       │
-                                       Otomatis supply │
-                                       ke Aave V3     │
+                                      Stream gaji      │
+                                      per-detik        │
                                                       ▼
-                                            ┌──────────────────┐
-                                            │  Aave V3 (Celo)  │
-                                            │  Lending Pool     │
-                                            │                   │
-                                            │  Deposit          │
-                                            │  menghasilkan     │
-                                            │  yield (APY)      │
-                                            └────────┬─────────┘
-                                                      │
-                                   aTokens (token      │
-                                   berbunga)           │
-                                                      ▼
-┌─────────────┐    Gaji + Yield             ┌──────────────────┐
-│  Karyawan   │ <──────────────────────────│  StakeFlow       │
-│  (Penerima) │   withdraw kapan saja       │  Vault           │
+┌─────────────┐    Withdraw kapan saja      ┌──────────────────┐
+│  Karyawan   │ <─────────────────────────│  Trickle       │
+│  (Penerima) │   via MiniPay               │  Streaming Engine│
 └─────────────┘                             └──────────────────┘
 ```
 
 ### Alur Detail
 
 #### Alur Pemberi Kerja (Payer):
-1. **Hubungkan wallet MiniPay** ke StakeFlow MiniApp
-2. **Buat stream payroll** — atur alamat karyawan, token (USDC/cUSD/USDT), jumlah gaji bulanan
-3. **Depositkan stablecoin** — dana otomatis disuplai ke Aave V3 di Celo
-4. **Pantau dashboard** — lihat semua stream aktif, total deposit, yield yang dihasilkan, sisa saldo
-5. **Top up saldo** jika diperlukan — deposit baru juga otomatis di-stake ke Aave
+1. **Hubungkan wallet MiniPay** ke Trickle MiniApp
+2. **Buat stream payroll** — atur alamat karyawan, token (cUSD/USDC/USDT), jumlah gaji bulanan
+3. **Depositkan stablecoin** — dana disimpan di kontrak Trickle
+4. **Pantau dashboard** — lihat semua stream aktif, total deposit, sisa saldo
+5. **Top up saldo** jika diperlukan
 
 #### Alur Karyawan (Payee):
-1. **Hubungkan wallet MiniPay** ke StakeFlow MiniApp
+1. **Hubungkan wallet MiniPay** ke Trickle MiniApp
 2. **Lihat stream masuk** — lihat gaji bertambah secara real-time (per-detik)
-3. **Withdraw kapan saja** — klaim gaji yang sudah terkumpul + yield Aave proporsional
-4. **Pantau yield yang didapat** — lihat berapa banyak tambahan yang kamu dapat dari staking
+3. **Withdraw kapan saja** — klaim gaji yang sudah terkumpul langsung ke wallet MiniPay
+4. **Pantau penghasilan** — lihat total yang didapat, riwayat withdrawal
 
 #### Di Balik Layar:
-1. Ketika pemberi kerja mendepositkan 10,000 USDC, StakeFlow memanggil `Aave Pool.supply()` → menerima ~10,000 aUSDC
-2. Saldo aUSDC bertambah seiring waktu (misal, 1.92% APY untuk USDC di Aave Celo)
-3. Ketika karyawan menarik 1,000 USDC gaji, StakeFlow memanggil `Aave Pool.withdraw()` → menukarkan aUSDC kembali ke USDC
-4. Karyawan menerima 1,000 USDC (gaji) + bagian yield yang didapat
-5. Yield didistribusikan secara proporsional berdasarkan durasi stream dan jumlahnya
+1. Pemberi kerja mendepositkan 10,000 cUSD ke kontrak Trickle
+2. Membuat stream ke karyawan dengan rate ~0.00038 cUSD/detik ($1,000/bulan)
+3. Saldo yang bisa diklaim karyawan bertambah setiap detik
+4. Karyawan withdraw 500 cUSD setelah 2 minggu — biaya transaksi < $0.01 di Celo
+5. Sisa saldo terus di-streaming sampai stream berakhir atau dibatalkan
 
 ---
 
@@ -104,20 +93,19 @@ Ini menciptakan situasi win-win: karyawan mendapat lebih, dan protokol mendorong
 
 ```
 ┌────────────────────────┐
-│  StakeFlowFactory      │  ← Membuat instance StakeFlow per pemberi kerja
+│  TrickleFactory      │  ← Membuat instance Trickle per pemberi kerja
 │  (CREATE2)             │
 └───────────┬────────────┘
             │ deploy
             ▼
-┌────────────────────────┐       ┌────────────────────┐
-│  StakeFlowVault        │ ────> │  Aave V3 Pool      │
-│                        │       │  (Celo Mainnet)    │
-│  - createStream()      │       │                    │
-│  - deposit()           │       │  Pool:             │
-│  - withdraw()          │       │  0x3E59A31363...   │
-│  - cancelStream()      │       └────────────────────┘
+┌────────────────────────┐
+│  TrickleVault        │
+│                        │
+│  - createStream()      │
+│  - deposit()           │
+│  - withdraw()          │
+│  - cancelStream()      │
 │  - getBalance()        │
-│  - getYieldEarned()    │
 │  - streams mapping     │
 │  - balances mapping    │
 └────────────────────────┘
@@ -128,7 +116,7 @@ Ini menciptakan situasi win-win: karyawan mendapat lebih, dan protokol mendorong
 ```solidity
 // Fungsi Pemberi Kerja
 deposit(address token, uint256 amount)
-    → Approve & supply ke Aave V3, update saldo internal
+    → Transfer stablecoin ke kontrak, update saldo internal
 
 createStream(address payee, address token, uint216 amountPerSec)
     → Buat stream gaji real-time ke karyawan
@@ -138,39 +126,25 @@ cancelStream(address payee, address token, uint216 amountPerSec)
 
 // Fungsi Karyawan
 withdraw(address payer, address token, uint216 amountPerSec)
-    → Klaim gaji yang terkumpul + yield dari Aave
+    → Klaim gaji yang terkumpul ke wallet
 
 // Fungsi View
 getBalance(address payer) → (int256)
-    → Mengembalikan sisa saldo payer (termasuk yield)
+    → Mengembalikan sisa saldo payer
 
 getStreamInfo(bytes32 streamId) → (Stream)
     → Mengembalikan detail stream
-
-getYieldEarned(bytes32 streamId) → (uint256)
-    → Mengembalikan yield yang didapat untuk stream tertentu
 ```
 
-### Token yang Didukung di Celo (Aave V3)
+### Stablecoin yang Didukung di Celo
 
-| Token | APY Supply Aave | Alamat aToken |
-|-------|----------------|----------------|
-| **USDC** | ~1.92% | `0xFF8309b9e99bfd2D4021bc71a362aBD93dBd4785` |
-| **USDT** | ~0.50% | `0xDeE98402A302e4D707fB9bf2bac66fAEEc31e8Df` |
-| **cUSD (USDm)** | ~1.07% | `0xBba98352628B0B0c4b40583F593fFCb630935a45` |
-| **CELO** | ~0.57% | `0xC3e77dC389537Db1EEc7C33B95Cf3beECA71A209` |
+| Token | Deskripsi | Alamat |
+|-------|-----------|--------|
+| **cUSD** | Stablecoin USD native Celo | `0x765DE816845861e75A25fCA122bb6898B8B1282a` |
+| **USDC** | USDC dari Circle di Celo | `0xcebA9300f2b948710d2653dD7B07f33A8B32118C` |
+| **USDT** | USDT dari Tether di Celo | `0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e` |
 
-> Catatan: Rate APY bersifat variabel dan berubah berdasarkan utilisasi pasar.
-
-### Alamat Kontrak Utama (Celo Mainnet)
-
-| Kontrak | Alamat |
-|---------|--------|
-| Aave V3 Pool | `0x3E59A31363E2ad014dcbc521c4a0d5757d9f3402` |
-| Aave PoolAddressesProvider | `0x9F7Cf9417D5251C59fE94fB9147feEe1aAd9Cea5` |
-| USDC (Celo) | `0xcebA9300f2b948710d2653dD7B07f33A8B32118C` |
-| USDT (Celo) | `0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e` |
-| cUSD / USDm (Celo) | `0x765DE816845861e75A25fCA122bb6898B8B1282a` |
+> Celo memiliki dukungan stablecoin kelas satu — cUSD adalah stablecoin native, dan USDC/USDT tersedia secara luas di jaringan.
 
 ---
 
@@ -180,12 +154,11 @@ getYieldEarned(bytes32 streamId) → (uint256)
 |-------|-----------|
 | **Blockchain** | Celo Mainnet |
 | **Smart Contracts** | Solidity ^0.8.0, Hardhat |
-| **Integrasi DeFi** | Aave V3 (Celo) |
 | **Frontend** | Next.js / React |
 | **Wallet** | MiniPay SDK (MiniPay Hook) |
 | **Deployment** | Vercel |
 | **Starter Kit** | [celo-composer](https://github.com/celo-org/celo-composer) |
-| **Stablecoin** | USDC, USDT, cUSD (USDm) |
+| **Stablecoin** | cUSD, USDC, USDT |
 
 ---
 
@@ -197,16 +170,15 @@ getYieldEarned(bytes32 streamId) → (uint256)
 - [ ] Dashboard pemberi kerja — buat & kelola stream payroll
 - [ ] Dashboard karyawan — lihat stream gaji & withdraw
 - [ ] Streaming gaji real-time (per-detik)
-- [ ] Auto-staking deposit ke Aave V3 di Celo
-- [ ] Distribusi yield ke karyawan saat withdrawal
-- [ ] Dukungan multi-token (USDC, USDT, cUSD)
+- [ ] Dukungan multi-stablecoin (cUSD, USDC, USDT)
 - [ ] Manajemen stream (buat, jeda, batalkan)
+- [ ] Withdrawal instan dengan biaya sub-sen di Celo
 - [ ] Deploy di Celo Mainnet
 
 ### Roadmap Masa Depan
 
 - [ ] Batch payroll — import CSV untuk banyak karyawan
-- [ ] Dashboard analitik yield untuk pemberi kerja & karyawan
+- [ ] Dashboard analitik payroll untuk pemberi kerja & karyawan
 - [ ] Sistem notifikasi (peringatan saldo rendah, pembayaran diterima)
 - [ ] Dukungan multi-sig / Gnosis Safe untuk enterprise
 - [ ] Integrasi fiat on/off ramp
@@ -221,45 +193,45 @@ getYieldEarned(bytes32 streamId) → (uint256)
 - Pilih peran: Pemberi Kerja atau Karyawan
 
 ### 2. Dashboard Pemberi Kerja
-- Total deposit & yield yang dihasilkan
+- Total deposit & sisa saldo
 - Daftar stream aktif dengan status real-time
 - Tombol buat stream baru
 - Tombol top up saldo
 
 ### 3. Buat Stream
 - Input alamat wallet karyawan
-- Pilih token (USDC / cUSD / USDT)
+- Pilih stablecoin (cUSD / USDC / USDT)
 - Jumlah gaji bulanan
 - Review & konfirmasi → deposit + buat stream
 
 ### 4. Dashboard Karyawan
 - Stream masuk dengan penghitung akumulasi real-time
-- Gaji pokok yang didapat
-- Yield yang didapat (dari staking Aave)
+- Total gaji yang didapat
+- Riwayat withdrawal
 - Tombol withdraw
 
 ### 5. Withdraw
-- Menampilkan total yang bisa diklaim (rincian gaji + yield)
+- Menampilkan total gaji yang bisa diklaim
 - Withdraw sekali ketuk ke wallet MiniPay
+- Biaya transaksi sub-sen di Celo
 
 ---
 
 ## Contoh Skenario
 
-> **Perusahaan ABC** membayar 5 karyawan masing-masing $1,000/bulan dalam USDC di Celo.
+> **Perusahaan ABC** membayar 5 karyawan masing-masing $1,000/bulan dalam cUSD di Celo.
 
 | Langkah | Aksi | Detail |
 |---------|------|--------|
-| 1 | Perusahaan deposit | **5,000 USDC** ke StakeFlow |
-| 2 | Auto-stake ke Aave | 5,000 USDC → Aave V3 → menghasilkan **~1.92% APY** |
-| 3 | Streaming | Setiap karyawan menerima ~$0.00038/detik |
-| 4 | Setelah 1 bulan | Setiap karyawan withdraw **$1,000 USDC** (gaji) |
-| 5 | + Yield | Ditambah **~$1.60 USDC** dari yield Aave |
-| **Total** | | **$1,001.60 per karyawan** |
+| 1 | Perusahaan deposit | **5,000 cUSD** ke Trickle |
+| 2 | Buat 5 stream | Masing-masing ~$0.00038 cUSD/detik |
+| 3 | Karyawan cek saldo | Lihat gaji bertambah setiap detik di MiniPay |
+| 4 | Karyawan withdraw tengah bulan | Dapat **$500 cUSD** langsung, biaya < $0.01 |
+| 5 | Akhir bulan | Sisa **$500 cUSD** tersedia untuk di-withdraw |
 
-- Dalam setahun: tambahan **~$19.20/karyawan** dari yield
-- Untuk payroll lebih besar ($100K/bulan): yield menjadi **~$160/bulan**
-- Yield bertambah seiring jumlah deposit — semakin besar modal, semakin banyak yang didapat semua orang
+- Tidak perlu menunggu hari gajian — withdraw gaji yang sudah didapat **kapan saja**
+- Biaya withdrawal **kurang dari $0.01** di Celo — sempurna untuk withdrawal kecil yang sering
+- Berjalan di **MiniPay** — tidak perlu desktop, sepenuhnya mobile
 
 ---
 
@@ -267,11 +239,12 @@ getYieldEarned(bytes32 streamId) → (uint256)
 
 | Keunggulan | Detail |
 |------------|--------|
+| **Chain stablecoin-first** | cUSD adalah stablecoin native — Celo dibangun untuk stablecoin |
 | **Biaya sub-sen** | Ideal untuk micro-withdrawal yang sering dalam streaming |
 | **MiniPay** | 14M+ pengguna, channel distribusi bawaan |
 | **Mobile-first** | Dirancang untuk pasar berkembang di mana payroll mobile penting |
-| **Aave V3** | Infrastruktur DeFi yang terbukti untuk yield, sudah live di Celo |
-| **Stablecoin native** | cUSD, USDC, USDT semua tersedia |
+| **Bayar gas pakai stablecoin** | Pengguna bisa bayar biaya transaksi pakai cUSD — tidak perlu punya CELO |
+| **Stablecoin native** | cUSD, USDC, USDT semua tersedia secara native |
 | **Finalitas cepat** | ~5 detik block time untuk UX streaming real-time |
 | **Kompatibel EVM** | Manfaatkan ekosistem Solidity yang sudah ada |
 
@@ -281,8 +254,8 @@ getYieldEarned(bytes32 streamId) → (uint256)
 
 ```bash
 # Clone repo
-git clone https://github.com/<your-username>/stakeflow.git
-cd stakeflow
+git clone https://github.com/<your-username>/trickle.git
+cd trickle
 
 # Install dependensi
 npm install
@@ -291,7 +264,6 @@ npm install
 cp .env.example .env
 # Tambahkan private key (JANGAN PERNAH pakai wallet utama untuk dev!)
 # Tambahkan Celo RPC URL
-# Tambahkan alamat kontrak Aave V3
 
 # Compile smart contract
 npx hardhat compile
@@ -322,7 +294,6 @@ npm run dev
 |----------|-----|
 | Proof of Ship | [talent.app/~/earn/celo-proof-of-ship](https://talent.app/~/earn/celo-proof-of-ship) |
 | Celo Docs | [docs.celo.org](https://docs.celo.org/) |
-| Aave V3 Celo | [app.aave.com](https://app.aave.com/?marketName=proto_celo_v3) |
 | MiniPay Docs | [docs.celo.org/build-on-minipay](https://docs.celo.org/developer/build-on-minipay/overview) |
 | LlamaPay (Referensi) | [llamapay.io](https://llamapay.io/) |
 | Telegram | [t.me/proofofship](https://t.me/proofofship) |
