@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git submodule:*)",
+      "Bash(git rm:*)",
+      "Bash(rm -f .gitmodules)",
+      "Bash(rm -rf sc_trickle/.git)",
+      "Bash(rm -f sc_trickle/lib/forge-std/.git)",
+      "Bash(git commit:*)",
+      "Bash(xargs grep:*)",
+      "Bash(forge build:*)",
+      "Bash(ls \"/c/Users/ASUS ROG/.cargo/bin/forge\"*)",
+      "Bash(forge --version)",
+      "Bash(curl -L https://foundry.paradigm.xyz)",
+      "Bash(bash)",
+      "Bash(export PATH=\"/c/Users/ASUS ROG/.foundry/bin:$PATH\")",
+      "Bash(foundryup)",
+      "Bash(forge test:*)",
+      "Bash(python3 -c \"print\\(1000 * 10**18 // \\(30 * 24 * 3600\\)\\)\")",
+      "Bash(node -e \"console.log\\(BigInt\\(1000\\) * BigInt\\(10\\)**BigInt\\(18\\) / BigInt\\(30*24*3600\\)\\)\")",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(forge inspect:*)",
+      "Bash(cast wallet:*)",
+      "WebFetch(domain:faucet.celo.org)",
+      "Bash(curl -s -X POST \"https://faucet.celo.org/api/faucet\" -H \"Content-Type: application/json\" -d '{\"address\":\"0xD1C2be4e157E183AB87081391c882923DB5f2fC3\",\"token\":\"CELO\"}')",
+      "Bash(curl:*)",
+      "Bash(netstat -ano)"
+    ]
+  }
+}
