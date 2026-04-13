@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "Trickle - Payroll Streaming on Celo",
   description:
     "Real-time salary streaming powered by Celo stablecoins. Get paid every second.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
@@ -27,7 +31,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-sora antialiased min-h-full flex flex-col bg-hero-bg">
+      <body suppressHydrationWarning className="font-sora antialiased min-h-full flex flex-col bg-hero-bg">
         <Providers>{children}</Providers>
       </body>
     </html>

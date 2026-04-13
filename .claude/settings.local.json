@@ -26,7 +26,8 @@
       "WebFetch(domain:faucet.celo.org)",
       "Bash(curl -s -X POST \"https://faucet.celo.org/api/faucet\" -H \"Content-Type: application/json\" -d '{\"address\":\"0xD1C2be4e157E183AB87081391c882923DB5f2fC3\",\"token\":\"CELO\"}')",
       "Bash(curl:*)",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(rtk tsc:*)"
     ]
   }
 }
