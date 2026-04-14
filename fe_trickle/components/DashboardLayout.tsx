@@ -26,7 +26,8 @@ export default function DashboardLayout({
 
       <Navbar />
 
-      <div className="relative pt-[60px]">{children}</div>
+      {/* pt-24 = 96px: 16px navbar top offset + ~52px navbar height + 28px breathing room */}
+      <div className="relative pt-24">{children}</div>
     </div>
   );
 }
