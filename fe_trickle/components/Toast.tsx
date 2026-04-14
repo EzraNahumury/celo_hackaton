@@ -158,7 +158,7 @@ function ToastList({
   onDismiss: (id: string) => void;
 }) {
   return (
-    <div className="pointer-events-none fixed bottom-5 right-4 z-[200] flex w-full max-w-[340px] flex-col-reverse gap-2 sm:right-6">
+    <div className="pointer-events-none fixed bottom-[116px] right-4 z-[200] flex w-full max-w-[340px] flex-col-reverse gap-2 sm:bottom-6 sm:right-6">
       <AnimatePresence mode="popLayout" initial={false}>
         {items.map((item) => (
           <ToastCard key={item.id} item={item} onDismiss={onDismiss} />

@@ -182,12 +182,12 @@ export function BottomNav({ onProfile }: BottomNavProps) {
             borderRadius,
             boxShadow,
             transformStyle: "preserve-3d",
-            background: "rgba(255, 255, 255, 0.96)",
+            background: "var(--nav-bg)",
             backdropFilter: "blur(22px) saturate(160%)",
             WebkitBackdropFilter: "blur(22px) saturate(160%)",
             willChange: "transform, border-radius, box-shadow",
           }}
-          className="relative overflow-hidden border border-black/5"
+          className="relative overflow-hidden"
         >
           {/* Ripples */}
           <AnimatePresence>
@@ -212,7 +212,7 @@ export function BottomNav({ onProfile }: BottomNavProps) {
           {/* Top hairline */}
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-black/6 to-transparent"
+            className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent"
           />
 
           <LayoutGroup id="bnav">
@@ -282,7 +282,7 @@ function NavItem({
         transition={{ type: "spring", stiffness: 420, damping: 24 }}
         className={cn(
           "grid h-7 w-7 place-items-center transition-colors duration-200",
-          active ? "text-[#2F3FFF]" : "text-slate-400",
+          active ? "text-[#2F3FFF]" : "text-[var(--fg-mute)]",
         )}
       >
         <Icon size={20} strokeWidth={active ? 2.4 : 1.9} />
@@ -293,7 +293,7 @@ function NavItem({
           "text-[11px] tracking-tight transition-colors duration-200",
           active
             ? "font-semibold text-[#2F3FFF]"
-            : "font-medium text-slate-500",
+            : "font-medium text-[var(--fg-mute)]",
         )}
       >
         {label}

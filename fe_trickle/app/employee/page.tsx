@@ -16,7 +16,6 @@ import {
   Copy,
   Check,
   ArrowDownToLine,
-  Bell,
   TrendingUp,
   Calendar,
 } from "lucide-react";
@@ -254,19 +253,14 @@ export default function EmployeeDashboard() {
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22 }}
-          className="mb-6 flex items-center justify-between"
+          className="mb-6"
         >
-          <div>
-            <p className="text-[11.5px] font-medium uppercase tracking-[0.14em] text-[var(--accent-3)]">
-              Earnings
-            </p>
-            <h1 className="mt-0.5 font-display text-[18px] font-semibold tracking-tight text-[var(--fg)]">
-              My payroll stream
-            </h1>
-          </div>
-          <button className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] bg-[var(--color-surface)] text-[var(--fg-dim)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]">
-            <Bell size={15} strokeWidth={2} />
-          </button>
+          <p className="text-[11.5px] font-medium uppercase tracking-[0.14em] text-[var(--accent-3)]">
+            Earnings
+          </p>
+          <h1 className="mt-0.5 font-display text-[18px] font-semibold tracking-tight text-[var(--fg)]">
+            My payroll stream
+          </h1>
         </motion.div>
 
         {/* Big withdrawable */}

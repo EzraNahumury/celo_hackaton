@@ -18,7 +18,6 @@ import {
   Plus,
   Activity,
   Check,
-  Bell,
   TrendingUp,
 } from "lucide-react";
 import {
@@ -283,32 +282,25 @@ export default function EmployerDashboard() {
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-6 flex items-center justify-between"
+          className="mb-6 flex items-center gap-3"
         >
-          <div className="flex items-center gap-3">
-            <span
-              className="grid h-10 w-10 place-items-center rounded-full text-[13px] font-semibold text-white"
-              style={{
-                background:
-                  "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
-              }}
-            >
-              {address?.slice(2, 3).toUpperCase()}
-              {address?.slice(-1).toUpperCase()}
-            </span>
-            <div>
-              <p className="text-[11.5px] text-[var(--fg-mute)]">
-                {greeting},
-              </p>
-              <p className="font-mono text-[13px] font-semibold text-[var(--fg)]">
-                {address?.slice(0, 6)}…{address?.slice(-4)}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <IconButton>
-              <Bell size={15} strokeWidth={2} />
-            </IconButton>
+          <span
+            className="grid h-10 w-10 place-items-center rounded-full text-[13px] font-semibold text-white"
+            style={{
+              background:
+                "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
+            }}
+          >
+            {address?.slice(2, 3).toUpperCase()}
+            {address?.slice(-1).toUpperCase()}
+          </span>
+          <div>
+            <p className="text-[11.5px] text-[var(--fg-mute)]">
+              {greeting},
+            </p>
+            <p className="font-mono text-[13px] font-semibold text-[var(--fg)]">
+              {address?.slice(0, 6)}…{address?.slice(-4)}
+            </p>
           </div>
         </motion.div>
 
@@ -509,14 +501,6 @@ function getGreeting() {
   if (h < 12) return "Good morning";
   if (h < 18) return "Good afternoon";
   return "Good evening";
-}
-
-function IconButton({ children }: { children: React.ReactNode }) {
-  return (
-    <button className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] bg-[var(--color-surface)] text-[var(--fg-dim)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]">
-      {children}
-    </button>
-  );
 }
 
 function ActionButton({

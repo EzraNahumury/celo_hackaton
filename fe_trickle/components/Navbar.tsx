@@ -25,19 +25,20 @@ export default function Navbar() {
         className="pointer-events-auto relative w-full max-w-[440px]"
       >
         <div
-          className="relative rounded-[24px] border border-black/5"
+          className="relative rounded-[24px] border border-white/[0.07]"
           style={{
-            background: "rgba(255, 255, 255, 0.96)",
-            backdropFilter: "blur(22px) saturate(160%)",
-            WebkitBackdropFilter: "blur(22px) saturate(160%)",
+            background: "rgba(16, 18, 28, 0.55)",
+            backdropFilter: "blur(24px) saturate(180%)",
+            WebkitBackdropFilter: "blur(24px) saturate(180%)",
             boxShadow:
-              "0 20px 36px -12px rgba(0,0,0,0.4), 0 6px 14px -8px rgba(0,0,0,0.25)",
+              "0 20px 40px -12px rgba(0,0,0,0.5), 0 6px 16px -8px rgba(0,0,0,0.35)",
           }}
         >
           <div className="relative flex h-[52px] items-center justify-between px-2.5">
+            {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-slate-100/80"
+              className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-white/[0.06]"
             >
               <span
                 className="grid h-7 w-7 place-items-center overflow-hidden rounded-xl"
@@ -55,19 +56,20 @@ export default function Navbar() {
                   priority
                 />
               </span>
-              <span className="text-[14px] font-semibold tracking-tight text-slate-900">
+              <span className="text-[14px] font-semibold tracking-tight text-[var(--fg)]">
                 Trickle
               </span>
             </Link>
 
+            {/* Right controls */}
             <div className="flex items-center gap-1.5">
               {mounted && isConnected && address ? (
-                <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+                <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-3">
                   <span
                     className="h-1.5 w-1.5 rounded-full bg-[#10B981]"
                     aria-hidden
                   />
-                  <span className="font-mono text-[11.5px] font-medium text-slate-600">
+                  <span className="font-mono text-[11.5px] font-medium text-[var(--fg-dim)]">
                     {address.slice(0, 5)}…{address.slice(-4)}
                   </span>
                 </span>
@@ -88,9 +90,11 @@ export default function Navbar() {
                   </motion.button>
                 )
               )}
+
+              {/* Notifications */}
               <button
                 aria-label="Notifications"
-                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+                className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/[0.07] text-[var(--fg-mute)] transition-colors hover:bg-white/[0.11] hover:text-[var(--fg)]"
               >
                 <Bell size={14} strokeWidth={2} />
               </button>

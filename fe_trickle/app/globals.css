@@ -78,7 +78,9 @@
   --border: var(--color-border);
   --border-strong: var(--color-border-strong);
   --divider: var(--color-divider);
+
 }
+
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 html { background: var(--color-bg); color: var(--color-fg); }

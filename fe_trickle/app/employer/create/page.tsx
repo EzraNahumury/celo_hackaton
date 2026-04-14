@@ -326,7 +326,7 @@ export default function CreateStream() {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.22 }}
-            className="font-display text-[22px] font-semibold tracking-tight text-fg"
+            className="font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]"
           >
             Stream created
           </motion.h2>
@@ -334,14 +334,14 @@ export default function CreateStream() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.25 }}
-            className="mt-2 text-[13.5px] text-fg-mute"
+            className="mt-2 text-[13.5px] text-[var(--fg-mute)]"
           >
             Now streaming{" "}
-            <span className="text-fg">
+            <span className="text-[var(--fg)]">
               {monthlySalary} {tokenInfo.symbol}
             </span>
             /mo to{" "}
-            <span className="font-mono text-fg-dim">
+            <span className="font-mono text-[var(--fg-dim)]">
               {payeeAddress.slice(0, 8)}…{payeeAddress.slice(-6)}
             </span>
           </motion.p>
@@ -379,20 +379,20 @@ export default function CreateStream() {
       <div className="mx-auto max-w-[460px] px-5">
         <button
           onClick={() => router.back()}
-          className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-fg-mute transition-colors hover:text-fg"
+          className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-[var(--fg-mute)] transition-colors hover:text-[var(--fg)]"
         >
           <ArrowLeft size={13} />
           Back
         </button>
 
         <div className="mb-8">
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-mute">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--fg-mute)]">
             New payroll stream
           </p>
-          <h1 className="font-display text-[28px] font-semibold leading-[1.2] tracking-[-0.02em] text-fg">
+          <h1 className="font-display text-[28px] font-semibold leading-[1.2] tracking-[-0.02em] text-[var(--fg)]">
             Create a salary stream
           </h1>
-          <p className="mt-1.5 text-[14px] text-fg-dim">
+          <p className="mt-1.5 text-[14px] text-[var(--fg-dim)]">
             Define the employee, token, and monthly rate.
           </p>
         </div>
@@ -441,7 +441,7 @@ export default function CreateStream() {
                           "flex items-center gap-2 text-[13px] font-medium",
                           selectedToken === t.symbol
                             ? "text-[var(--accent-3)]"
-                            : "text-fg",
+                            : "text-[var(--fg)]",
                         )}
                       >
                         <span
@@ -449,12 +449,12 @@ export default function CreateStream() {
                             "h-1.5 w-1.5 rounded-full",
                             selectedToken === t.symbol
                               ? "bg-[var(--accent)]"
-                              : "bg-fg-faint",
+                              : "bg-[var(--color-fg-faint)]",
                           )}
                         />
                         {t.symbol}
                       </div>
-                      <p className="mt-1 text-[11.5px] text-fg-mute">{t.name}</p>
+                      <p className="mt-1 text-[11.5px] text-[var(--fg-mute)]">{t.name}</p>
                     </button>
                   ))}
                 </div>
@@ -515,7 +515,7 @@ export default function CreateStream() {
                   <SummaryRow
                     label="Streaming to"
                     value={
-                      <span className="font-mono text-fg">
+                      <span className="font-mono text-[var(--fg)]">
                         {payeeAddress.slice(0, 10)}…
                         {payeeAddress.slice(-8)}
                       </span>
@@ -525,7 +525,7 @@ export default function CreateStream() {
                   <SummaryRow
                     label="Monthly rate"
                     value={
-                      <span className="tabular font-mono text-fg">
+                      <span className="tabular font-mono text-[var(--fg)]">
                         {Number(monthlySalary).toLocaleString()} {tokenInfo.symbol}
                       </span>
                     }
@@ -541,7 +541,7 @@ export default function CreateStream() {
                   <SummaryRow
                     label="Vault balance"
                     value={
-                      <span className="font-mono text-fg-dim">
+                      <span className="font-mono text-[var(--fg-dim)]">
                         {vaultNum.toFixed(2)} {tokenInfo.symbol}
                       </span>
                     }
@@ -575,7 +575,7 @@ export default function CreateStream() {
                         label={label}
                       />
                       {i < steps.length - 1 && (
-                        <span className="text-fg-faint">→</span>
+                        <span className="text-[var(--fg-faint)]">→</span>
                       )}
                     </span>
                   ))}
@@ -625,11 +625,11 @@ function FieldGroup({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-fg-mute">
+        <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--fg-mute)]">
           {label}
         </label>
         {hint ? (
-          <span className="text-[11.5px] text-fg-faint">{hint}</span>
+          <span className="text-[11.5px] text-[var(--fg-faint)]">{hint}</span>
         ) : null}
       </div>
       {children}
@@ -677,18 +677,18 @@ function RateBreakdown({
           const isSec = i === rows.length - 1;
           return (
             <div key={label} className="px-3 py-3 bg-[var(--color-surface-2)]">
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-fg-mute">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--fg-mute)]">
                 {label}
               </p>
               <p
                 className={cn(
                   "mt-1 font-mono text-[12px] tabular truncate",
-                  isSec ? "text-[var(--accent-3)]" : "text-fg-dim",
+                  isSec ? "text-[var(--accent-3)]" : "text-[var(--fg-dim)]",
                 )}
               >
                 <AnimatedNumber value={value} decimals={decimals} />
               </p>
-              <p className="text-[10px] text-fg-faint">{symbol}</p>
+              <p className="text-[10px] text-[var(--fg-faint)]">{symbol}</p>
             </div>
           );
         })}
@@ -706,8 +706,8 @@ function SummaryRow({
 }) {
   return (
     <div className="flex items-center justify-between px-5 py-3 text-[13px]">
-      <span className="text-fg-mute">{label}</span>
-      <span className="text-fg">{value}</span>
+      <span className="text-[var(--fg-mute)]">{label}</span>
+      <span className="text-[var(--fg)]">{value}</span>
     </div>
   );
 }
@@ -728,8 +728,8 @@ function StepDot({
         done
           ? "text-[var(--accent)]"
           : active
-            ? "text-fg"
-            : "text-fg-faint",
+            ? "text-[var(--fg)]"
+            : "text-[var(--fg-faint)]",
       )}
     >
       <span
