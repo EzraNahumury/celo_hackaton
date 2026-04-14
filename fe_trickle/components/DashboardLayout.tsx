@@ -1,33 +1,34 @@
 "use client";
 
+import * as React from "react";
 import Navbar from "./Navbar";
+import { BottomNav } from "./BottomNav";
+import { ProfileSheet } from "./ProfileSheet";
+import { WalletModal } from "./ui/wallet-modal";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="relative min-h-screen bg-[#070b0e]">
-      {/* Ambient top glow — gives depth without distraction */}
-      <div
-        className="pointer-events-none fixed inset-x-0 top-0 h-[55vh] overflow-hidden"
-        aria-hidden
-      >
-        <div
-          className="absolute left-1/2 top-0 -translate-x-1/2 h-[420px] w-[70vw] max-w-3xl rounded-full opacity-100"
-          style={{
-            background:
-              "radial-gradient(ellipse at 50% 0%, rgba(53,208,127,0.055) 0%, transparent 70%)",
-            filter: "blur(48px)",
-          }}
-        />
-      </div>
+  const [profileOpen, setProfileOpen] = React.useState(false);
+  const [walletOpen, setWalletOpen] = React.useState(false);
 
+  return (
+    <div className="relative min-h-[100dvh]">
       <Navbar />
 
-      {/* pt-24 = 96px: 16px navbar top offset + ~52px navbar height + 28px breathing room */}
-      <div className="relative pt-24">{children}</div>
+      {/* Content area — phone-feel width on larger screens, edge-to-edge on mobile */}
+      <div className="relative pt-[80px] pb-[108px]">{children}</div>
+
+      <BottomNav onProfile={() => setProfileOpen(true)} />
+
+      <ProfileSheet
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        onConnect={() => setWalletOpen(true)}
+      />
+      <WalletModal open={walletOpen} onClose={() => setWalletOpen(false)} />
     </div>
   );
 }

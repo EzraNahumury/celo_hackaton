@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Check, AlertTriangle, ArrowRight } from "lucide-react";
 import {
   TRICKLE_VAULT_ABI,
   TRICKLE_VAULT_ADDRESS,
@@ -18,10 +19,14 @@ import {
 } from "@/config/contracts";
 import { TOKENS, TOKEN_LIST } from "@/config/tokens";
 import DashboardLayout from "@/components/DashboardLayout";
+import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
 import { useToast } from "@/components/Toast";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { cn } from "@/lib/cn";
 
-// ── Phase state machine ────────────────────────────────────────────────────────
-// idle → [approving → depositing →] creating → done | error
 type Phase =
   | "idle"
   | "approving"
@@ -31,12 +36,12 @@ type Phase =
   | "error";
 
 const PHASE_LABEL: Record<Phase, string> = {
-  idle: "Confirm",
+  idle: "Confirm stream",
   approving: "Approving…",
   depositing: "Depositing…",
   creating: "Creating stream…",
   done: "Done",
-  error: "Retry",
+  error: "Try again",
 };
 
 const STEPS_WITH_DEPOSIT = ["Approve", "Deposit", "Create stream"];
@@ -55,7 +60,6 @@ export default function CreateStream() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [needsDeposit, setNeedsDeposit] = useState(false);
 
-  // Store computed values to use across effects
   const paramsRef = useRef<{
     tokenAddress: `0x${string}`;
     amountPerSec: bigint;
@@ -73,7 +77,6 @@ export default function CreateStream() {
     query: { enabled: !!address },
   });
 
-  // ── Step 1: approve ────────────────────────────────────────────────────────
   const {
     writeContract: doApprove,
     data: approveTxHash,
@@ -83,7 +86,6 @@ export default function CreateStream() {
   const { isSuccess: approveConfirmed, isError: approveFailed } =
     useWaitForTransactionReceipt({ hash: approveTxHash });
 
-  // ── Step 2: deposit ────────────────────────────────────────────────────────
   const {
     writeContract: doDeposit,
     data: depositTxHash,
@@ -93,7 +95,6 @@ export default function CreateStream() {
   const { isSuccess: depositConfirmed, isError: depositFailed } =
     useWaitForTransactionReceipt({ hash: depositTxHash });
 
-  // ── Step 3: createStream ───────────────────────────────────────────────────
   const {
     writeContract: doCreateStream,
     data: createTxHash,
@@ -103,13 +104,14 @@ export default function CreateStream() {
   const { isSuccess: createConfirmed, isError: createFailed } =
     useWaitForTransactionReceipt({ hash: createTxHash });
 
-  // ── Transitions ────────────────────────────────────────────────────────────
-
-  // approving → depositing
   useEffect(() => {
     if (phase === "approving" && approveConfirmed && paramsRef.current) {
       setPhase("depositing");
-      toast({ type: "pending", message: "Depositing to vault…", txHash: approveTxHash });
+      toast({
+        type: "pending",
+        message: "Depositing to vault…",
+        txHash: approveTxHash,
+      });
       doDeposit({
         address: TRICKLE_VAULT_ADDRESS,
         abi: TRICKLE_VAULT_ABI,
@@ -119,11 +121,14 @@ export default function CreateStream() {
     }
   }, [approveConfirmed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // depositing → creating
   useEffect(() => {
     if (phase === "depositing" && depositConfirmed && paramsRef.current) {
       setPhase("creating");
-      toast({ type: "pending", message: "Creating stream…", txHash: depositTxHash });
+      toast({
+        type: "pending",
+        message: "Creating stream…",
+        txHash: depositTxHash,
+      });
       doCreateStream({
         address: TRICKLE_VAULT_ADDRESS,
         abi: TRICKLE_VAULT_ABI,
@@ -137,7 +142,6 @@ export default function CreateStream() {
     }
   }, [depositConfirmed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // creating → done
   useEffect(() => {
     if (phase === "creating" && createConfirmed) {
       setPhase("done");
@@ -151,17 +155,15 @@ export default function CreateStream() {
     }
   }, [createConfirmed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Error handling
   useEffect(() => {
-    if (
-      (approveError || approveFailed) &&
-      phase === "approving"
-    ) {
+    if ((approveError || approveFailed) && phase === "approving") {
       setPhase("error");
       toast({
         type: "error",
         message: "Approval failed",
-        description: (approveError as Error)?.message?.slice(0, 80) ?? "Transaction rejected",
+        description:
+          (approveError as Error)?.message?.slice(0, 80) ??
+          "Transaction rejected",
       });
     }
   }, [approveError, approveFailed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -179,12 +181,12 @@ export default function CreateStream() {
       toast({
         type: "error",
         message: "Stream creation failed",
-        description: (createError as Error)?.message?.slice(0, 80) ?? "Transaction rejected",
+        description:
+          (createError as Error)?.message?.slice(0, 80) ??
+          "Transaction rejected",
       });
     }
   }, [createError, createFailed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
 
   function calcAmountPerSec(): bigint {
     if (!monthlySalary || isNaN(Number(monthlySalary))) return 0n;
@@ -199,7 +201,8 @@ export default function CreateStream() {
 
     const monthlyWei = parseUnits(monthlySalary, tokenInfo.decimals);
     const currentBalance = (vaultBalance as bigint) ?? 0n;
-    const needed = currentBalance < monthlyWei ? monthlyWei - currentBalance : 0n;
+    const needed =
+      currentBalance < monthlyWei ? monthlyWei - currentBalance : 0n;
     const requiresDeposit = needed > 0n;
 
     setNeedsDeposit(requiresDeposit);
@@ -226,7 +229,11 @@ export default function CreateStream() {
         address: TRICKLE_VAULT_ADDRESS,
         abi: TRICKLE_VAULT_ABI,
         functionName: "createStream",
-        args: [payeeAddress as `0x${string}`, tokenInfo.address, amountPerSec],
+        args: [
+          payeeAddress as `0x${string}`,
+          tokenInfo.address,
+          amountPerSec,
+        ],
       });
     }
   }
@@ -239,20 +246,42 @@ export default function CreateStream() {
     resetCreate();
   }
 
-  // ── Guard ──────────────────────────────────────────────────────────────────
   if (!isConnected) {
-    router.push("/");
-    return null;
+    return (
+      <DashboardLayout>
+        <div className="mx-auto w-full max-w-[460px] px-5 pt-4">
+          <button
+            onClick={() => router.back()}
+            className="mb-5 inline-flex items-center gap-1.5 text-[13px] text-[var(--fg-mute)] transition-colors hover:text-[var(--fg)]"
+          >
+            <ArrowLeft size={13} />
+            Back
+          </button>
+          <div className="mb-5">
+            <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-3)]">
+              New payroll stream
+            </p>
+            <h1 className="mt-0.5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
+              Create a salary stream
+            </h1>
+          </div>
+          <ConnectWalletPrompt
+            eyebrow="Sign in required"
+            title="Connect to create a stream"
+            body="Connect a Celo wallet to deposit liquidity and open a per-second salary stream to an employee."
+          />
+        </div>
+      </DashboardLayout>
+    );
   }
 
-  // ── Derived ────────────────────────────────────────────────────────────────
+  const monthlyNum = Number(monthlySalary);
+  const perDay = monthlyNum / 30;
+  const perHour = perDay / 24;
+  const perMinute = perHour / 60;
+  const perSec = perMinute / 60;
+
   const amountPerSec = calcAmountPerSec();
-  const perSecDisplay =
-    amountPerSec > 0n
-      ? parseFloat(
-          (Number(amountPerSec) / 10 ** tokenInfo.decimals).toFixed(12)
-        ).toString()
-      : "0";
   const vaultNum = vaultBalance
     ? parseFloat(formatUnits(vaultBalance as bigint, tokenInfo.decimals))
     : 0;
@@ -264,233 +293,317 @@ export default function CreateStream() {
     phase === "approving"
       ? 0
       : phase === "depositing"
-      ? 1
-      : phase === "creating"
-      ? needsDeposit
-        ? 2
-        : 0
-      : -1;
+        ? 1
+        : phase === "creating"
+          ? needsDeposit
+            ? 2
+            : 0
+          : -1;
 
   const payeeValid =
     payeeAddress.startsWith("0x") &&
     isAddress(payeeAddress) &&
     payeeAddress.toLowerCase() !== address?.toLowerCase();
+  const payeeFormatErr = payeeAddress && !isAddress(payeeAddress);
+  const payeeSelfErr =
+    payeeAddress &&
+    isAddress(payeeAddress) &&
+    payeeAddress.toLowerCase() === address?.toLowerCase();
 
-  // ── Success screen ─────────────────────────────────────────────────────────
   if (phase === "done") {
     return (
       <DashboardLayout>
-        <div className="mx-auto flex max-w-md flex-col items-center px-6 pt-24 text-center">
+        <div className="mx-auto flex max-w-md flex-col items-center px-6 pt-10 text-center">
           <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
+            initial={{ scale: 0.96, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--success)]"
           >
-            <div className="relative mx-auto mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#35D07F]/10 ring-1 ring-[#35D07F]/25">
-              <div className="absolute inset-0 animate-ping rounded-full bg-[#35D07F]/10" style={{ animationDuration: "1.8s" }} />
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#35D07F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20,6 9,17 4,12" />
-              </svg>
-            </div>
+            <Check size={20} strokeWidth={2} />
           </motion.div>
-          <motion.h2 initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-            className="text-lg font-semibold text-white">
+          <motion.h2
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08, duration: 0.22 }}
+            className="font-display text-[22px] font-semibold tracking-tight text-fg"
+          >
             Stream created
           </motion.h2>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.28 }}
-            className="mt-2 text-[13px] text-white/40">
-            {monthlySalary} {tokenInfo.symbol}/mo to{" "}
-            <span className="font-mono text-white/60">{payeeAddress.slice(0, 8)}…{payeeAddress.slice(-6)}</span>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="mt-2 text-[13.5px] text-fg-mute"
+          >
+            Now streaming{" "}
+            <span className="text-fg">
+              {monthlySalary} {tokenInfo.symbol}
+            </span>
+            /mo to{" "}
+            <span className="font-mono text-fg-dim">
+              {payeeAddress.slice(0, 8)}…{payeeAddress.slice(-6)}
+            </span>
           </motion.p>
           {createTxHash && (
-            <motion.a initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-              href={`https://celoscan.io/tx/${createTxHash}`} target="_blank" rel="noreferrer"
-              className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] text-[#35D07F]/55 hover:text-[#35D07F] transition-colors">
-              View on Celoscan ↗
+            <motion.a
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35 }}
+              href={`https://celoscan.io/tx/${createTxHash}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-1 font-mono text-[11.5px] text-[var(--accent)]/70 hover:text-[var(--accent)] transition-colors"
+            >
+              View on Celoscan
+              <ArrowRight size={11} />
             </motion.a>
           )}
-          <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}
-            onClick={() => router.push("/employer")}
-            className="mt-8 rounded-xl bg-[#35D07F] px-7 py-2.5 text-[13px] font-semibold text-[#050a0e] shadow-lg shadow-[#35D07F]/25 hover:bg-[#3de08d] transition-all active:scale-[0.97]">
-            Back to Dashboard
-          </motion.button>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45 }}
+            className="mt-8"
+          >
+            <Button onClick={() => router.push("/employer")}>
+              Back to dashboard
+            </Button>
+          </motion.div>
         </div>
       </DashboardLayout>
     );
   }
 
-  // ── Main form ──────────────────────────────────────────────────────────────
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-md px-5 py-10">
-        {/* Back */}
+      <div className="mx-auto max-w-[460px] px-5">
         <button
           onClick={() => router.back()}
-          className="mb-6 flex items-center gap-1.5 text-[13px] text-white/30 transition-colors hover:text-white/70"
+          className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-fg-mute transition-colors hover:text-fg"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <polyline points="15,18 9,12 15,6" />
-          </svg>
+          <ArrowLeft size={13} />
           Back
         </button>
 
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-white">Create Stream</h1>
-          <p className="mt-0.5 text-[12px] text-white/30">Set up a per-second salary stream</p>
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-mute">
+            New payroll stream
+          </p>
+          <h1 className="font-display text-[28px] font-semibold leading-[1.2] tracking-[-0.02em] text-fg">
+            Create a salary stream
+          </h1>
+          <p className="mt-1.5 text-[14px] text-fg-dim">
+            Define the employee, token, and monthly rate.
+          </p>
         </div>
 
         <AnimatePresence mode="wait">
-          {/* ── Form step ── */}
           {formStep === "form" && (
-            <motion.div key="form" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} className="space-y-5">
-
-              {/* Employee address */}
-              <div>
-                <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-white/30">
-                  Employee address
-                </label>
-                <input
-                  type="text" value={payeeAddress}
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 4 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-5"
+            >
+              <FieldGroup label="Employee address" hint="EVM address on Celo">
+                <Input
+                  value={payeeAddress}
                   onChange={(e) => setPayeeAddress(e.target.value)}
                   placeholder="0x…"
-                  className={`w-full rounded-xl border bg-white/[0.03] px-4 py-3 font-mono text-[13px] text-white placeholder-white/20 focus:outline-none transition-colors ${
-                    payeeAddress && !payeeValid
-                      ? "border-red-400/30 focus:border-red-400/50"
-                      : "border-white/[0.07] focus:border-[#35D07F]/35"
-                  }`}
+                  mono
+                  invalid={!!(payeeFormatErr || payeeSelfErr)}
                 />
-                {payeeAddress && !isAddress(payeeAddress) && (
-                  <p className="mt-1.5 flex items-center gap-1 text-[11px] text-red-400/80">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor" strokeWidth="3"/></svg>
-                    Invalid address
-                  </p>
+                {payeeFormatErr && (
+                  <FieldError>Invalid address.</FieldError>
                 )}
-                {payeeAddress && isAddress(payeeAddress) && payeeAddress.toLowerCase() === address?.toLowerCase() && (
-                  <p className="mt-1.5 flex items-center gap-1 text-[11px] text-red-400/80">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor" strokeWidth="3"/></svg>
-                    Cannot stream to yourself
-                  </p>
+                {payeeSelfErr && (
+                  <FieldError>You cannot stream to yourself.</FieldError>
                 )}
-              </div>
+              </FieldGroup>
 
-              {/* Token selector */}
-              <div>
-                <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-white/30">
-                  Token
-                </label>
-                <div className="flex gap-2">
+              <FieldGroup label="Token">
+                <div className="grid grid-cols-3 gap-2">
                   {TOKEN_LIST.map((t) => (
-                    <button key={t.symbol} onClick={() => setSelectedToken(t.symbol)}
-                      className={`flex-1 rounded-xl border py-2.5 text-[12px] font-medium transition-all duration-200 ${
+                    <button
+                      key={t.symbol}
+                      onClick={() => setSelectedToken(t.symbol)}
+                      className={cn(
+                        "rounded-xl border px-3 py-3 text-left transition-all duration-200 ease-out",
                         selectedToken === t.symbol
-                          ? "border-[#35D07F]/30 bg-[#35D07F]/8 text-[#35D07F]"
-                          : "border-white/[0.07] text-white/35 hover:text-white/60 hover:border-white/[0.12]"
-                      }`}>
-                      {t.symbol}
+                          ? "border-[var(--accent)]/40 bg-[var(--color-accent-soft)]"
+                          : "border-[var(--border)] bg-[var(--color-surface)] hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)]",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex items-center gap-2 text-[13px] font-medium",
+                          selectedToken === t.symbol
+                            ? "text-[var(--accent-3)]"
+                            : "text-fg",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            selectedToken === t.symbol
+                              ? "bg-[var(--accent)]"
+                              : "bg-fg-faint",
+                          )}
+                        />
+                        {t.symbol}
+                      </div>
+                      <p className="mt-1 text-[11.5px] text-fg-mute">{t.name}</p>
                     </button>
                   ))}
                 </div>
-              </div>
+              </FieldGroup>
 
-              {/* Monthly salary */}
-              <div>
-                <label className="mb-2 block text-[11px] font-medium uppercase tracking-[0.1em] text-white/30">
-                  Monthly salary
-                </label>
-                <div className="relative">
-                  <input
-                    type="number" value={monthlySalary} min="0"
-                    onChange={(e) => setMonthlySalary(e.target.value)}
-                    placeholder="1000"
-                    className="w-full rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-3 pr-24 text-[13px] text-white placeholder-white/20 focus:border-[#35D07F]/35 focus:outline-none transition-colors"
+              <FieldGroup
+                label="Monthly salary"
+                hint="We'll compute a precise per-second rate"
+              >
+                <Input
+                  type="number"
+                  value={monthlySalary}
+                  onChange={(e) => setMonthlySalary(e.target.value)}
+                  placeholder="1,000"
+                  trailing={`${tokenInfo.symbol}/mo`}
+                  min="0"
+                />
+                {monthlyNum > 0 && (
+                  <RateBreakdown
+                    perDay={perDay}
+                    perHour={perHour}
+                    perMinute={perMinute}
+                    perSec={perSec}
+                    symbol={tokenInfo.symbol}
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] text-white/25">
-                    {tokenInfo.symbol}/mo
-                  </span>
-                </div>
-                {amountPerSec > 0n && (
-                  <p className="mt-1.5 text-[11px] text-white/25">
-                    ≈ {perSecDisplay} {tokenInfo.symbol}/sec
-                  </p>
                 )}
+              </FieldGroup>
+
+              <div className="flex items-center justify-between rounded-xl bg-[var(--color-surface)] border border-[var(--border)] px-4 py-3">
+                <span className="text-[12.5px] text-[var(--fg-mute)]">Vault balance</span>
+                <span className="font-mono text-[13px] text-[var(--fg-dim)]">
+                  {vaultNum.toFixed(2)} {tokenInfo.symbol}
+                </span>
               </div>
 
-              {/* Vault hint */}
-              <div className="flex items-center justify-between rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 py-2.5">
-                <span className="text-[11px] text-white/25">Vault balance</span>
-                <span className="font-mono text-[12px] text-white/45">{vaultNum.toFixed(2)} {tokenInfo.symbol}</span>
-              </div>
-
-              <button
+              <Button
                 onClick={() => setFormStep("review")}
                 disabled={!payeeValid || !monthlySalary || amountPerSec === 0n}
-                className="w-full rounded-xl bg-[#35D07F] py-3 text-[13px] font-semibold text-[#050a0e] shadow-lg shadow-[#35D07F]/20 hover:bg-[#3de08d] hover:shadow-[#35D07F]/30 disabled:opacity-30 disabled:shadow-none transition-all"
+                className="w-full"
+                rightIcon={<ArrowRight size={14} />}
               >
-                Review →
-              </button>
+                Review
+              </Button>
             </motion.div>
           )}
 
-          {/* ── Review step ── */}
           {formStep === "review" && (
-            <motion.div key="review" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }} className="space-y-4">
-
-              {/* Summary card */}
-              <div className="card overflow-hidden">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-                <div className="divide-y divide-white/[0.05] px-5">
-                  {[
-                    { label: "To", value: `${payeeAddress.slice(0, 10)}…${payeeAddress.slice(-8)}`, mono: true },
-                    { label: "Token", value: tokenInfo.symbol },
-                    { label: "Monthly", value: `${monthlySalary} ${tokenInfo.symbol}` },
-                    { label: "Per second", value: `${perSecDisplay} ${tokenInfo.symbol}` },
-                    { label: "Vault balance", value: `${vaultNum.toFixed(2)} ${tokenInfo.symbol}` },
-                  ].map((row) => (
-                    <div key={row.label} className="flex items-center justify-between py-3 text-[13px]">
-                      <span className="text-white/35">{row.label}</span>
-                      <span className={row.mono ? "font-mono text-white/60" : "text-white/80"}>{row.value}</span>
-                    </div>
-                  ))}
+            <motion.div
+              key="review"
+              initial={{ opacity: 0, x: 4 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -4 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4"
+            >
+              <Card padded={false}>
+                <div className="divide-y divide-[var(--border)]">
+                  <SummaryRow
+                    label="Streaming to"
+                    value={
+                      <span className="font-mono text-fg">
+                        {payeeAddress.slice(0, 10)}…
+                        {payeeAddress.slice(-8)}
+                      </span>
+                    }
+                  />
+                  <SummaryRow label="Token" value={tokenInfo.symbol} />
+                  <SummaryRow
+                    label="Monthly rate"
+                    value={
+                      <span className="tabular font-mono text-fg">
+                        {Number(monthlySalary).toLocaleString()} {tokenInfo.symbol}
+                      </span>
+                    }
+                  />
+                  <SummaryRow
+                    label="Per second"
+                    value={
+                      <span className="tabular font-mono text-[var(--accent-3)]">
+                        <AnimatedNumber value={perSec} decimals={8} /> {tokenInfo.symbol}
+                      </span>
+                    }
+                  />
+                  <SummaryRow
+                    label="Vault balance"
+                    value={
+                      <span className="font-mono text-fg-dim">
+                        {vaultNum.toFixed(2)} {tokenInfo.symbol}
+                      </span>
+                    }
+                  />
                 </div>
-              </div>
+              </Card>
 
-              {/* Top-up notice */}
-              {vaultNum < Number(monthlySalary) && (
-                <div className="flex items-start gap-3 rounded-xl border border-amber-400/15 bg-amber-400/5 px-4 py-3">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" className="mt-[1px] shrink-0 opacity-70">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="0.5" fill="#FBBF24" strokeWidth="2"/>
-                  </svg>
-                  <p className="text-[12px] text-amber-400/75">
+              {vaultNum < monthlyNum && (
+                <div className="flex items-start gap-3 rounded-xl border border-[var(--warn)]/20 bg-[var(--warn)]/[0.05] px-4 py-3">
+                  <AlertTriangle
+                    size={14}
+                    className="mt-0.5 shrink-0 text-[var(--warn)]"
+                  />
+                  <p className="text-[12.5px] leading-relaxed text-[var(--warn)]/90">
                     Vault needs top-up — we&apos;ll approve and deposit{" "}
-                    <span className="font-mono text-amber-400/90">{(Number(monthlySalary) - vaultNum).toFixed(2)} {tokenInfo.symbol}</span>{" "}
+                    <span className="font-mono text-[var(--warn)]">
+                      {(monthlyNum - vaultNum).toFixed(2)} {tokenInfo.symbol}
+                    </span>{" "}
                     before creating the stream.
                   </p>
                 </div>
               )}
 
-              {/* Tx progress */}
               {isPending && (
-                <div className="flex items-center gap-2 rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 py-3 text-[11px]">
+                <div className="flex items-center gap-2 rounded-xl bg-[var(--color-surface-2)] px-4 py-3 text-[12px]">
                   {steps.map((label, i) => (
-                    <span key={label} className="flex items-center gap-1">
-                      <StepDot active={activeStep === i} done={activeStep > i} label={label} />
-                      {i < steps.length - 1 && <span className="text-white/15">→</span>}
+                    <span key={label} className="flex items-center gap-2">
+                      <StepDot
+                        active={activeStep === i}
+                        done={activeStep > i}
+                        label={label}
+                      />
+                      {i < steps.length - 1 && (
+                        <span className="text-fg-faint">→</span>
+                      )}
                     </span>
                   ))}
                 </div>
               )}
 
-              {/* Actions */}
               <div className="flex gap-3">
-                <button onClick={() => setFormStep("form")} disabled={isPending}
-                  className="flex-1 rounded-xl border border-white/[0.07] py-2.5 text-[13px] text-white/40 transition-all hover:border-white/[0.12] hover:text-white/70 disabled:opacity-40">
+                <Button
+                  variant="secondary"
+                  onClick={() => setFormStep("form")}
+                  disabled={isPending}
+                  className="flex-1"
+                >
                   Edit
-                </button>
-                <button onClick={phase === "error" ? handleReset : handleStart} disabled={isPending}
-                  className="flex-1 rounded-xl bg-[#35D07F] py-2.5 text-[13px] font-semibold text-[#050a0e] shadow-md shadow-[#35D07F]/20 hover:bg-[#3de08d] disabled:opacity-40 disabled:shadow-none transition-all">
+                </Button>
+                <Button
+                  onClick={phase === "error" ? handleReset : handleStart}
+                  disabled={isPending}
+                  loading={isPending}
+                  className="flex-1"
+                  leftIcon={
+                    !isPending && phase !== "error" ? (
+                      <Check size={14} />
+                    ) : null
+                  }
+                >
                   {PHASE_LABEL[phase]}
-                </button>
+                </Button>
               </div>
             </motion.div>
           )}
@@ -500,15 +613,136 @@ export default function CreateStream() {
   );
 }
 
-// ── Step dot ──────────────────────────────────────────────────────────────────
-
-function StepDot({ active, done, label }: { active: boolean; done: boolean; label: string }) {
+function FieldGroup({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <span className={`flex items-center gap-1 transition-colors ${done ? "text-[#35D07F]" : active ? "text-white" : "text-white/25"}`}>
-      <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full border text-[9px] font-bold ${
-        done ? "border-[#35D07F] bg-[#35D07F]/10" : active ? "border-white/30 bg-white/5" : "border-white/10"
-      }`}>
-        {done ? "✓" : active ? "·" : ""}
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-fg-mute">
+          {label}
+        </label>
+        {hint ? (
+          <span className="text-[11.5px] text-fg-faint">{hint}</span>
+        ) : null}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function FieldError({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-1.5 flex items-center gap-1 text-[11.5px] text-[var(--danger)]/90">
+      <AlertTriangle size={11} />
+      {children}
+    </p>
+  );
+}
+
+function RateBreakdown({
+  perDay,
+  perHour,
+  perMinute,
+  perSec,
+  symbol,
+}: {
+  perDay: number;
+  perHour: number;
+  perMinute: number;
+  perSec: number;
+  symbol: string;
+}) {
+  const rows: [string, number, number][] = [
+    ["per day", perDay, 4],
+    ["per hour", perHour, 6],
+    ["per min", perMinute, 6],
+    ["per sec", perSec, 8],
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 2 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className="mt-3 overflow-hidden rounded-xl border border-[var(--border)]"
+    >
+      <div className="grid grid-cols-4 divide-x divide-[var(--divider)]">
+        {rows.map(([label, value, decimals], i) => {
+          const isSec = i === rows.length - 1;
+          return (
+            <div key={label} className="px-3 py-3 bg-[var(--color-surface-2)]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-fg-mute">
+                {label}
+              </p>
+              <p
+                className={cn(
+                  "mt-1 font-mono text-[12px] tabular truncate",
+                  isSec ? "text-[var(--accent-3)]" : "text-fg-dim",
+                )}
+              >
+                <AnimatedNumber value={value} decimals={decimals} />
+              </p>
+              <p className="text-[10px] text-fg-faint">{symbol}</p>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between px-5 py-3 text-[13px]">
+      <span className="text-fg-mute">{label}</span>
+      <span className="text-fg">{value}</span>
+    </div>
+  );
+}
+
+function StepDot({
+  active,
+  done,
+  label,
+}: {
+  active: boolean;
+  done: boolean;
+  label: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 transition-colors",
+        done
+          ? "text-[var(--accent)]"
+          : active
+            ? "text-fg"
+            : "text-fg-faint",
+      )}
+    >
+      <span
+        className={cn(
+          "inline-flex h-4 w-4 items-center justify-center rounded-full border text-[9px] font-bold",
+          done
+            ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+            : active
+              ? "border-[var(--border-strong)] bg-[var(--color-surface-2)]"
+              : "border-white/10",
+        )}
+      >
+        {done ? <Check size={8} strokeWidth={3} /> : null}
       </span>
       {label}
     </span>

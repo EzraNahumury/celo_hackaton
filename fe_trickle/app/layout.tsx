@@ -1,9 +1,25 @@
 import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import { AnimatedBackground } from "@/components/ui/animated-background";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  variable: "--font-jb",
+});
 
 export const metadata: Metadata = {
-  title: "Trickle - Payroll Streaming on Celo",
+  title: "Trickle — Payroll streaming on Celo",
   description:
     "Real-time salary streaming powered by Celo stablecoins. Get paid every second.",
   icons: {
@@ -18,21 +34,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body suppressHydrationWarning className="font-sora antialiased min-h-full flex flex-col bg-hero-bg">
-        <Providers>{children}</Providers>
+    <html
+      lang="en"
+      className={`${inter.variable} ${mono.variable} h-full antialiased`}
+    >
+      <body
+        suppressHydrationWarning
+        className="min-h-full text-fg font-sans"
+      >
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <Providers>{children}</Providers>
+        </div>
       </body>
     </html>
   );

@@ -27,7 +27,10 @@
       "Bash(curl -s -X POST \"https://faucet.celo.org/api/faucet\" -H \"Content-Type: application/json\" -d '{\"address\":\"0xD1C2be4e157E183AB87081391c882923DB5f2fC3\",\"token\":\"CELO\"}')",
       "Bash(curl:*)",
       "Bash(netstat -ano)",
-      "Bash(rtk tsc:*)"
+      "Bash(rtk tsc:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(grep -l \"coinbaseWallet\\\\|metaMask\\\\|walletConnect\" C:/celo_hackaton/fe_trickle/node_modules/wagmi/dist/esm/connectors/*.js)"
     ]
   }
 }

@@ -3,126 +3,103 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { injected } from "wagmi/connectors";
-import { usePathname } from "next/navigation";
-
-const NAV_LINKS = [
-  { label: "Employer", href: "/employer" },
-  { label: "Employee", href: "/employee" },
-];
+import { useAccount } from "wagmi";
+import { motion } from "framer-motion";
+import { Wallet, Bell } from "lucide-react";
+import { WalletModal } from "./ui/wallet-modal";
 
 export default function Navbar() {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
-  const { disconnect } = useDisconnect();
-  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
-  const connected = mounted && isConnected;
-
   return (
-    /* Outer: full-width fixed, pointer-events-none so content below is clickable */
-    <div className="pointer-events-none fixed left-0 right-0 top-4 z-50 flex justify-center px-4">
-
-      {/* Floating glass pill */}
-      <div
-        className="pointer-events-auto relative w-full max-w-[720px] overflow-hidden rounded-2xl"
-        style={{
-          background: "rgba(5, 8, 12, 0.82)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          border: "1px solid rgba(255, 255, 255, 0.09)",
-          boxShadow:
-            "0 8px 40px rgba(0,0,0,0.6), 0 2px 0 rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.08)",
-        }}
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-center px-4 pt-4">
+      <motion.nav
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+        className="pointer-events-auto relative w-full max-w-[440px]"
       >
-        {/* Top-edge highlight */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div
+          className="relative rounded-[24px] border border-black/5"
+          style={{
+            background: "rgba(255, 255, 255, 0.96)",
+            backdropFilter: "blur(22px) saturate(160%)",
+            WebkitBackdropFilter: "blur(22px) saturate(160%)",
+            boxShadow:
+              "0 20px 36px -12px rgba(0,0,0,0.4), 0 6px 14px -8px rgba(0,0,0,0.25)",
+          }}
+        >
+          <div className="relative flex h-[52px] items-center justify-between px-2.5">
+            <Link
+              href="/"
+              className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-slate-100/80"
+            >
+              <span
+                className="grid h-7 w-7 place-items-center overflow-hidden rounded-xl"
+                style={{
+                  background:
+                    "linear-gradient(140deg, #E0E7FF 0%, #C7D2FE 100%)",
+                }}
+              >
+                <Image
+                  src="/logo.png"
+                  alt=""
+                  width={16}
+                  height={16}
+                  className="h-4 w-4 object-contain"
+                  priority
+                />
+              </span>
+              <span className="text-[14px] font-semibold tracking-tight text-slate-900">
+                Trickle
+              </span>
+            </Link>
 
-        <div className="flex h-[52px] items-center justify-between px-4">
-
-          {/* ── Logo ── */}
-          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
-            <Image
-              src="/logo.png"
-              alt="Trickle"
-              width={28}
-              height={28}
-              className="h-7 w-7 object-contain transition-transform duration-300 group-hover:scale-105"
-              priority
-            />
-            <span className="text-[14px] font-semibold tracking-tight text-white/85">
-              Trickle
-            </span>
-          </Link>
-
-          {/* ── Center nav — only when connected ── */}
-          {connected && (
-            <div className="absolute left-1/2 -translate-x-1/2">
-              <div className="flex items-center gap-0.5 rounded-xl bg-white/[0.05] p-[3px]">
-                {NAV_LINKS.map((link) => {
-                  const active = pathname?.startsWith(link.href);
-                  return (
-                    <Link
-                      key={link.label}
-                      href={link.href}
-                      className={`relative rounded-lg px-4 py-1.5 text-[12px] font-medium transition-all duration-200 ${
-                        active
-                          ? "bg-white/[0.1] text-white shadow-sm"
-                          : "text-white/40 hover:text-white/70"
-                      }`}
-                    >
-                      {link.label}
-                      {active && (
-                        <span className="absolute bottom-[3px] left-1/2 h-[2px] w-3 -translate-x-1/2 rounded-full bg-[#35D07F]/70" />
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
+            <div className="flex items-center gap-1.5">
+              {mounted && isConnected && address ? (
+                <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-[#10B981]"
+                    aria-hidden
+                  />
+                  <span className="font-mono text-[11.5px] font-medium text-slate-600">
+                    {address.slice(0, 5)}…{address.slice(-4)}
+                  </span>
+                </span>
+              ) : (
+                mounted && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                    onClick={() => setWalletOpen(true)}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#2F3FFF] px-3.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#1D2BE8]"
+                    style={{
+                      boxShadow: "0 6px 16px -4px rgba(47,63,255,0.5)",
+                    }}
+                  >
+                    <Wallet size={13} strokeWidth={2.25} />
+                    Connect
+                  </motion.button>
+                )
+              )}
+              <button
+                aria-label="Notifications"
+                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
+              >
+                <Bell size={14} strokeWidth={2} />
+              </button>
             </div>
-          )}
-
-          {/* ── Right: wallet ── */}
-          <div className="flex shrink-0 items-center gap-2">
-            {connected ? (
-              <>
-                {/* Address pill */}
-                <div className="hidden items-center gap-2 rounded-xl bg-white/[0.05] px-3 py-1.5 sm:flex">
-                  <span className="relative flex h-[7px] w-[7px] shrink-0">
-                    <span className="absolute inset-0 animate-ping rounded-full bg-[#35D07F] opacity-50" />
-                    <span className="relative h-[7px] w-[7px] rounded-full bg-[#35D07F]" />
-                  </span>
-                  <span className="font-mono text-[11px] text-white/50">
-                    {address?.slice(0, 6)}…{address?.slice(-4)}
-                  </span>
-                </div>
-
-                {/* Disconnect */}
-                <button
-                  onClick={() => disconnect()}
-                  className="rounded-xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-1.5 text-[12px] text-white/40 transition-all hover:border-white/[0.12] hover:text-white/70"
-                >
-                  Disconnect
-                </button>
-              </>
-            ) : (
-              mounted && (
-                <button
-                  onClick={() => connect({ connector: injected() })}
-                  className="rounded-xl bg-[#35D07F] px-4 py-1.5 text-[12px] font-semibold text-[#050a0e] shadow-md shadow-[#35D07F]/30 transition-all hover:bg-[#3de08d] active:scale-[0.97]"
-                >
-                  Connect
-                </button>
-              )
-            )}
           </div>
-
         </div>
-      </div>
+      </motion.nav>
+
+      <WalletModal open={walletOpen} onClose={() => setWalletOpen(false)} />
     </div>
   );
 }

@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { formatUnits } from "viem";
 import { motion } from "framer-motion";
+import { ArrowDownToLine, Clock, X, ArrowRight } from "lucide-react";
 import { TOKEN_LIST } from "@/config/tokens";
+import { Button } from "./ui/Button";
+import { StreamTicker } from "./ui/AnimatedNumber";
 
 interface StreamCardProps {
   payer: string;
@@ -18,7 +21,13 @@ interface StreamCardProps {
   isPending?: boolean;
 }
 
-function getTokenInfo(address: string) {
+const TOKEN_COLORS: Record<string, { bg: string; fg: string }> = {
+  cUSD: { bg: "#1E2141", fg: "#A5B4FC" },
+  USDC: { bg: "#0F2A4A", fg: "#7DD3FC" },
+  USDT: { bg: "#0E2A22", fg: "#6EE7B7" },
+};
+
+function tokenInfo(address: string) {
   return (
     TOKEN_LIST.find((t) => t.address.toLowerCase() === address.toLowerCase()) ??
     { symbol: "???", decimals: 18 }
@@ -38,163 +47,167 @@ function elapsed(from: number, nowSec: number) {
 }
 
 export default function StreamCard({
-  payer, payee, token, amountPerSec, lastPaid, startTime,
-  role, onWithdraw, onCancel, isPending,
+  payer,
+  payee,
+  token,
+  amountPerSec,
+  lastPaid,
+  startTime,
+  role,
+  onWithdraw,
+  onCancel,
+  isPending,
 }: StreamCardProps) {
-  const [now, setNow] = useState(0);
-  const tokenInfo = getTokenInfo(token);
+  const [now, setNow] = React.useState(0);
+  const info = tokenInfo(token);
+  const color = TOKEN_COLORS[info.symbol] ?? {
+    bg: "#252A3D",
+    fg: "#B8BECE",
+  };
 
-  useEffect(() => {
+  React.useEffect(() => {
     setNow(Math.floor(Date.now() / 1000));
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const accrued     = amountPerSec * BigInt(Math.max(0, now - lastPaid));
-  const monthlyRate = amountPerSec * 2592000n;
-  const totalSent   = amountPerSec * BigInt(Math.max(0, now - startTime));
-
-  const accruedNum  = parseFloat(formatUnits(accrued,     tokenInfo.decimals));
-  const monthlyNum  = parseFloat(formatUnits(monthlyRate, tokenInfo.decimals));
-  const totalNum    = parseFloat(formatUnits(totalSent,   tokenInfo.decimals));
+  const accruedSince = amountPerSec * BigInt(Math.max(0, now - lastPaid));
+  const accrued = parseFloat(formatUnits(accruedSince, info.decimals));
+  const ratePerSec = parseFloat(formatUnits(amountPerSec, info.decimals));
+  const monthly = parseFloat(
+    formatUnits(amountPerSec * 2592000n, info.decimals),
+  );
+  const total = parseFloat(
+    formatUnits(
+      amountPerSec * BigInt(Math.max(0, now - startTime)),
+      info.decimals,
+    ),
+  );
 
   const counterParty = role === "payer" ? payee : payer;
+  const directionLabel = role === "payer" ? "Paying" : "From";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="card relative overflow-hidden"
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      className="surface-elev p-5"
     >
-      {/* Inner top sheen */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-
-      <div className="p-5">
-        {/* ── Top row: token + direction + monthly ── */}
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            {/* Live badge */}
-            <div className="flex items-center gap-1.5 rounded-full border border-[#35D07F]/20 bg-[#35D07F]/8 px-2.5 py-1">
-              <span className="relative flex h-[6px] w-[6px]">
-                <span className="absolute inset-0 animate-ping rounded-full bg-[#35D07F] opacity-50" />
-                <span className="relative h-[6px] w-[6px] rounded-full bg-[#35D07F]" />
-              </span>
-              <span className="text-[11px] font-semibold text-[#35D07F]">
-                {tokenInfo.symbol}
-              </span>
+      {/* Head */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[11.5px] font-bold"
+            style={{ background: color.bg, color: color.fg }}
+          >
+            {info.symbol[0]}
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--fg)]">
+              <span>{info.symbol} stream</span>
             </div>
-
-            {/* Direction + address */}
-            <span className="text-[12px] text-white/30">
-              {role === "payer" ? "→" : "←"}{" "}
-              <span className="font-mono text-white/50">{shortAddr(counterParty)}</span>
-            </span>
-          </div>
-
-          {/* Monthly rate */}
-          <div className="text-right">
-            <span className="font-mono text-[13px] font-medium text-white/60">
-              {monthlyNum.toFixed(2)}
-            </span>
-            <span className="ml-1 text-[11px] text-white/25">/mo</span>
-          </div>
-        </div>
-
-        {/* ── Withdrawable counter (payee only) ── */}
-        {role === "payee" && (
-          <div className="card-highlight relative mb-4 overflow-hidden px-4 py-3.5">
-            {/* Ambient glow */}
-            <div
-              className="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full opacity-70"
-              style={{ background: "radial-gradient(circle, rgba(53,208,127,0.15) 0%, transparent 70%)" }}
-            />
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#35D07F]/25 to-transparent" />
-
-            <p className="mb-1.5 text-[9px] font-medium uppercase tracking-[0.15em] text-[#35D07F]/50">
-              Withdrawable
-            </p>
-            <div className="flex items-baseline gap-1.5" suppressHydrationWarning>
-              <span className="font-mono text-[20px] font-bold tabular-nums text-[#35D07F]">
-                {accruedNum.toFixed(8)}
-              </span>
-              <span className="text-[11px] text-[#35D07F]/50">{tokenInfo.symbol}</span>
+            <div className="flex items-center gap-1 text-[12px] text-[var(--fg-mute)]">
+              <span>{directionLabel}</span>
+              <ArrowRight size={10} className="opacity-60" />
+              <span className="font-mono">{shortAddr(counterParty)}</span>
             </div>
           </div>
-        )}
-
-        {/* ── Stats row ── */}
-        <div className="mb-4 flex items-center gap-5 text-[11px]">
-          <div className="flex items-center gap-1.5 text-white/30">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
-            </svg>
-            <span>
-              <span className="font-mono text-white/50">{totalNum.toFixed(4)}</span>
-              <span className="ml-1 text-white/25">streamed</span>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-white/30">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10" /><polyline points="12,6 12,12 16,14" />
-            </svg>
-            <span>
-              {now > 0 && (
-                <span className="font-mono text-white/50">{elapsed(startTime, now)}</span>
-              )}
-              <span className="ml-1 text-white/25">running</span>
-            </span>
-          </div>
-
-          <div className="ml-auto text-[10px] text-white/20">
-            since {new Date(startTime * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-          </div>
         </div>
-
-        {/* ── Action button ── */}
-        {role === "payee" && onWithdraw && (
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={onWithdraw}
-            disabled={isPending || accruedNum === 0}
-            className="w-full rounded-xl bg-[#35D07F] py-2.5 text-[13px] font-semibold text-[#050a0e] shadow-md shadow-[#35D07F]/20 transition-all hover:bg-[#3de08d] hover:shadow-[#35D07F]/30 disabled:opacity-40 disabled:shadow-none"
-          >
-            {isPending ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" />
-                </svg>
-                Withdrawing…
-              </span>
-            ) : "Withdraw"}
-          </motion.button>
-        )}
-
-        {role === "payer" && onCancel && (
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={onCancel}
-            disabled={isPending}
-            className="group w-full rounded-xl border border-white/[0.07] py-2.5 text-[13px] font-medium text-white/40 transition-all hover:border-red-400/25 hover:bg-red-400/5 hover:text-red-400 disabled:opacity-40"
-          >
-            {isPending ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" />
-                </svg>
-                Cancelling…
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-1.5">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="opacity-60 group-hover:opacity-100">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-                Cancel Stream
-              </span>
-            )}
-          </motion.button>
-        )}
+        <div className="shrink-0 text-right">
+          <div className="font-mono text-[14px] font-semibold text-[var(--fg)] tabular">
+            {monthly.toLocaleString("en-US", { maximumFractionDigits: 2 })}
+          </div>
+          <div className="text-[11px] text-[var(--fg-mute)]">per month</div>
+        </div>
       </div>
+
+      {/* Primary number */}
+      {role === "payee" ? (
+        <div className="mb-5 rounded-2xl bg-[var(--color-accent-soft)] border border-[var(--accent)]/15 px-4 py-3.5">
+          <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-3)]">
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse-dot"
+              aria-hidden
+            />
+            Withdrawable
+          </div>
+          <div className="font-mono text-[26px] font-bold leading-none tabular text-[var(--fg)]">
+            <StreamTicker
+              ratePerSec={ratePerSec}
+              startValue={accrued}
+              decimals={8}
+            />
+            <span className="ml-2 text-[13px] font-semibold text-[var(--fg-mute)]">
+              {info.symbol}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-5 flex items-center gap-2 rounded-2xl bg-[var(--color-bg-2)] border border-[var(--border)] px-4 py-3 text-[13px] text-[var(--fg-mute)]">
+          <span
+            className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse-dot"
+            aria-hidden
+          />
+          Streaming{" "}
+          <span className="font-mono text-[var(--fg-dim)]">
+            {ratePerSec.toFixed(8)}
+          </span>{" "}
+          <span className="text-[var(--fg-faint)]">{info.symbol}/sec</span>
+        </div>
+      )}
+
+      {/* Meta */}
+      <div className="mb-5 flex items-center justify-between text-[12.5px] text-[var(--fg-mute)]">
+        <div className="flex items-center gap-4">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="font-mono text-[var(--fg-dim)]">
+              {total.toFixed(4)}
+            </span>
+            <span className="text-[var(--fg-faint)]">streamed</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Clock size={11} className="opacity-70" />
+            <span className="font-mono text-[var(--fg-dim)]">
+              {now > 0 ? elapsed(startTime, now) : "…"}
+            </span>
+          </span>
+        </div>
+        <span className="text-[var(--fg-faint)]">
+          since{" "}
+          {new Date(startTime * 1000).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
+      </div>
+
+      {role === "payee" && onWithdraw && (
+        <Button
+          shape="pill"
+          onClick={onWithdraw}
+          disabled={isPending || accrued === 0}
+          loading={isPending}
+          leftIcon={!isPending ? <ArrowDownToLine size={14} /> : null}
+          className="w-full"
+        >
+          Withdraw
+        </Button>
+      )}
+
+      {role === "payer" && onCancel && (
+        <Button
+          variant="secondary"
+          shape="pill"
+          onClick={onCancel}
+          disabled={isPending}
+          loading={isPending}
+          leftIcon={!isPending ? <X size={14} /> : null}
+          className="w-full"
+        >
+          Cancel stream
+        </Button>
+      )}
     </motion.div>
   );
 }

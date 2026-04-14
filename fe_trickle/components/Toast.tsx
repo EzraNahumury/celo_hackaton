@@ -128,27 +128,23 @@ const ICONS: Record<ToastType, React.ReactNode> = {
 
 const STYLE: Record<
   ToastType,
-  { icon: string; border: string; bar: string }
+  { icon: string; bar: string }
 > = {
   success: {
-    icon: "text-[#35D07F] bg-[#35D07F]/10",
-    border: "border-[#35D07F]/20",
-    bar: "bg-[#35D07F]",
+    icon: "text-[var(--success)] bg-[var(--color-success-soft)]",
+    bar: "bg-[var(--success)]",
   },
   error: {
-    icon: "text-red-400 bg-red-400/10",
-    border: "border-red-400/20",
-    bar: "bg-red-400",
+    icon: "text-[var(--danger)] bg-[var(--color-danger-soft)]",
+    bar: "bg-[var(--danger)]",
   },
   pending: {
-    icon: "text-amber-400 bg-amber-400/10",
-    border: "border-amber-400/20",
-    bar: "bg-amber-400",
+    icon: "text-[var(--warn)] bg-[var(--color-warn-soft)]",
+    bar: "bg-[var(--warn)]",
   },
   info: {
-    icon: "text-blue-400 bg-blue-400/10",
-    border: "border-blue-400/20",
-    bar: "bg-blue-400",
+    icon: "text-[var(--accent)] bg-[var(--accent-soft)]",
+    bar: "bg-[var(--accent)]",
   },
 };
 
@@ -190,26 +186,23 @@ function ToastCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 8, scale: 0.95, transition: { duration: 0.14 } }}
       transition={{ type: "spring", stiffness: 320, damping: 30 }}
-      className={`pointer-events-auto relative overflow-hidden rounded-xl border ${s.border} bg-[#0e1419]/95 shadow-2xl shadow-black/60 backdrop-blur-sm`}
+      className="pointer-events-auto relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)] shadow-[var(--shadow-lg)]"
     >
-      {/* Colored left bar */}
       <span className={`absolute left-0 top-0 bottom-0 w-[3px] ${s.bar}`} />
 
-      <div className="flex items-start gap-3 px-4 py-3 pl-5">
-        {/* Icon */}
+      <div className="flex items-start gap-3 px-4 py-3.5 pl-5">
         <span
-          className={`mt-[1px] flex h-[20px] w-[20px] flex-shrink-0 items-center justify-center rounded-full ${s.icon}`}
+          className={`mt-[1px] flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${s.icon}`}
         >
           {ICONS[item.type]}
         </span>
 
-        {/* Body */}
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-medium leading-snug text-white/90">
+          <p className="text-[13.5px] font-semibold leading-snug text-[var(--fg)]">
             {item.message}
           </p>
           {item.description && (
-            <p className="mt-0.5 text-[11px] leading-relaxed text-white/40">
+            <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--fg-mute)]">
               {item.description}
             </p>
           )}
@@ -218,10 +211,10 @@ function ToastCard({
               href={`https://celoscan.io/tx/${item.txHash}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-flex items-center gap-1 font-mono text-[11px] text-[#35D07F]/60 transition-colors hover:text-[#35D07F]"
+              className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11.5px] font-medium text-[var(--accent)] transition-colors hover:text-[var(--accent-2)]"
             >
               {item.txHash.slice(0, 8)}…{item.txHash.slice(-6)}
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
                 <polyline points="15,3 21,3 21,9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
@@ -230,10 +223,9 @@ function ToastCard({
           )}
         </div>
 
-        {/* Dismiss */}
         <button
           onClick={() => onDismiss(item.id)}
-          className="mt-0.5 flex-shrink-0 rounded p-0.5 text-white/20 transition-colors hover:text-white/60"
+          className="mt-0.5 flex-shrink-0 rounded p-0.5 text-[var(--fg-faint)] transition-colors hover:text-[var(--fg-dim)]"
           aria-label="Dismiss notification"
         >
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
