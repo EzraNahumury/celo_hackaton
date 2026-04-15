@@ -5,37 +5,33 @@ export interface TokenInfo {
   decimals: number;
 }
 
-// Celo Mainnet stablecoins
+/**
+ * Tokens on Celo Sepolia Testnet (chain 11142220)
+ * USDC is the primary token for TrickleVault streams.
+ */
 export const TOKENS: Record<string, TokenInfo> = {
-  cUSD: {
-    address: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
-    symbol: "cUSD",
-    name: "Celo Dollar",
-    decimals: 18,
-  },
   USDC: {
-    address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
+    address: "0x01C5C0122039549AD1493B8220cABEdD739BC44E",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
   },
+  USDm: {
+    address: "0xEF4d55D6dE8e8d73232827Cd1e9b2F2dBb45bC80",
+    symbol: "USDm",
+    name: "Mento Dollar",
+    decimals: 18,
+  },
   USDT: {
-    address: "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+    address: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
     symbol: "USDT",
     name: "Tether USD",
     decimals: 6,
   },
 };
 
-// Alfajores testnet stablecoins
-export const TESTNET_TOKENS: Record<string, TokenInfo> = {
-  cUSD: {
-    address: "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
-    symbol: "cUSD",
-    name: "Celo Dollar",
-    decimals: 18,
-  },
-};
-
 export const TOKEN_LIST = Object.values(TOKENS);
-export const TESTNET_TOKEN_LIST = Object.values(TESTNET_TOKENS);
+
+// Kept for reference — Alfajores was sunset end of 2025, do not use
+export const TESTNET_TOKENS = TOKENS;
+export const TESTNET_TOKEN_LIST = TOKEN_LIST;

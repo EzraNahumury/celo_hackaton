@@ -8,6 +8,43 @@ import { TOKEN_LIST } from "@/config/tokens";
 import { Button } from "./ui/Button";
 import { StreamTicker } from "./ui/AnimatedNumber";
 
+/** Shaped skeleton that matches StreamCard's layout exactly */
+export function StreamCardSkeleton() {
+  return (
+    <div className="surface-elev p-5">
+      {/* Head row */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="skeleton h-10 w-10 shrink-0 rounded-xl" />
+          <div className="space-y-2">
+            <div className="skeleton h-3 w-28 rounded-md" />
+            <div className="skeleton h-2.5 w-20 rounded-md" />
+          </div>
+        </div>
+        <div className="space-y-2 text-right">
+          <div className="skeleton h-3.5 w-16 rounded-md" />
+          <div className="skeleton h-2.5 w-12 rounded-md" />
+        </div>
+      </div>
+
+      {/* Primary box */}
+      <div className="skeleton mb-5 h-[72px] w-full rounded-2xl" />
+
+      {/* Meta row */}
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="skeleton h-2.5 w-20 rounded-md" />
+          <div className="skeleton h-2.5 w-14 rounded-md" />
+        </div>
+        <div className="skeleton h-2.5 w-16 rounded-md" />
+      </div>
+
+      {/* Button */}
+      <div className="skeleton h-10 w-full rounded-full" />
+    </div>
+  );
+}
+
 interface StreamCardProps {
   payer: string;
   payee: string;

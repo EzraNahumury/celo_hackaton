@@ -26,7 +26,7 @@ import {
   ERC20_ABI,
 } from "@/config/contracts";
 import { TOKENS, TOKEN_LIST } from "@/config/tokens";
-import StreamCard from "@/components/StreamCard";
+import StreamCard, { StreamCardSkeleton } from "@/components/StreamCard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
 import { useDeposit } from "@/hooks/useDeposit";
@@ -56,7 +56,7 @@ export default function EmployerDashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const [selectedToken, setSelectedToken] = useState("cUSD");
+  const [selectedToken, setSelectedToken] = useState("USDC");
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [panel, setPanel] = useState<"none" | "deposit" | "withdraw">("none");
@@ -84,7 +84,7 @@ export default function EmployerDashboard() {
     args: address ? [address, tokenInfo.address] : undefined,
     query: { enabled: !!address },
   });
-  const { data: streamIds } = useReadContract({
+  const { data: streamIds, isLoading: streamIdsLoading } = useReadContract({
     address: TRICKLE_VAULT_ADDRESS,
     abi: TRICKLE_VAULT_ABI,
     functionName: "getPayerStreamIds",
@@ -98,10 +98,12 @@ export default function EmployerDashboard() {
     functionName: "getStream" as const,
     args: [id] as const,
   }));
-  const { data: streamResults } = useReadContracts({
+  const { data: streamResults, isLoading: streamDataLoading } = useReadContracts({
     contracts: streamCalls,
     query: { enabled: streamCalls.length > 0 },
   });
+
+  const streamsLoading = streamIdsLoading || streamDataLoading;
 
   const allStreams: Stream[] = (streamResults ?? [])
     .filter((r) => r.status === "success" && r.result)
@@ -456,9 +458,11 @@ export default function EmployerDashboard() {
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="font-display text-[16px] font-semibold tracking-tight text-[var(--fg)]">
               Active streams{" "}
-              <span className="ml-1 font-mono text-[13px] text-[var(--fg-faint)] tabular">
-                {streams.length}
-              </span>
+              {!streamsLoading && (
+                <span className="ml-1 font-mono text-[13px] text-[var(--fg-faint)] tabular">
+                  {streams.length}
+                </span>
+              )}
             </h2>
             {streams.length > 0 && (
               <Link
@@ -470,7 +474,12 @@ export default function EmployerDashboard() {
             )}
           </div>
 
-          {streams.length === 0 ? (
+          {streamsLoading ? (
+            <div className="grid gap-3">
+              <StreamCardSkeleton />
+              <StreamCardSkeleton />
+            </div>
+          ) : streams.length === 0 ? (
             <EmptyState
               title={`No ${selectedToken} streams`}
               body="Create a salary stream to start paying an employee per second."

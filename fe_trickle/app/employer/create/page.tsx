@@ -54,7 +54,7 @@ export default function CreateStream() {
   const { toast } = useToast();
 
   const [payeeAddress, setPayeeAddress] = useState("");
-  const [selectedToken, setSelectedToken] = useState("cUSD");
+  const [selectedToken, setSelectedToken] = useState("USDC");
   const [monthlySalary, setMonthlySalary] = useState("");
   const [formStep, setFormStep] = useState<"form" | "review">("form");
   const [phase, setPhase] = useState<Phase>("idle");
@@ -350,7 +350,7 @@ export default function CreateStream() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
-              href={`https://celoscan.io/tx/${createTxHash}`}
+              href={`https://sepolia.celoscan.io/tx/${createTxHash}`}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-flex items-center gap-1 font-mono text-[11.5px] text-[var(--accent)]/70 hover:text-[var(--accent)] transition-colors"

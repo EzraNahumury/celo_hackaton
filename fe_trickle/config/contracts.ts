@@ -1,7 +1,9 @@
-// Contract address loaded from environment variable
-// Set NEXT_PUBLIC_TRICKLE_VAULT_ADDRESS in .env.local after deploying
-export const TRICKLE_VAULT_ADDRESS = (process.env
-  .NEXT_PUBLIC_TRICKLE_VAULT_ADDRESS ?? "0x") as `0x${string}`;
+// TrickleVault deployed on Celo Sepolia (chain 11142220)
+// Override via NEXT_PUBLIC_TRICKLE_VAULT_ADDRESS in .env.local if redeployed
+export const TRICKLE_VAULT_ADDRESS = (
+  process.env.NEXT_PUBLIC_TRICKLE_VAULT_ADDRESS ??
+  "0x42cADdd47E795A6e04d820A6c140AF04159C7542"
+) as `0x${string}`;
 
 // ABI generated from: forge inspect TrickleVault abi --json
 export const TRICKLE_VAULT_ABI = [

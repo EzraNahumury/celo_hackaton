@@ -6,10 +6,33 @@ solc_version = "0.8.20"
 optimizer = true
 optimizer_runs = 200
 
+# Allow deploy script to write deployment JSON files
+fs_permissions = [{ access = "read-write", path = "./deployments" }]
+
+[profile.ci]
+verbosity = 3
+
 [rpc_endpoints]
+# Celo Mainnet (chain 42220)
 celo = "https://forno.celo.org"
-alfajores = "https://alfajores-forno.celo-testnet.org"
+
+# ── Active Testnet ────────────────────────────────────────────
+# Celo Sepolia Testnet (chain 11142220)
+# Primary: Ankr — best latency + privacy from ChainList
+celo-sepolia = "https://rpc.ankr.com/celo_sepolia"
+# Fallback: dRPC aggregator
+celo-sepolia-fallback = "https://celo-sepolia.drpc.org"
+# Fallback: Official Celo forno
+celo-sepolia-forno = "https://forno.celo-sepolia.celo-testnet.org"
+
+# ── Retired ──────────────────────────────────────────────────
+# Alfajores sunset end of 2025 — do NOT use
+# alfajores = "https://alfajores-forno.celo-testnet.org"
 
 [etherscan]
-celo = { key = "${CELOSCAN_API_KEY}", url = "https://api.celoscan.io/api" }
-alfajores = { key = "${CELOSCAN_API_KEY}", url = "https://api-alfajores.celoscan.io/api" }
+# Celoscan Mainnet
+celo         = { key = "${CELOSCAN_API_KEY}", url = "https://api.celoscan.io/api",                 chain = 42220    }
+# Celo Sepolia — Celoscan testnet explorer (chain 11142220)
+celo-sepolia          = { key = "${CELOSCAN_API_KEY}", url = "https://api-alfajores.celoscan.io/api", chain = 11142220 }
+celo-sepolia-fallback = { key = "${CELOSCAN_API_KEY}", url = "https://api-alfajores.celoscan.io/api", chain = 11142220 }
+celo-sepolia-forno    = { key = "${CELOSCAN_API_KEY}", url = "https://api-alfajores.celoscan.io/api", chain = 11142220 }

@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { TRICKLE_VAULT_ABI, TRICKLE_VAULT_ADDRESS } from "@/config/contracts";
 import { TOKEN_LIST } from "@/config/tokens";
-import StreamCard from "@/components/StreamCard";
+import StreamCard, { StreamCardSkeleton } from "@/components/StreamCard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
 import { useToast } from "@/components/Toast";
@@ -240,7 +240,7 @@ export default function EmployeeDashboard() {
 
   const isLoading = idsLoading || streamsLoading;
   const hasStreams = streams.length > 0;
-  const primarySymbol = streams[0] ? tokenMeta(streams[0].token).symbol : "cUSD";
+  const primarySymbol = streams[0] ? tokenMeta(streams[0].token).symbol : "USDC";
   const runway = totalRatePerSec > 0
     ? Math.floor(totalWithdrawableAccrued / totalRatePerSec / 60)
     : 0;
@@ -415,16 +415,18 @@ export default function EmployeeDashboard() {
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="font-display text-[16px] font-semibold tracking-tight text-[var(--fg)]">
               Incoming streams{" "}
-              <span className="ml-1 font-mono text-[13px] text-[var(--fg-faint)] tabular">
-                {streams.length}
-              </span>
+              {!isLoading && (
+                <span className="ml-1 font-mono text-[13px] text-[var(--fg-faint)] tabular">
+                  {streams.length}
+                </span>
+              )}
             </h2>
           </div>
 
           {isLoading ? (
             <div className="grid gap-3">
-              <Skeleton className="h-[140px]" />
-              <Skeleton className="h-[140px]" />
+              <StreamCardSkeleton />
+              <StreamCardSkeleton />
             </div>
           ) : !hasStreams ? (
             <Card padded={false} className="flex flex-col items-center px-6 py-12 text-center">

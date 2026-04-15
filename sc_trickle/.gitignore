@@ -10,5 +10,9 @@ out/
 # Docs
 docs/
 
-# Dotenv file
+# Dotenv file – never commit secrets
 .env
+
+# Keep the deployments folder but ignore generated JSON
+# (remove the next two lines if you want to commit deployment addresses)
+deployments/*.json
