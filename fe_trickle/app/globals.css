@@ -272,4 +272,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ab-blob, .animate-float, .animate-float-a, .animate-float-b,
   .animate-fade-up, .animate-fade-in, .animate-pulse-dot { animation: none !important; }
+  /* Pause topographic SMIL animations inside SVG filters */
+  svg animate, svg animateTransform { display: none; }
 }

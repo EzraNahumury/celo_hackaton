@@ -40,19 +40,13 @@ export default function Navbar() {
               href="/"
               className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-white/[0.06]"
             >
-              <span
-                className="grid h-7 w-7 place-items-center overflow-hidden rounded-xl"
-                style={{
-                  background:
-                    "linear-gradient(140deg, #E0E7FF 0%, #C7D2FE 100%)",
-                }}
-              >
+              <span className="grid h-7 w-7 place-items-center">
                 <Image
                   src="/logo.png"
                   alt=""
-                  width={16}
-                  height={16}
-                  className="h-4 w-4 object-contain"
+                  width={22}
+                  height={22}
+                  className="h-[22px] w-[22px] object-contain"
                   priority
                 />
               </span>

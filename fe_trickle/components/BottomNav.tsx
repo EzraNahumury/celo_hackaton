@@ -136,7 +136,7 @@ export function BottomNav({ onProfile }: BottomNavProps) {
   }
 
   const items: Item[] = [
-    { href: "/", icon: Home, label: "Home", match: (p) => p === "/" },
+    { href: "/home", icon: Home, label: "Home", match: (p) => p === "/home" },
     {
       href: "/employer",
       icon: Wallet,

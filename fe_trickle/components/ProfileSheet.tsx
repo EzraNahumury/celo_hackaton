@@ -65,7 +65,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
           <button
             aria-label="Close"
             onClick={onClose}
-            className="absolute inset-0 bg-black/55 backdrop-blur-[3px]"
+            className="absolute inset-0 bg-black/35 backdrop-blur-[2px]"
           />
 
           <motion.div
@@ -75,7 +75,12 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 24, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[460px] overflow-hidden rounded-t-3xl border border-[var(--border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)] sm:rounded-3xl"
+            className="relative w-full max-w-[460px] overflow-hidden rounded-t-3xl border border-white/[0.08] shadow-[var(--shadow-lg)] sm:rounded-3xl"
+            style={{
+              background: "rgba(0,0,0,0.72)",
+              backdropFilter: "blur(28px) saturate(150%)",
+              WebkitBackdropFilter: "blur(28px) saturate(150%)",
+            }}
           >
             <div className="mx-auto mt-2.5 mb-1 h-1 w-10 rounded-full bg-[var(--border-strong)] sm:hidden" />
 
@@ -94,7 +99,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
             {isConnected && address ? (
               <div className="px-5 pb-5">
                 {/* Avatar + address */}
-                <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)] p-4">
+                <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
                   <span
                     className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[14px] font-semibold text-white"
                     style={{
@@ -151,7 +156,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
               </div>
             ) : (
               <div className="px-5 pb-5">
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)] p-5 text-center">
+                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-center">
                   <div className="mx-auto mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--accent-3)]">
                     <Wallet size={18} />
                   </div>
