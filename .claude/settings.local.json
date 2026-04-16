@@ -33,7 +33,10 @@
       "Bash(grep -l \"coinbaseWallet\\\\|metaMask\\\\|walletConnect\" C:/celo_hackaton/fe_trickle/node_modules/wagmi/dist/esm/connectors/*.js)",
       "Bash(echo \"exit=$?\")",
       "Bash(find node_modules/wagmi/node_modules/@wagmi/connectors -name \"injected*\")",
-      "Bash(ls node_modules/wagmi/node_modules/@wagmi/connectors/dist/esm/exports)"
+      "Bash(ls node_modules/wagmi/node_modules/@wagmi/connectors/dist/esm/exports)",
+      "Bash(cp \"/c/Users/ASUS ROG/.claude/image-cache/379b6cbb-6441-4440-8f3f-4cca22e7efce/3.png\" \"/c/celo_hackaton/fe_trickle/public/tokens/usdm.png\")",
+      "Bash(cp \"/c/Users/ASUS ROG/.claude/image-cache/379b6cbb-6441-4440-8f3f-4cca22e7efce/4.png\" \"/c/celo_hackaton/fe_trickle/public/tokens/usdt.png\")",
+      "Bash(cp \"/c/Users/ASUS ROG/.claude/image-cache/379b6cbb-6441-4440-8f3f-4cca22e7efce/5.png\" \"/c/celo_hackaton/fe_trickle/public/tokens/tusdt.png\")"
     ]
   }
 }

@@ -7,9 +7,9 @@ import {
   ArrowRight,
   Wallet,
   Download,
-  Activity,
-  Zap,
-  ShieldCheck,
+  Timer,
+  ChartLine,
+  KeyRound,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useEffect, useState } from "react";
@@ -79,9 +79,9 @@ export default function HomePage() {
             Why Trickle
           </p>
           <div className="grid grid-cols-3 gap-2">
-            <Highlight icon={<Zap size={14} />} label="Per-second" kind="pulse" delay={0} />
-            <Highlight icon={<Activity size={14} />} label="Live accrual" kind="wave" delay={0.15} />
-            <Highlight icon={<ShieldCheck size={14} />} label="Non-custodial" kind="breathe" delay={0.3} />
+            <Highlight icon={<Timer size={14} strokeWidth={2.1} />} label="Per-second" kind="pulse" delay={0} />
+            <Highlight icon={<ChartLine size={14} strokeWidth={2.1} />} label="Live accrual" kind="wave" delay={0.15} />
+            <Highlight icon={<KeyRound size={14} strokeWidth={2.1} />} label="Non-custodial" kind="breathe" delay={0.3} />
           </div>
         </motion.section>
       </div>

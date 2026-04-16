@@ -3,6 +3,7 @@ export interface TokenInfo {
   symbol: string;
   name: string;
   decimals: number;
+  icon?: string;
 }
 
 /**
@@ -18,18 +19,21 @@ export const TOKENS: Record<string, TokenInfo> = {
     symbol: "tUSDC",
     name: "Test USD Coin",
     decimals: 6,
+    icon: "/tokens/tusdc.png",
   },
   USDC: {
     address: "0x01C5C0122039549AD1493B8220cABEdD739BC44E",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
+    icon: "/tokens/usdt.png",
   },
   USDm: {
     address: "0xEF4d55D6dE8e8d73232827Cd1e9b2F2dBb45bC80",
     symbol: "USDm",
     name: "Mento Dollar",
     decimals: 18,
+    icon: "/tokens/usdm.png",
   },
 };
 

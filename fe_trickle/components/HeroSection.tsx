@@ -17,6 +17,12 @@ export default function HeroSection() {
 
   const showConnected = mounted && isConnected;
 
+  React.useEffect(() => {
+    if (!mounted || !isConnected) return;
+    setWalletOpen(false);
+    router.replace("/home");
+  }, [mounted, isConnected, router]);
+
   return (
     <section className="relative isolate">
       <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[460px] flex-col px-6 pt-[max(56px,env(safe-area-inset-top))] pb-[max(28px,env(safe-area-inset-bottom))]">

@@ -7,6 +7,7 @@ import { ArrowDownToLine, Clock, X, ArrowRight } from "lucide-react";
 import { TOKEN_LIST } from "@/config/tokens";
 import { Button } from "./ui/Button";
 import { StreamTicker } from "./ui/AnimatedNumber";
+import { TokenIcon } from "./ui/TokenIcon";
 
 /** Shaped skeleton that matches StreamCard's layout exactly */
 export function StreamCardSkeleton() {
@@ -67,7 +68,7 @@ const TOKEN_COLORS: Record<string, { bg: string; fg: string }> = {
 function tokenInfo(address: string) {
   return (
     TOKEN_LIST.find((t) => t.address.toLowerCase() === address.toLowerCase()) ??
-    { symbol: "???", decimals: 18 }
+    { symbol: "???", decimals: 18, icon: undefined as string | undefined }
   );
 }
 
@@ -134,12 +135,13 @@ export default function StreamCard({
       {/* Head */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[11.5px] font-bold"
-            style={{ background: color.bg, color: color.fg }}
-          >
-            {info.symbol[0]}
-          </span>
+          <TokenIcon
+            symbol={info.symbol}
+            icon={info.icon}
+            size={40}
+            rounded="xl"
+            fallback={color}
+          />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--fg)]">
               <span>{info.symbol} stream</span>

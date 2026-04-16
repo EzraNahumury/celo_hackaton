@@ -6,6 +6,7 @@ import {
   useReadContracts,
   useWriteContract,
   useWaitForTransactionReceipt,
+  type Connector,
 } from "wagmi";
 import { formatUnits, parseUnits } from "viem";
 import { useEffect, useRef, useState } from "react";
@@ -52,7 +53,7 @@ function Skeleton({ className }: { className?: string }) {
 }
 
 export default function EmployerDashboard() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, connector } = useAccount();
   const queryClient = useQueryClient();
   const { toast, update } = useToast();
 
@@ -301,20 +302,7 @@ export default function EmployerDashboard() {
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
           className="mb-6 flex items-center gap-3"
         >
-          <span
-            className="grid h-10 w-10 place-items-center rounded-full text-[13px] font-semibold text-white"
-            style={{
-              background:
-                "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
-            }}
-          >
-            {mounted && address ? (
-              <>
-                {address.slice(2, 3).toUpperCase()}
-                {address.slice(-1).toUpperCase()}
-              </>
-            ) : null}
-          </span>
+          <WalletAvatar connector={mounted ? connector : undefined} />
           <div>
             <p className="text-[11.5px] text-[var(--fg-mute)]">
               {greeting},
@@ -757,5 +745,37 @@ function EmptyState({
         </Link>
       ) : null}
     </Card>
+  );
+}
+
+function WalletAvatar({ connector }: { connector: Connector | undefined }) {
+  const icon = (connector as (Connector & { icon?: string }) | undefined)?.icon;
+  const initial = connector?.name?.trim().slice(0, 1).toUpperCase() ?? "W";
+
+  return (
+    <span
+      className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full text-[13px] font-semibold text-white"
+      style={{
+        background: icon
+          ? "rgba(255,255,255,0.04)"
+          : "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
+        boxShadow: icon
+          ? "0 4px 12px -6px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08)"
+          : "0 6px 16px -6px rgba(79,70,229,0.55), inset 0 1px 0 rgba(255,255,255,0.2)",
+      }}
+    >
+      {icon ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={icon}
+          alt={connector?.name ?? "Wallet"}
+          width={40}
+          height={40}
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        <span>{initial}</span>
+      )}
+    </span>
   );
 }
