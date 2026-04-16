@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import { BottomNav } from "./BottomNav";
 import { ProfileSheet } from "./ProfileSheet";
 import { WalletModal } from "./ui/wallet-modal";
+import { WrongNetworkBanner } from "./WrongNetworkBanner";
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,7 @@ export default function DashboardLayout({
   return (
     <div className="relative min-h-[100dvh]">
       <Navbar />
+      <WrongNetworkBanner />
 
       {/* Content area — phone-feel width on larger screens, edge-to-edge on mobile */}
       <div className="relative pt-[80px] pb-[108px]">{children}</div>

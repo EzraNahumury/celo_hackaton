@@ -208,7 +208,7 @@ function ToastCard({
           )}
           {item.txHash && (
             <a
-              href={`https://celoscan.io/tx/${item.txHash}`}
+              href={`https://sepolia.celoscan.io/tx/${item.txHash}`}
               target="_blank"
               rel="noreferrer"
               className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11.5px] font-medium text-[var(--accent)] transition-colors hover:text-[var(--accent-2)]"

@@ -7,9 +7,18 @@ export interface TokenInfo {
 
 /**
  * Tokens on Celo Sepolia Testnet (chain 11142220)
- * USDC is the primary token for TrickleVault streams.
+ * tUSDC adalah token test dengan mint publik — gunakan untuk testing.
+ * Address tUSDC diisi setelah menjalankan: forge script script/DeployMockToken.s.sol
+ * Set NEXT_PUBLIC_MOCK_TOKEN_ADDRESS di .env.local untuk override.
  */
 export const TOKENS: Record<string, TokenInfo> = {
+  tUSDC: {
+    address: (process.env.NEXT_PUBLIC_MOCK_TOKEN_ADDRESS ??
+      "0x0000000000000000000000000000000000000000") as `0x${string}`,
+    symbol: "tUSDC",
+    name: "Test USD Coin",
+    decimals: 6,
+  },
   USDC: {
     address: "0x01C5C0122039549AD1493B8220cABEdD739BC44E",
     symbol: "USDC",
@@ -21,12 +30,6 @@ export const TOKENS: Record<string, TokenInfo> = {
     symbol: "USDm",
     name: "Mento Dollar",
     decimals: 18,
-  },
-  USDT: {
-    address: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
-    symbol: "USDT",
-    name: "Tether USD",
-    decimals: 6,
   },
 };
 

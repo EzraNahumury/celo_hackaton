@@ -12,9 +12,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const { address, isConnected } = useAccount();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <DashboardLayout>
@@ -35,7 +38,7 @@ export default function HomePage() {
             second by second.
           </h1>
           <p className="mt-3 text-[14px] leading-[1.55] text-[var(--fg-mute)]">
-            {isConnected && address
+            {mounted && isConnected && address
               ? `Signed in as ${address.slice(0, 6)}…${address.slice(-4)}. Pick a role to get going.`
               : "Connect a wallet to manage streams or earnings."}
           </p>

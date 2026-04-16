@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect, useReadContracts } from "wagmi";
+import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -13,12 +14,16 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { TOKEN_LIST } from "@/config/tokens";
+import { ERC20_ABI } from "@/config/contracts";
 
 interface ProfileSheetProps {
   open: boolean;
   onClose: () => void;
   onConnect?: () => void;
 }
+
+const ZERO = "0x0000000000000000000000000000000000000000";
 
 export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
   const { address, isConnected } = useAccount();
@@ -39,6 +44,22 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
       document.body.style.overflow = prev;
     };
   }, [open, onClose]);
+
+  // Baca saldo semua token sekali panggil
+  const validTokens = TOKEN_LIST.filter((t) => t.address !== ZERO);
+  const balanceCalls = address
+    ? validTokens.map((t) => ({
+        address: t.address,
+        abi: ERC20_ABI,
+        functionName: "balanceOf" as const,
+        args: [address] as const,
+      }))
+    : [];
+
+  const { data: balanceResults } = useReadContracts({
+    contracts: balanceCalls,
+    query: { enabled: !!address && open },
+  });
 
   async function copyAddress() {
     if (!address) return;
@@ -112,11 +133,54 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[11.5px] font-medium uppercase tracking-[0.1em] text-[var(--fg-mute)]">
-                      Connected on Celo
+                      Connected on Celo Sepolia
                     </p>
                     <p className="mt-0.5 break-all font-mono text-[12.5px] text-[var(--fg-dim)]">
                       {address}
                     </p>
+                  </div>
+                </div>
+
+                {/* Token balances */}
+                <div className="mt-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] overflow-hidden">
+                  <p className="px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-faint)]">
+                    Wallet balances
+                  </p>
+                  <div className="divide-y divide-[var(--divider)]">
+                    {validTokens.map((token, i) => {
+                      const raw = balanceResults?.[i];
+                      const balance =
+                        raw?.status === "success" && raw.result != null
+                          ? parseFloat(
+                              formatUnits(raw.result as bigint, token.decimals)
+                            )
+                          : null;
+                      return (
+                        <div
+                          key={token.symbol}
+                          className="flex items-center justify-between px-4 py-2.5"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--color-surface-3)] text-[11px] font-bold text-[var(--fg-dim)]">
+                              {token.symbol[0]}
+                            </span>
+                            <span className="text-[13px] font-medium text-[var(--fg-dim)]">
+                              {token.symbol}
+                            </span>
+                          </div>
+                          <span className="font-mono text-[13px] tabular text-[var(--fg)]">
+                            {balance === null ? (
+                              <span className="skeleton inline-block h-3.5 w-16 rounded" />
+                            ) : (
+                              balance.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 4,
+                              })
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -140,7 +204,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                   <SheetAction
                     icon={<ExternalLink size={16} strokeWidth={2} />}
                     label="View on Celoscan"
-                    href={`https://celoscan.io/address/${address}`}
+                    href={`https://sepolia.celoscan.io/address/${address}`}
                     external
                   />
                   <SheetAction
@@ -210,14 +274,7 @@ function SheetAction({
   );
   const content = (
     <>
-      <span
-        className={cn(
-          "grid h-8 w-8 place-items-center rounded-lg",
-          tone === "danger"
-            ? "bg-[var(--color-surface-2)]"
-            : "bg-[var(--color-surface-2)]",
-        )}
-      >
+      <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--color-surface-2)]">
         {icon}
       </span>
       <span className="flex-1">{label}</span>

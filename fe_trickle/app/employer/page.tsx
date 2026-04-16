@@ -8,7 +8,7 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { formatUnits, parseUnits } from "viem";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
@@ -54,9 +54,12 @@ function Skeleton({ className }: { className?: string }) {
 export default function EmployerDashboard() {
   const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { toast, update } = useToast();
 
-  const [selectedToken, setSelectedToken] = useState("USDC");
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const [selectedToken, setSelectedToken] = useState("tUSDC");
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [panel, setPanel] = useState<"none" | "deposit" | "withdraw">("none");
@@ -170,6 +173,7 @@ export default function EmployerDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depositFlow.isError]);
 
+  const wbToastId = useRef<string | null>(null);
   const { writeContract: doWithdrawBalance, data: wbTxHash } =
     useWriteContract();
   const { isSuccess: wbSuccess, isError: wbFailed } =
@@ -183,16 +187,19 @@ export default function EmployerDashboard() {
       functionName: "withdrawBalance",
       args: [tokenInfo.address, parseUnits(withdrawAmount, tokenInfo.decimals)],
     });
-    toast({ type: "pending", message: "Withdrawing from vault…" });
+    wbToastId.current = toast({ type: "pending", message: "Withdrawing from vault…" });
   }
   useEffect(() => {
     if (wbSuccess) {
-      toast({
-        type: "success",
-        message: "Withdrawn successfully",
-        description: `${withdrawAmount} ${tokenInfo.symbol} returned to wallet`,
-        txHash: wbTxHash,
-      });
+      if (wbToastId.current) {
+        update(wbToastId.current, {
+          type: "success",
+          message: "Withdrawn successfully",
+          description: `${withdrawAmount} ${tokenInfo.symbol} returned to wallet`,
+          txHash: wbTxHash,
+        });
+        wbToastId.current = null;
+      }
       setWithdrawAmount("");
       setPanel("none");
       queryClient.invalidateQueries();
@@ -200,10 +207,14 @@ export default function EmployerDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wbSuccess]);
   useEffect(() => {
-    if (wbFailed) toast({ type: "error", message: "Withdrawal failed" });
+    if (wbFailed && wbToastId.current) {
+      update(wbToastId.current, { type: "error", message: "Withdrawal failed" });
+      wbToastId.current = null;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wbFailed]);
 
+  const cancelToastId = useRef<string | null>(null);
   const {
     writeContract: cancelStream,
     data: cancelTxHash,
@@ -224,16 +235,19 @@ export default function EmployerDashboard() {
         stream.amountPerSec,
       ],
     });
-    toast({ type: "pending", message: "Cancelling stream…" });
+    cancelToastId.current = toast({ type: "pending", message: "Cancelling stream…" });
   }
   useEffect(() => {
     if (cancelSuccess) {
-      toast({
-        type: "success",
-        message: "Stream cancelled",
-        description: "Remaining balance returned to vault",
-        txHash: cancelTxHash,
-      });
+      if (cancelToastId.current) {
+        update(cancelToastId.current, {
+          type: "success",
+          message: "Stream cancelled",
+          description: "Remaining balance returned to vault",
+          txHash: cancelTxHash,
+        });
+        cancelToastId.current = null;
+      }
       queryClient.invalidateQueries();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -293,15 +307,19 @@ export default function EmployerDashboard() {
                 "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
             }}
           >
-            {address?.slice(2, 3).toUpperCase()}
-            {address?.slice(-1).toUpperCase()}
+            {mounted && address ? (
+              <>
+                {address.slice(2, 3).toUpperCase()}
+                {address.slice(-1).toUpperCase()}
+              </>
+            ) : null}
           </span>
           <div>
             <p className="text-[11.5px] text-[var(--fg-mute)]">
               {greeting},
             </p>
             <p className="font-mono text-[13px] font-semibold text-[var(--fg)]">
-              {address?.slice(0, 6)}…{address?.slice(-4)}
+              {mounted && address ? `${address.slice(0, 6)}…${address.slice(-4)}` : ""}
             </p>
           </div>
         </motion.div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   useAccount,
   useReadContract,
@@ -78,7 +78,7 @@ function Skeleton({ className }: { className?: string }) {
 export default function EmployeeDashboard() {
   const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { toast, update } = useToast();
 
   const [now, setNow] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -169,6 +169,7 @@ export default function EmployeeDashboard() {
     totalWithdrawableAccrued,
   ]);
 
+  const withdrawToastId = useRef<string | null>(null);
   const {
     writeContract: doWithdraw,
     data: withdrawTxHash,
@@ -188,22 +189,28 @@ export default function EmployeeDashboard() {
         s.amountPerSec,
       ],
     });
-    toast({ type: "pending", message: "Withdrawing earnings…" });
+    withdrawToastId.current = toast({ type: "pending", message: "Withdrawing earnings…" });
   }
   useEffect(() => {
     if (withdrawSuccess) {
-      toast({
-        type: "success",
-        message: "Withdrawal successful",
-        description: "Tokens sent to your wallet",
-        txHash: withdrawTxHash,
-      });
+      if (withdrawToastId.current) {
+        update(withdrawToastId.current, {
+          type: "success",
+          message: "Withdrawal successful",
+          description: "Tokens sent to your wallet",
+          txHash: withdrawTxHash,
+        });
+        withdrawToastId.current = null;
+      }
       queryClient.invalidateQueries();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withdrawSuccess]);
   useEffect(() => {
-    if (withdrawFailed) toast({ type: "error", message: "Withdrawal failed" });
+    if (withdrawFailed && withdrawToastId.current) {
+      update(withdrawToastId.current, { type: "error", message: "Withdrawal failed" });
+      withdrawToastId.current = null;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withdrawFailed]);
 

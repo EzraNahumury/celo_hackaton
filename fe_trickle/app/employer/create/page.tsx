@@ -51,14 +51,17 @@ export default function CreateStream() {
   const { address, isConnected } = useAccount();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { toast, update } = useToast();
 
   const [payeeAddress, setPayeeAddress] = useState("");
-  const [selectedToken, setSelectedToken] = useState("USDC");
+  const [selectedToken, setSelectedToken] = useState("tUSDC");
   const [monthlySalary, setMonthlySalary] = useState("");
   const [formStep, setFormStep] = useState<"form" | "review">("form");
   const [phase, setPhase] = useState<Phase>("idle");
   const [needsDeposit, setNeedsDeposit] = useState(false);
+
+  // ID toast aktif — satu toast yang di-update sepanjang flow
+  const activeToastId = useRef<string | null>(null);
 
   const paramsRef = useRef<{
     tokenAddress: `0x${string}`;
@@ -107,11 +110,8 @@ export default function CreateStream() {
   useEffect(() => {
     if (phase === "approving" && approveConfirmed && paramsRef.current) {
       setPhase("depositing");
-      toast({
-        type: "pending",
-        message: "Depositing to vault…",
-        txHash: approveTxHash,
-      });
+      if (activeToastId.current)
+        update(activeToastId.current, { type: "pending", message: "Depositing to vault…", txHash: approveTxHash });
       doDeposit({
         address: TRICKLE_VAULT_ADDRESS,
         abi: TRICKLE_VAULT_ABI,
@@ -124,11 +124,8 @@ export default function CreateStream() {
   useEffect(() => {
     if (phase === "depositing" && depositConfirmed && paramsRef.current) {
       setPhase("creating");
-      toast({
-        type: "pending",
-        message: "Creating stream…",
-        txHash: depositTxHash,
-      });
+      if (activeToastId.current)
+        update(activeToastId.current, { type: "pending", message: "Creating stream…", txHash: depositTxHash });
       doCreateStream({
         address: TRICKLE_VAULT_ADDRESS,
         abi: TRICKLE_VAULT_ABI,
@@ -146,45 +143,53 @@ export default function CreateStream() {
     if (phase === "creating" && createConfirmed) {
       setPhase("done");
       queryClient.invalidateQueries();
-      toast({
-        type: "success",
-        message: "Stream created",
-        description: `Streaming ${monthlySalary} ${tokenInfo.symbol}/mo`,
-        txHash: createTxHash,
-      });
+      if (activeToastId.current) {
+        update(activeToastId.current, {
+          type: "success",
+          message: "Stream created",
+          description: `Streaming ${monthlySalary} ${tokenInfo.symbol}/mo`,
+          txHash: createTxHash,
+        });
+        activeToastId.current = null;
+      }
     }
   }, [createConfirmed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if ((approveError || approveFailed) && phase === "approving") {
       setPhase("error");
-      toast({
-        type: "error",
-        message: "Approval failed",
-        description:
-          (approveError as Error)?.message?.slice(0, 80) ??
-          "Transaction rejected",
-      });
+      if (activeToastId.current) {
+        update(activeToastId.current, {
+          type: "error",
+          message: "Approval failed",
+          description: (approveError as Error)?.message?.slice(0, 80) ?? "Transaction rejected",
+        });
+        activeToastId.current = null;
+      }
     }
   }, [approveError, approveFailed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if ((depositError || depositFailed) && phase === "depositing") {
       setPhase("error");
-      toast({ type: "error", message: "Deposit failed" });
+      if (activeToastId.current) {
+        update(activeToastId.current, { type: "error", message: "Deposit failed" });
+        activeToastId.current = null;
+      }
     }
   }, [depositError, depositFailed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if ((createError || createFailed) && phase === "creating") {
       setPhase("error");
-      toast({
-        type: "error",
-        message: "Stream creation failed",
-        description:
-          (createError as Error)?.message?.slice(0, 80) ??
-          "Transaction rejected",
-      });
+      if (activeToastId.current) {
+        update(activeToastId.current, {
+          type: "error",
+          message: "Stream creation failed",
+          description: (createError as Error)?.message?.slice(0, 80) ?? "Transaction rejected",
+        });
+        activeToastId.current = null;
+      }
     }
   }, [createError, createFailed, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -215,7 +220,7 @@ export default function CreateStream() {
 
     if (requiresDeposit) {
       setPhase("approving");
-      toast({ type: "pending", message: "Approving token spend…" });
+      activeToastId.current = toast({ type: "pending", message: "Approving token spend…" });
       doApprove({
         address: tokenInfo.address,
         abi: ERC20_ABI,
@@ -224,7 +229,7 @@ export default function CreateStream() {
       });
     } else {
       setPhase("creating");
-      toast({ type: "pending", message: "Creating stream…" });
+      activeToastId.current = toast({ type: "pending", message: "Creating stream…" });
       doCreateStream({
         address: TRICKLE_VAULT_ADDRESS,
         abi: TRICKLE_VAULT_ABI,
