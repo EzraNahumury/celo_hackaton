@@ -4,7 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { useConnect, type Connector } from "wagmi";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, Check, Loader2 } from "lucide-react";
+import { X, ArrowRight, Check, Loader2, Wallet } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 interface WalletModalProps {
@@ -12,44 +12,27 @@ interface WalletModalProps {
   onClose: () => void;
 }
 
-interface WalletMeta {
-  id: string;
-  name: string;
-  description?: string;
-  icon: React.ReactNode;
-  recommended?: boolean;
+/**
+ * Wallet yang direkomendasikan — ditandai pakai EIP-6963 rdns kalau ada,
+ * fallback ke nama (case-insensitive) biar tetap kena walau rdns gak diannounce.
+ */
+const RECOMMENDED_RDNS = new Set(["io.metamask"]);
+const RECOMMENDED_NAMES = new Set(["metamask"]);
+
+function isRecommended(c: Connector): boolean {
+  const rdns = (c as Connector & { rdns?: string | readonly string[] }).rdns;
+  if (Array.isArray(rdns)) {
+    if (rdns.some((r) => RECOMMENDED_RDNS.has(r))) return true;
+  } else if (typeof rdns === "string") {
+    if (RECOMMENDED_RDNS.has(rdns)) return true;
+  }
+  return RECOMMENDED_NAMES.has(c.name.toLowerCase());
 }
 
-const BRAND: Record<string, WalletMeta> = {
-  metaMaskSDK: {
-    id: "metaMaskSDK",
-    name: "MetaMask",
-    description: "Browser extension · Mobile",
-    icon: <MetaMaskLogo />,
-    recommended: true,
-  },
-  coinbaseWalletSDK: {
-    id: "coinbaseWalletSDK",
-    name: "Coinbase Wallet",
-    description: "Smart wallet · Extension · Mobile",
-    icon: <CoinbaseLogo />,
-  },
-  injected: {
-    id: "injected",
-    name: "Browser wallet",
-    description: "Rabby, Brave, OKX, or other injected wallet",
-    icon: <BrowserLogo />,
-  },
-};
-
-function metaFor(connector: Connector): WalletMeta {
-  return (
-    BRAND[connector.id] ?? {
-      id: connector.id,
-      name: connector.name,
-      icon: <BrowserLogo />,
-    }
-  );
+function rankConnector(c: Connector): number {
+  if (isRecommended(c)) return 0;
+  if (c.type === "injected") return 1;
+  return 2;
 }
 
 export function WalletModal({ open, onClose }: WalletModalProps) {
@@ -82,11 +65,8 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
     }
   }
 
-  const ORDER = ["metaMaskSDK", "coinbaseWalletSDK", "injected"];
   const ordered = [...connectors].sort(
-    (a, b) =>
-      ORDER.indexOf(a.id) - ORDER.indexOf(b.id) ||
-      (a.id === "injected" ? 1 : 0),
+    (a, b) => rankConnector(a) - rankConnector(b) || a.name.localeCompare(b.name),
   );
 
   if (!mounted) return null;
@@ -143,68 +123,75 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
 
             {/* List */}
             <div className="flex flex-col gap-2 px-4 pb-4">
-              {ordered.map((c) => {
-                const meta = metaFor(c);
-                const loading =
-                  isPending && variables?.connector &&
-                  "id" in variables.connector &&
-                  variables.connector.id === c.id;
-                const err = errorFor?.startsWith(`${c.id}:`)
-                  ? errorFor.slice(c.id.length + 1)
-                  : null;
-                const installed = detectInstalled(c.id);
-                return (
-                  <button
-                    key={c.uid}
-                    onClick={() => handleConnect(c)}
-                    disabled={loading}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)] px-3.5 py-3 text-left transition-all duration-200",
-                      "hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-3)]",
-                      loading && "opacity-80",
-                    )}
-                  >
-                    <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl">
-                      {meta.icon}
-                    </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="flex items-center gap-2">
-                        <span className="text-[14.5px] font-semibold text-[var(--fg)]">
-                          {meta.name}
-                        </span>
-                        {meta.recommended && (
-                          <span className="rounded-md bg-[var(--accent-soft)] px-1.5 py-[1px] text-[10.5px] font-semibold text-[var(--accent)]">
-                            Recommended
+              {ordered.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)] px-5 py-8 text-center">
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-[var(--color-surface-3)] text-[var(--fg-mute)]">
+                    <Wallet size={18} />
+                  </span>
+                  <p className="mt-1 text-[13.5px] font-semibold text-[var(--fg)]">
+                    No wallets detected
+                  </p>
+                  <p className="max-w-[280px] text-[12px] leading-relaxed text-[var(--fg-mute)]">
+                    Install a browser wallet like MetaMask, Rabby, or OKX and
+                    reload this page.
+                  </p>
+                </div>
+              ) : (
+                ordered.map((c) => {
+                  const loading =
+                    isPending && variables?.connector &&
+                    "id" in variables.connector &&
+                    variables.connector.id === c.id;
+                  const err = errorFor?.startsWith(`${c.id}:`)
+                    ? errorFor.slice(c.id.length + 1)
+                    : null;
+                  const recommended = isRecommended(c);
+                  return (
+                    <button
+                      key={c.uid}
+                      onClick={() => handleConnect(c)}
+                      disabled={loading}
+                      className={cn(
+                        "group flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)] px-3.5 py-3 text-left transition-all duration-200",
+                        "hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-3)]",
+                        loading && "opacity-80",
+                      )}
+                    >
+                      <WalletIcon connector={c} />
+                      <span className="flex-1 min-w-0">
+                        <span className="flex items-center gap-2">
+                          <span className="truncate text-[14.5px] font-semibold text-[var(--fg)]">
+                            {c.name}
                           </span>
-                        )}
+                          {recommended && (
+                            <span className="rounded-md bg-[var(--accent-soft)] px-1.5 py-[1px] text-[10.5px] font-semibold text-[var(--accent)]">
+                              Recommended
+                            </span>
+                          )}
+                        </span>
+                        <span className="block truncate text-[12.5px] text-[var(--fg-mute)]">
+                          {err ? (
+                            <span className="text-[var(--danger)]">{err}</span>
+                          ) : (
+                            "Browser extension"
+                          )}
+                        </span>
                       </span>
-                      <span className="block truncate text-[12.5px] text-[var(--fg-mute)]">
-                        {err ? (
-                          <span className="text-[var(--danger)]">{err}</span>
-                        ) : (
-                          meta.description
-                        )}
-                      </span>
-                    </span>
-                    {loading ? (
-                      <Loader2
-                        size={16}
-                        className="animate-spin text-[var(--fg-dim)]"
-                      />
-                    ) : installed ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-success-soft)] px-2 py-0.5 text-[10.5px] font-medium text-[var(--success)]">
-                        <Check size={10} strokeWidth={3} />
-                        Installed
-                      </span>
-                    ) : (
-                      <ArrowRight
-                        size={15}
-                        className="text-[var(--fg-faint)] transition-colors group-hover:text-[var(--fg-dim)]"
-                      />
-                    )}
-                  </button>
-                );
-              })}
+                      {loading ? (
+                        <Loader2
+                          size={16}
+                          className="animate-spin text-[var(--fg-dim)]"
+                        />
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-success-soft)] px-2 py-0.5 text-[10.5px] font-medium text-[var(--success)]">
+                          <Check size={10} strokeWidth={3} />
+                          Detected
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             {/* Footer */}
@@ -229,68 +216,32 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
   );
 }
 
-function detectInstalled(connectorId: string): boolean {
-  if (typeof window === "undefined") return false;
-  const eth = (window as unknown as { ethereum?: Record<string, unknown> })
-    .ethereum;
-  if (connectorId === "metaMaskSDK") return Boolean(eth?.isMetaMask);
-  if (connectorId === "coinbaseWalletSDK") return Boolean(eth?.isCoinbaseWallet);
-  if (connectorId === "injected") return Boolean(eth);
-  return false;
-}
+/**
+ * Icon asli dari tiap wallet (EIP-6963 kasih data URI via `connector.icon`).
+ * Kalau gak ada, fallback ke inisial di lingkaran gelap.
+ */
+function WalletIcon({ connector }: { connector: Connector }) {
+  const icon = (connector as Connector & { icon?: string }).icon;
+  const initial = connector.name.trim().slice(0, 1).toUpperCase();
 
-/* ─── Wallet logos ──────────────────────────────────────────────────────── */
+  if (icon) {
+    return (
+      <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white/[0.04]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={icon}
+          alt=""
+          width={44}
+          height={44}
+          className="h-full w-full object-contain"
+        />
+      </span>
+    );
+  }
 
-function MetaMaskLogo() {
   return (
-    <svg viewBox="0 0 44 44" className="h-full w-full" fill="none">
-      <rect width="44" height="44" rx="12" fill="#2A1B0E" />
-      <g transform="translate(6 7)">
-        <path d="M28 2L18.5 8.5L20.5 4.2L28 2Z" fill="#E2761B" />
-        <path d="M4 2L13.3 8.6L11.5 4.2L4 2Z" fill="#E4761B" />
-        <path d="M24.5 22L22 26L27 27.3L28.5 22.1L24.5 22Z" fill="#E4761B" />
-        <path d="M3.5 22.1L5 27.3L10 26L7.5 22L3.5 22.1Z" fill="#E4761B" />
-        <path d="M9.7 14L8.3 16.3L13.2 16.5L13.1 11.3L9.7 14Z" fill="#E4761B" />
-        <path d="M22.3 14L18.8 11.2L18.7 16.5L23.6 16.3L22.3 14Z" fill="#E4761B" />
-        <path d="M10 26L13 24.4L10.4 22.2L10 26Z" fill="#D7C1B3" />
-        <path d="M19 24.4L22 26L21.6 22.2L19 24.4Z" fill="#D7C1B3" />
-        <path d="M22 26L19 24.4L19.2 26.5L19.2 27.2L22 26Z" fill="#233447" />
-        <path d="M10 26L12.8 27.2L12.8 26.5L13 24.4L10 26Z" fill="#233447" />
-      </g>
-    </svg>
-  );
-}
-
-function CoinbaseLogo() {
-  return (
-    <svg viewBox="0 0 44 44" className="h-full w-full" fill="none">
-      <rect width="44" height="44" rx="12" fill="#0E1A3A" />
-      <circle cx="22" cy="22" r="12" fill="#0052FF" />
-      <rect x="17" y="17" width="10" height="10" rx="1.4" fill="#fff" />
-    </svg>
-  );
-}
-
-function BrowserLogo() {
-  return (
-    <svg viewBox="0 0 44 44" className="h-full w-full" fill="none">
-      <rect width="44" height="44" rx="12" fill="#252A3D" />
-      <rect
-        x="12"
-        y="15"
-        width="20"
-        height="15"
-        rx="3"
-        stroke="#B8BECE"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M25 22.5h6"
-        stroke="#B8BECE"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <circle cx="28.5" cy="22.5" r="1.3" fill="#B8BECE" />
-    </svg>
+    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--color-surface-3)] text-[15px] font-bold text-[var(--fg-dim)]">
+      {initial || "W"}
+    </span>
   );
 }

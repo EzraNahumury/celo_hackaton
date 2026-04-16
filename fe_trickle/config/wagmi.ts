@@ -3,7 +3,6 @@
 import { http, createConfig } from "wagmi";
 import { celo } from "wagmi/chains";
 import { defineChain } from "viem";
-import { injected, metaMask, coinbaseWallet } from "wagmi/connectors";
 
 /**
  * Celo Sepolia Testnet (chain 11142220)
@@ -15,10 +14,10 @@ export const celoSepolia = defineChain({
   name: "Celo Sepolia Testnet",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://rpc.ankr.com/celo_sepolia"] },
-    ankr:  { http: ["https://rpc.ankr.com/celo_sepolia"] },
-    drpc:  { http: ["https://celo-sepolia.drpc.org"] },
+    default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
     forno: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
+    drpc:  { http: ["https://celo-sepolia.drpc.org"] },
+    ankr:  { http: ["https://rpc.ankr.com/celo_sepolia"] },
   },
   blockExplorers: {
     default: { name: "Celoscan", url: "https://sepolia.celoscan.io" },
@@ -26,20 +25,16 @@ export const celoSepolia = defineChain({
   testnet: true,
 });
 
+/**
+ * Connectors dibiarkan kosong — wagmi auto-discover semua wallet yang pasang
+ * EIP-6963 (MetaMask, Rabby, OKX, Brave, Talisman, dll). Masing-masing
+ * connector bawa `icon`, `name`, dan `rdns`-nya sendiri.
+ */
 export const config = createConfig({
   chains: [celoSepolia, celo],
-  connectors: [
-    metaMask({
-      dappMetadata: { name: "Trickle", url: "https://trickle.app" },
-    }),
-    coinbaseWallet({
-      appName: "Trickle",
-      preference: "all",
-    }),
-    injected({ shimDisconnect: true }),
-  ],
+  connectors: [],
   transports: {
-    [celoSepolia.id]: http("https://rpc.ankr.com/celo_sepolia"),
+    [celoSepolia.id]: http("https://forno.celo-sepolia.celo-testnet.org"),
     [celo.id]:        http(),
   },
 });

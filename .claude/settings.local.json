@@ -30,7 +30,10 @@
       "Bash(rtk tsc:*)",
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
-      "Bash(grep -l \"coinbaseWallet\\\\|metaMask\\\\|walletConnect\" C:/celo_hackaton/fe_trickle/node_modules/wagmi/dist/esm/connectors/*.js)"
+      "Bash(grep -l \"coinbaseWallet\\\\|metaMask\\\\|walletConnect\" C:/celo_hackaton/fe_trickle/node_modules/wagmi/dist/esm/connectors/*.js)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(find node_modules/wagmi/node_modules/@wagmi/connectors -name \"injected*\")",
+      "Bash(ls node_modules/wagmi/node_modules/@wagmi/connectors/dist/esm/exports)"
     ]
   }
 }

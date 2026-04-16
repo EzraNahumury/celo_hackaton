@@ -39,7 +39,7 @@ export function useDeposit(): UseDepositReturn {
   } = useWriteContract();
 
   const { isSuccess: approveConfirmed, isError: approveReceiptFailed } =
-    useWaitForTransactionReceipt({ hash: approveTxHash });
+    useWaitForTransactionReceipt({ hash: approveTxHash, pollingInterval: 1_500 });
 
   // ── Step 2: deposit ────────────────────────────────────────────────────────
   const {
@@ -50,7 +50,7 @@ export function useDeposit(): UseDepositReturn {
   } = useWriteContract();
 
   const { isSuccess: depositConfirmed, isError: depositReceiptFailed } =
-    useWaitForTransactionReceipt({ hash: depositTxHash });
+    useWaitForTransactionReceipt({ hash: depositTxHash, pollingInterval: 1_500 });
 
   // ── Transition: approving → depositing ────────────────────────────────────
   useEffect(() => {

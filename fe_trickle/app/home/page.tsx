@@ -79,9 +79,9 @@ export default function HomePage() {
             Why Trickle
           </p>
           <div className="grid grid-cols-3 gap-2">
-            <Highlight icon={<Zap size={14} />} label="Per-second" />
-            <Highlight icon={<Activity size={14} />} label="Live accrual" />
-            <Highlight icon={<ShieldCheck size={14} />} label="Non-custodial" />
+            <Highlight icon={<Zap size={14} />} label="Per-second" kind="pulse" delay={0} />
+            <Highlight icon={<Activity size={14} />} label="Live accrual" kind="wave" delay={0.15} />
+            <Highlight icon={<ShieldCheck size={14} />} label="Non-custodial" kind="breathe" delay={0.3} />
           </div>
         </motion.section>
       </div>
@@ -142,21 +142,82 @@ function RoleCard({
   );
 }
 
+type IconLoop = {
+  animate: Record<string, number[]>;
+  transition: { duration: number; repeat: number; ease: [number, number, number, number] };
+};
+
+const ICON_LOOPS: Record<"pulse" | "wave" | "breathe", IconLoop> = {
+  pulse: {
+    animate: { scale: [1, 1.14, 1] },
+    transition: { duration: 1.7, repeat: Infinity, ease: [0.45, 0, 0.55, 1] },
+  },
+  wave: {
+    animate: { rotate: [-6, 6, -6], y: [0, -1.5, 0] },
+    transition: { duration: 2.2, repeat: Infinity, ease: [0.45, 0, 0.55, 1] },
+  },
+  breathe: {
+    animate: { scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] },
+    transition: { duration: 2.8, repeat: Infinity, ease: [0.45, 0, 0.55, 1] },
+  },
+};
+
 function Highlight({
   icon,
   label,
+  kind,
+  delay,
 }: {
   icon: React.ReactNode;
   label: string;
+  kind: keyof typeof ICON_LOOPS;
+  delay: number;
 }) {
+  const loop = ICON_LOOPS[kind];
+
   return (
-    <div className="flex flex-col items-start gap-2 rounded-xl border border-[var(--border)] bg-[var(--color-surface)]/60 px-3 py-3 backdrop-blur-md">
-      <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--color-accent-soft)] text-[var(--accent-3)]">
-        {icon}
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.18 + delay, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -2 }}
+      className="group relative flex flex-col items-start gap-2 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--color-surface)]/60 px-3 py-3 backdrop-blur-md transition-colors duration-200 hover:border-[var(--border-strong)]"
+    >
+      {/* Ambient glow yang nyala pas hover */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "radial-gradient(140% 80% at 0% 0%, rgba(99,102,241,0.16), transparent 55%)",
+        }}
+      />
+
+      {/* Soft pulse ring dibalik icon — subtle tapi hidup */}
+      <span className="relative grid h-7 w-7 shrink-0 place-items-center">
+        <motion.span
+          aria-hidden
+          className="absolute inset-0 rounded-lg bg-[var(--color-accent-soft)]"
+          animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.12, 1] }}
+          transition={{
+            duration: 2.4,
+            repeat: Infinity,
+            ease: [0.45, 0, 0.55, 1],
+            delay,
+          }}
+        />
+        <motion.span
+          className="relative grid h-7 w-7 place-items-center rounded-lg bg-[var(--color-accent-soft)] text-[var(--accent-3)]"
+          animate={loop.animate}
+          transition={{ ...loop.transition, delay }}
+        >
+          {icon}
+        </motion.span>
       </span>
-      <span className="text-[12px] font-medium leading-tight text-[var(--fg-dim)]">
+
+      <span className="relative text-[12px] font-medium leading-tight text-[var(--fg-dim)] transition-colors duration-200 group-hover:text-[var(--fg)]">
         {label}
       </span>
-    </div>
+    </motion.div>
   );
 }

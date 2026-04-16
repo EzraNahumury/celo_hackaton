@@ -176,7 +176,7 @@ export default function EmployeeDashboard() {
     isPending: isWithdrawPending,
   } = useWriteContract();
   const { isSuccess: withdrawSuccess, isError: withdrawFailed } =
-    useWaitForTransactionReceipt({ hash: withdrawTxHash });
+    useWaitForTransactionReceipt({ hash: withdrawTxHash, pollingInterval: 1_500 });
 
   function handleWithdraw(s: Stream) {
     doWithdraw({

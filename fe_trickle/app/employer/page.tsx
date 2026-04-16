@@ -177,7 +177,7 @@ export default function EmployerDashboard() {
   const { writeContract: doWithdrawBalance, data: wbTxHash } =
     useWriteContract();
   const { isSuccess: wbSuccess, isError: wbFailed } =
-    useWaitForTransactionReceipt({ hash: wbTxHash });
+    useWaitForTransactionReceipt({ hash: wbTxHash, pollingInterval: 1_500 });
 
   function handleWithdrawBalance() {
     if (!address || !withdrawAmount) return;
@@ -222,6 +222,7 @@ export default function EmployerDashboard() {
   } = useWriteContract();
   const { isSuccess: cancelSuccess } = useWaitForTransactionReceipt({
     hash: cancelTxHash,
+    pollingInterval: 1_500,
   });
 
   function handleCancel(stream: Stream) {

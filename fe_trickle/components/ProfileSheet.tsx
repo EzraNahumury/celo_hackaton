@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { useAccount, useDisconnect, useReadContracts } from "wagmi";
+import {
+  useAccount,
+  useDisconnect,
+  useReadContracts,
+  type Connector,
+} from "wagmi";
 import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,6 +17,8 @@ import {
   Power,
   ExternalLink,
   Wallet,
+  ChevronRight,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { TOKEN_LIST } from "@/config/tokens";
@@ -25,8 +32,15 @@ interface ProfileSheetProps {
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
+const TOKEN_ACCENT: Record<string, { bg: string; fg: string }> = {
+  tUSDC: { bg: "rgba(125, 211, 252, 0.12)", fg: "#7DD3FC" },
+  USDC:  { bg: "rgba(47, 99, 255, 0.14)",  fg: "#6B8EFF" },
+  USDm:  { bg: "rgba(110, 231, 183, 0.12)", fg: "#6EE7B7" },
+  _:     { bg: "rgba(255,255,255,0.06)",   fg: "#B8BECE" },
+};
+
 export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, connector } = useAccount();
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
@@ -56,10 +70,26 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
       }))
     : [];
 
-  const { data: balanceResults } = useReadContracts({
+  const {
+    data: balanceResults,
+    refetch: refetchBalances,
+    isFetching: balancesFetching,
+  } = useReadContracts({
     contracts: balanceCalls,
-    query: { enabled: !!address && open },
+    query: {
+      enabled: !!address && open,
+      staleTime: 0,
+      refetchOnMount: "always",
+      // Refresh tiap 3 detik selama sheet terbuka — selalu up-to-date sama on-chain
+      refetchInterval: open ? 3_000 : false,
+    },
   });
+
+  // Paksa refetch tiap kali sheet dibuka — tangani kasus user baru deposit
+  // dari panel lain dan langsung buka Profile dalam <staleTime detik.
+  React.useEffect(() => {
+    if (open && address) refetchBalances();
+  }, [open, address, refetchBalances]);
 
   async function copyAddress() {
     if (!address) return;
@@ -96,57 +126,87 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 24, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[460px] overflow-hidden rounded-t-3xl border border-white/[0.08] shadow-[var(--shadow-lg)] sm:rounded-3xl"
+            className="relative w-full max-w-[440px] overflow-hidden rounded-t-[28px] border border-white/[0.06] shadow-[var(--shadow-lg)] sm:rounded-[28px]"
             style={{
-              background: "rgba(0,0,0,0.72)",
-              backdropFilter: "blur(28px) saturate(150%)",
-              WebkitBackdropFilter: "blur(28px) saturate(150%)",
+              background: "rgba(10, 11, 20, 0.82)",
+              backdropFilter: "blur(32px) saturate(160%)",
+              WebkitBackdropFilter: "blur(32px) saturate(160%)",
             }}
           >
-            <div className="mx-auto mt-2.5 mb-1 h-1 w-10 rounded-full bg-[var(--border-strong)] sm:hidden" />
+            <div className="mx-auto mt-2.5 mb-1 h-[3px] w-9 rounded-full bg-white/15 sm:hidden" />
 
-            <div className="flex items-center justify-between px-5 pt-4 pb-3">
-              <h2 className="font-display text-[16px] font-semibold tracking-tight text-[var(--fg)]">
-                Profile
+            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <h2 className="font-display text-[15px] font-semibold tracking-tight text-[var(--fg)]">
+                Account
               </h2>
               <button
                 onClick={onClose}
-                className="grid h-8 w-8 place-items-center rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--fg)]"
+                className="grid h-8 w-8 place-items-center rounded-full text-[var(--fg-mute)] transition-colors hover:bg-white/[0.06] hover:text-[var(--fg)]"
               >
-                <X size={14} />
+                <X size={14} strokeWidth={2.2} />
               </button>
             </div>
 
             {isConnected && address ? (
               <div className="px-5 pb-5">
-                {/* Avatar + address */}
-                <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
-                  <span
-                    className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-[14px] font-semibold text-white"
-                    style={{
-                      background:
-                        "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
-                    }}
-                  >
-                    {address.slice(2, 3).toUpperCase()}
-                    {address.slice(-1).toUpperCase()}
-                  </span>
+                {/* Identity row */}
+                <div className="flex items-center gap-3 pb-4">
+                  <WalletAvatar connector={connector} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11.5px] font-medium uppercase tracking-[0.1em] text-[var(--fg-mute)]">
-                      Connected on Celo Sepolia
-                    </p>
-                    <p className="mt-0.5 break-all font-mono text-[12.5px] text-[var(--fg-dim)]">
-                      {address}
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-[13.5px] font-semibold tracking-tight text-[var(--fg)]">
+                        {address.slice(0, 6)}…{address.slice(-4)}
+                      </p>
+                      <button
+                        onClick={copyAddress}
+                        aria-label={copied ? "Copied" : "Copy address"}
+                        className="grid h-6 w-6 place-items-center rounded-md text-[var(--fg-faint)] transition-colors hover:bg-white/[0.06] hover:text-[var(--fg)]"
+                      >
+                        {copied ? (
+                          <Check
+                            size={12}
+                            strokeWidth={2.5}
+                            className="text-[var(--success)]"
+                          />
+                        ) : (
+                          <Copy size={12} strokeWidth={2} />
+                        )}
+                      </button>
+                    </div>
+                    <p className="mt-0.5 text-[11.5px] text-[var(--fg-mute)]">
+                      {connector?.name ? `${connector.name} · ` : ""}Celo Sepolia · Testnet
                     </p>
                   </div>
                 </div>
 
                 {/* Token balances */}
-                <div className="mt-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] overflow-hidden">
-                  <p className="px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-faint)]">
-                    Wallet balances
-                  </p>
-                  <div className="divide-y divide-[var(--divider)]">
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+                  <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                    <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-faint)]">
+                      Balances
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10.5px] font-medium text-[var(--fg-faint)]">
+                        {validTokens.length} tokens
+                      </span>
+                      <button
+                        onClick={() => refetchBalances()}
+                        disabled={balancesFetching}
+                        aria-label="Refresh balances"
+                        className="grid h-6 w-6 place-items-center rounded-md text-[var(--fg-faint)] transition-colors hover:bg-white/[0.06] hover:text-[var(--fg)] disabled:cursor-not-allowed"
+                      >
+                        <RefreshCw
+                          size={11}
+                          strokeWidth={2.2}
+                          className={cn(
+                            "transition-transform",
+                            balancesFetching && "animate-spin",
+                          )}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="px-1.5 pb-1.5">
                     {validTokens.map((token, i) => {
                       const raw = balanceResults?.[i];
                       const balance =
@@ -155,29 +215,48 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                               formatUnits(raw.result as bigint, token.decimals)
                             )
                           : null;
+                      const accent = TOKEN_ACCENT[token.symbol] ?? TOKEN_ACCENT._;
                       return (
                         <div
                           key={token.symbol}
-                          className="flex items-center justify-between px-4 py-2.5"
+                          className="flex items-center justify-between rounded-xl px-2.5 py-2 transition-colors hover:bg-white/[0.03]"
                         >
-                          <div className="flex items-center gap-2.5">
-                            <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--color-surface-3)] text-[11px] font-bold text-[var(--fg-dim)]">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <span
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold"
+                              style={{
+                                background: accent.bg,
+                                color: accent.fg,
+                              }}
+                            >
                               {token.symbol[0]}
                             </span>
-                            <span className="text-[13px] font-medium text-[var(--fg-dim)]">
-                              {token.symbol}
-                            </span>
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-medium text-[var(--fg)]">
+                                {token.symbol}
+                              </p>
+                              <p className="truncate text-[11px] text-[var(--fg-mute)]">
+                                {token.name}
+                              </p>
+                            </div>
                           </div>
-                          <span className="font-mono text-[13px] tabular text-[var(--fg)]">
+                          <div className="text-right">
                             {balance === null ? (
                               <span className="skeleton inline-block h-3.5 w-16 rounded" />
                             ) : (
-                              balance.toLocaleString("en-US", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 4,
-                              })
+                              <>
+                                <p className="font-mono text-[13px] font-semibold tabular text-[var(--fg)]">
+                                  {balance.toLocaleString("en-US", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 4,
+                                  })}
+                                </p>
+                                <p className="text-[10.5px] text-[var(--fg-faint)]">
+                                  {token.symbol}
+                                </p>
+                              </>
                             )}
-                          </span>
+                          </div>
                         </div>
                       );
                     })}
@@ -185,31 +264,18 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                 </div>
 
                 {/* Actions */}
-                <div className="mt-3 flex flex-col gap-1">
+                <div className="mt-4 flex flex-col">
                   <SheetAction
-                    icon={
-                      copied ? (
-                        <Check
-                          size={16}
-                          strokeWidth={2.25}
-                          className="text-[var(--success)]"
-                        />
-                      ) : (
-                        <Copy size={16} strokeWidth={2} />
-                      )
-                    }
-                    label={copied ? "Address copied" : "Copy address"}
-                    onClick={copyAddress}
-                  />
-                  <SheetAction
-                    icon={<ExternalLink size={16} strokeWidth={2} />}
+                    icon={<ExternalLink size={14} strokeWidth={2} />}
                     label="View on Celoscan"
+                    hint="Explorer"
                     href={`https://sepolia.celoscan.io/address/${address}`}
                     external
+                    trailing={<ChevronRight size={14} className="text-[var(--fg-faint)]" />}
                   />
                   <SheetAction
-                    icon={<Power size={16} strokeWidth={2} />}
-                    label="Disconnect wallet"
+                    icon={<Power size={14} strokeWidth={2} />}
+                    label="Disconnect"
                     tone="danger"
                     onClick={() => {
                       onClose();
@@ -251,33 +317,90 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
   );
 }
 
+/**
+ * Avatar besar di header — pake icon wallet yang lagi connect (dari EIP-6963
+ * `connector.icon`). Kalau connector gak announce icon, fallback ke inisial
+ * dari nama wallet di atas gradient indigo.
+ */
+function WalletAvatar({ connector }: { connector: Connector | undefined }) {
+  const icon = (connector as (Connector & { icon?: string }) | undefined)?.icon;
+  const initial = connector?.name?.trim().slice(0, 1).toUpperCase() ?? "W";
+
+  return (
+    <span
+      className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full"
+      style={{
+        background: icon
+          ? "rgba(255,255,255,0.04)"
+          : "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
+        boxShadow: icon
+          ? "0 4px 12px -6px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08)"
+          : "0 6px 16px -6px rgba(79,70,229,0.55), inset 0 1px 0 rgba(255,255,255,0.2)",
+      }}
+    >
+      {icon ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={icon}
+          alt={connector?.name ?? "Wallet"}
+          width={44}
+          height={44}
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        <span className="text-[13px] font-semibold text-white">{initial}</span>
+      )}
+      <span
+        aria-hidden
+        className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#0A0B14] bg-[var(--success)]"
+      />
+    </span>
+  );
+}
+
 function SheetAction({
   icon,
   label,
+  hint,
   onClick,
   href,
   external,
   tone,
+  trailing,
 }: {
   icon: React.ReactNode;
   label: string;
+  hint?: string;
   onClick?: () => void;
   href?: string;
   external?: boolean;
   tone?: "danger";
+  trailing?: React.ReactNode;
 }) {
   const cls = cn(
-    "flex items-center gap-3 rounded-xl px-3.5 py-3 text-[13.5px] font-medium transition-colors",
+    "group flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-[13px] font-medium transition-colors",
     tone === "danger"
       ? "text-[var(--fg-dim)] hover:bg-[var(--color-danger-soft)] hover:text-[var(--danger)]"
-      : "text-[var(--fg)] hover:bg-[var(--color-surface-2)]",
+      : "text-[var(--fg)] hover:bg-white/[0.04]",
+  );
+  const iconCls = cn(
+    "grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-colors",
+    tone === "danger"
+      ? "bg-white/[0.04] text-[var(--fg-mute)] group-hover:bg-[var(--color-danger-soft)] group-hover:text-[var(--danger)]"
+      : "bg-white/[0.04] text-[var(--fg-dim)] group-hover:text-[var(--fg)]",
   );
   const content = (
     <>
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--color-surface-2)]">
-        {icon}
+      <span className={iconCls}>{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block leading-tight">{label}</span>
+        {hint && (
+          <span className="mt-0.5 block text-[11px] font-normal text-[var(--fg-faint)]">
+            {hint}
+          </span>
+        )}
       </span>
-      <span className="flex-1">{label}</span>
+      {trailing}
     </>
   );
   if (href) {

@@ -87,7 +87,7 @@ export default function CreateStream() {
     reset: resetApprove,
   } = useWriteContract();
   const { isSuccess: approveConfirmed, isError: approveFailed } =
-    useWaitForTransactionReceipt({ hash: approveTxHash });
+    useWaitForTransactionReceipt({ hash: approveTxHash, pollingInterval: 1_500 });
 
   const {
     writeContract: doDeposit,
@@ -96,7 +96,7 @@ export default function CreateStream() {
     reset: resetDeposit,
   } = useWriteContract();
   const { isSuccess: depositConfirmed, isError: depositFailed } =
-    useWaitForTransactionReceipt({ hash: depositTxHash });
+    useWaitForTransactionReceipt({ hash: depositTxHash, pollingInterval: 1_500 });
 
   const {
     writeContract: doCreateStream,
@@ -105,7 +105,7 @@ export default function CreateStream() {
     reset: resetCreate,
   } = useWriteContract();
   const { isSuccess: createConfirmed, isError: createFailed } =
-    useWaitForTransactionReceipt({ hash: createTxHash });
+    useWaitForTransactionReceipt({ hash: createTxHash, pollingInterval: 1_500 });
 
   useEffect(() => {
     if (phase === "approving" && approveConfirmed && paramsRef.current) {
