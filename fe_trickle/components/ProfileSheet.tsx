@@ -45,8 +45,12 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => setMounted(true), []);
+  React.useEffect(() => () => {
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+  }, []);
 
   React.useEffect(() => {
     if (!open) return;
@@ -97,7 +101,8 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
     try {
       await navigator.clipboard.writeText(address);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
     } catch {}
   }
 

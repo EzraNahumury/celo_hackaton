@@ -90,6 +90,11 @@ export default function EmployeeDashboard() {
     return () => clearInterval(id);
   }, []);
 
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+  }, []);
+
   const { data: streamIds, isLoading: idsLoading } = useReadContract({
     address: TRICKLE_VAULT_ADDRESS,
     abi: TRICKLE_VAULT_ABI,
@@ -219,7 +224,8 @@ export default function EmployeeDashboard() {
     try {
       await navigator.clipboard.writeText(address);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
     } catch {}
   }
 
@@ -519,13 +525,14 @@ export default function EmployeeDashboard() {
             <div className="flex gap-2.5">
               <button
                 onClick={() => {
-                  // pick stream with highest accrual
-                  const s = streams.reduce((a, b) =>
-                    streamAccrued(a, now) > streamAccrued(b, now) ? a : b,
-                  );
-                  handleWithdraw(s);
+                  // Fire a withdraw tx for every stream that has something accrued.
+                  // Wallets will queue prompts sequentially.
+                  streams
+                    .filter((s) => streamAccrued(s, now) > 0)
+                    .forEach((s) => handleWithdraw(s));
                 }}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)]"
+                disabled={isWithdrawPending || totalWithdrawableAccrued === 0}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ArrowDownToLine size={15} strokeWidth={2.25} />
                 Withdraw all

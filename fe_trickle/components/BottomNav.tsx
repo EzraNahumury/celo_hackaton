@@ -64,14 +64,26 @@ export function BottomNav({ onProfile }: BottomNavProps) {
 
   // ── Ripples ──────────────────────────────────────────────────────────
   const [ripples, setRipples] = React.useState<Ripple[]>([]);
+  const rippleTimersRef = React.useRef<Set<ReturnType<typeof setTimeout>>>(
+    new Set(),
+  );
+
+  React.useEffect(
+    () => () => {
+      rippleTimersRef.current.forEach((t) => clearTimeout(t));
+      rippleTimersRef.current.clear();
+    },
+    [],
+  );
 
   function addRipple(x: number, y: number) {
     const id = Date.now() + Math.random();
     setRipples((r) => [...r, { x, y, id }]);
-    window.setTimeout(
-      () => setRipples((r) => r.filter((rp) => rp.id !== id)),
-      800,
-    );
+    const handle = setTimeout(() => {
+      setRipples((r) => r.filter((rp) => rp.id !== id));
+      rippleTimersRef.current.delete(handle);
+    }, 800);
+    rippleTimersRef.current.add(handle);
   }
 
   // ── Deformation ──────────────────────────────────────────────────────

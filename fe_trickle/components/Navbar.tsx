@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Droplets, Check, Loader } from "lucide-react";
@@ -39,9 +39,13 @@ export default function Navbar() {
   const [walletOpen, setWalletOpen] = useState(false);
   const [claimed, setClaimed] = useState(false);
   // Simpan ID toast pending agar bisa di-update (bukan buat toast baru)
-  const pendingToastId = useState<string | null>(null);
+  const [pendingToastId, setPendingToastId] = useState<string | null>(null);
+  const claimedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => () => {
+    if (claimedTimerRef.current) clearTimeout(claimedTimerRef.current);
+  }, []);
 
   const { writeContract: doMint, data: mintTxHash, isPending: isMinting } =
     useWriteContract();
@@ -55,30 +59,30 @@ export default function Navbar() {
   useEffect(() => {
     if (mintSuccess) {
       // Update toast pending yang sama → otomatis ganti jadi success + auto-dismiss
-      if (pendingToastId[0]) {
-        update(pendingToastId[0], {
+      if (pendingToastId) {
+        update(pendingToastId, {
           type: "success",
           message: "Faucet claimed!",
           description: "1,000 tUSDC ditambahkan ke wallet kamu",
           txHash: mintTxHash,
         });
-        pendingToastId[1](null);
+        setPendingToastId(null);
       }
       setClaimed(true);
-      setTimeout(() => setClaimed(false), 3000);
+      claimedTimerRef.current = setTimeout(() => setClaimed(false), 3000);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mintSuccess]);
 
   useEffect(() => {
     if (mintFailed) {
-      if (pendingToastId[0]) {
-        update(pendingToastId[0], {
+      if (pendingToastId) {
+        update(pendingToastId, {
           type: "error",
           message: "Faucet gagal",
           description: "Coba lagi",
         });
-        pendingToastId[1](null);
+        setPendingToastId(null);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,7 +98,7 @@ export default function Navbar() {
     });
     // Simpan ID toast agar bisa di-update nanti
     const id = toast({ type: "pending", message: "Minting 1,000 tUSDC…" });
-    pendingToastId[1](id);
+    setPendingToastId(id);
   }
 
   const showFaucet = mounted && isConnected && IS_MOCK_DEPLOYED;

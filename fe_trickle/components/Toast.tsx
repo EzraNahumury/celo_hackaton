@@ -4,6 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -45,10 +47,36 @@ let _seq = 0;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
 
   const dismiss = useCallback((id: string) => {
+    const t = timersRef.current.get(id);
+    if (t) {
+      clearTimeout(t);
+      timersRef.current.delete(id);
+    }
     setItems((p) => p.filter((t) => t.id !== id));
   }, []);
+
+  const scheduleDismiss = useCallback(
+    (id: string, ms: number) => {
+      const prev = timersRef.current.get(id);
+      if (prev) clearTimeout(prev);
+      const handle = setTimeout(() => dismiss(id), ms);
+      timersRef.current.set(id, handle);
+    },
+    [dismiss],
+  );
+
+  useEffect(
+    () => () => {
+      timersRef.current.forEach((t) => clearTimeout(t));
+      timersRef.current.clear();
+    },
+    [],
+  );
 
   const toast = useCallback(
     (item: Omit<ToastItem, "id">): string => {
@@ -63,10 +91,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           : 4000;
 
       setItems((p) => [...p.slice(-4), { ...item, id, duration }]); // max 5 toasts
-      if (duration > 0) setTimeout(() => dismiss(id), duration);
+      if (duration > 0) scheduleDismiss(id, duration);
       return id;
     },
-    [dismiss]
+    [scheduleDismiss],
   );
 
   const update = useCallback(
@@ -82,13 +110,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 : patch.type === "error"
                 ? 7000
                 : 4000;
-            if (dur > 0) setTimeout(() => dismiss(id), dur);
+            if (dur > 0) scheduleDismiss(id, dur);
           }
           return next;
         })
       );
     },
-    [dismiss]
+    [scheduleDismiss],
   );
 
   return (

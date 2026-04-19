@@ -13,14 +13,24 @@ export default function HeroSection() {
   const { isConnected } = useAccount();
   const [mounted, setMounted] = React.useState(false);
   const [walletOpen, setWalletOpen] = React.useState(false);
+  // null = haven't observed a value yet; first run records it without redirecting.
+  const prevConnectedRef = React.useRef<boolean | null>(null);
   React.useEffect(() => setMounted(true), []);
 
   const showConnected = mounted && isConnected;
 
   React.useEffect(() => {
-    if (!mounted || !isConnected) return;
-    setWalletOpen(false);
-    router.replace("/home");
+    if (!mounted) return;
+    const prev = prevConnectedRef.current;
+    prevConnectedRef.current = isConnected;
+    // Skip the initial observation — returning visitors with an already-
+    // connected wallet should still see the landing page.
+    if (prev === null) return;
+    // Only auto-navigate on the false → true transition (user just connected).
+    if (!prev && isConnected) {
+      setWalletOpen(false);
+      router.replace("/home");
+    }
   }, [mounted, isConnected, router]);
 
   return (
