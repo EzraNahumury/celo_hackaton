@@ -8,15 +8,27 @@ Built with [Foundry](https://book.getfoundry.sh/) and deployed on the **Celo** b
 
 ## Deployed Contract
 
+### Celo Mainnet (Production)
+
+| | |
+|---|---|
+| **Network** | Celo Mainnet (chain 42220) |
+| **Contract** | `0x8a3e5d16F088A1D96f554970e5eED8468e7ddc05` |
+| **Deployer** | `0x0a1518F64C2e2F41bcba6f6910cA07131C2A7c0a` |
+| **Block** | 64796163 |
+| **Tx Hash** | `0xcdd100d8a6a228eaefbefe54077f7558b89ab3d869ed030fff6907abc51d23f1` |
+| **Gas paid** | 0.059036 CELO (1,180,698 gas @ 50 gwei) |
+| **Status** | Verified on Celoscan |
+| **Explorer** | https://celoscan.io/address/0x8a3e5d16f088a1d96f554970e5eed8468e7ddc05 |
+
+**Primary token (USDC on Celo Mainnet):** `0xcebA9300f2b948710d2653dD7B07f33A8B32118C`
+
+### Celo Sepolia Testnet
+
 | | |
 |---|---|
 | **Network** | Celo Sepolia Testnet (chain 11142220) |
 | **Contract** | `0x42cADdd47E795A6e04d820A6c140AF04159C7542` |
-| **Deployer** | `0x5682c0FF0ba3E6B0d78755c4684aEc5EA05c2a6F` |
-| **Block** | 22951573 |
-| **Tx Hash** | `0xe98773f4205e37a239451fd117e5b518b2b43508dff64e621cb17c1330f413ff` |
-| **Gas paid** | 0.059034 CELO (1,180,698 gas @ 50 gwei) |
-| **Status** | Verified on Celoscan |
 | **Explorer** | https://sepolia.celoscan.io/address/0x42caddd47e795a6e04d820a6c140af04159c7542 |
 
 **Primary token (USDC on Celo Sepolia):** `0x01C5C0122039549AD1493B8220cABEdD739BC44E`
@@ -145,6 +157,63 @@ forge test --gas-report
 
 ---
 
+## Deploy to Celo Mainnet
+
+### 1. Fund your deployer wallet
+
+Make sure your deployer wallet has **CELO** on mainnet. A typical deployment costs around **0.06 CELO** in gas.
+
+### 2. Dry-run first (no broadcast)
+
+```bash
+forge script script/Deploy.s.sol \
+  --rpc-url celo \
+  -vvvv
+```
+
+### 3. Deploy and verify in one step
+
+```bash
+forge script script/Deploy.s.sol \
+  --rpc-url celo \
+  --broadcast \
+  --verify \
+  -vvvv
+```
+
+**What happens:**
+1. Foundry reads `PRIVATE_KEY` and `CELOSCAN_API_KEY` from `.env`
+2. `TrickleVault` is deployed to Celo Mainnet
+3. The deployed address is saved to `deployments/42220.json`
+4. Foundry submits the source code to Celoscan for verification automatically
+
+**Actual deployment output (for reference):**
+```
+===========================================
+  TrickleVault Deployment
+===========================================
+Deployer  : 0x0a1518F64C2e2F41bcba6f6910cA07131C2A7c0a
+Chain ID  : 42220
+Block     : 64796151
+-------------------------------------------
+TrickleVault deployed at: 0x8a3e5d16F088A1D96f554970e5eED8468e7ddc05
+===========================================
+Deployment saved to: deployments/42220.json
+
+✅ Hash: 0xcdd100d8a6a228eaefbefe54077f7558b89ab3d869ed030fff6907abc51d23f1
+Paid: 0.059036198748908832 CELO (1180698 gas * 50.001099984 gwei)
+
+Pass - Verified
+Contract successfully verified
+```
+
+The broadcast receipt is also saved to:
+```
+broadcast/Deploy.s.sol/42220/run-latest.json
+```
+
+---
+
 ## Deploy to Celo Sepolia Testnet
 
 > **Note**: Celo Alfajores was sunset at the end of 2025. **Celo Sepolia** (chain **11142220**) is now the active testnet.
@@ -153,19 +222,7 @@ forge test --gas-report
 
 Get test CELO from the [Celo Faucet](https://faucet.celo.org) for your deployer address.
 
-A typical deployment costs around **0.06 CELO** in gas.
-
-### 2. Dry-run first (no broadcast)
-
-Simulate the deployment without spending any gas:
-
-```bash
-forge script script/Deploy.s.sol \
-  --rpc-url celo-sepolia \
-  -vvvv
-```
-
-### 3. Deploy and verify in one step
+### 2. Deploy and verify in one step
 
 ```bash
 forge script script/Deploy.s.sol \
@@ -173,43 +230,6 @@ forge script script/Deploy.s.sol \
   --broadcast \
   --verify \
   -vvvv
-```
-
-Or using the Makefile shortcut:
-
-```bash
-make deploy
-```
-
-**What happens:**
-1. Foundry reads `PRIVATE_KEY` and `CELOSCAN_API_KEY` from `.env`
-2. `TrickleVault` is deployed to Celo Sepolia
-3. The deployed address is saved to `deployments/11142220.json`
-4. Foundry submits the source code to Celoscan for verification automatically
-
-**Actual deployment output (for reference):**
-```
-===========================================
-  TrickleVault Deployment
-===========================================
-Deployer  : 0x5682c0FF0ba3E6B0d78755c4684aEc5EA05c2a6F
-Chain ID  : 11142220
-Block     : 22951548
--------------------------------------------
-TrickleVault deployed at: 0x42cADdd47E795A6e04d820A6c140AF04159C7542
-===========================================
-Deployment saved to: deployments/11142220.json
-
-✅ Hash: 0xe98773f4205e37a239451fd117e5b518b2b43508dff64e621cb17c1330f413ff
-Paid: 0.059034900001180698 CELO (1180698 gas * 50 gwei)
-
-Pass - Verified
-Contract successfully verified
-```
-
-The broadcast receipt is also saved to:
-```
-broadcast/Deploy.s.sol/11142220/run-latest.json
 ```
 
 ---
@@ -261,12 +281,12 @@ From the **Contract** tab you can:
 Use **Cast** (Foundry's CLI) for quick on-chain interactions.
 
 ```bash
-# Set convenience variables
-export RPC=https://rpc.ankr.com/celo_sepolia
-export VAULT=0x42cADdd47E795A6e04d820A6c140AF04159C7542
+# Set convenience variables (Mainnet)
+export RPC=https://forno.celo.org
+export VAULT=0x8a3e5d16F088A1D96f554970e5eED8468e7ddc05
 
-# USDC on Celo Sepolia
-export TOKEN=0x01C5C0122039549AD1493B8220cABEdD739BC44E
+# USDC on Celo Mainnet
+export TOKEN=0xcebA9300f2b948710d2653dD7B07f33A8B32118C
 
 # Check your USDC balance
 cast call $TOKEN "balanceOf(address)(uint256)" $YOUR_ADDRESS --rpc-url $RPC
