@@ -13,6 +13,9 @@ docs/
 # Dotenv file – never commit secrets
 .env
 
+# Claude Code local settings
+.claude/
+
 # Keep the deployments folder but ignore generated JSON
 # (remove the next two lines if you want to commit deployment addresses)
 deployments/*.json
