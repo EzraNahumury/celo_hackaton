@@ -19,12 +19,8 @@ import {
   Check,
   TrendingUp,
 } from "lucide-react";
-import {
-  TRICKLE_VAULT_ABI,
-  TRICKLE_VAULT_ADDRESS,
-  ERC20_ABI,
-} from "@/config/contracts";
-import { TOKENS, TOKEN_LIST } from "@/config/tokens";
+import { TRICKLE_VAULT_ABI, ERC20_ABI } from "@/config/contracts";
+import { useVaultAddress, useChainTokens, useChainTokenList } from "@/hooks/useChain";
 import StreamCard, { StreamCardSkeleton } from "@/components/StreamCard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
@@ -59,12 +55,23 @@ export default function EmployerDashboard() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [selectedToken, setSelectedToken] = useState("tUSDC");
+  const TOKENS = useChainTokens();
+  const TOKEN_LIST = useChainTokenList();
+  const TRICKLE_VAULT_ADDRESS = useVaultAddress();
+  const defaultToken = TOKEN_LIST[0]?.symbol ?? "USDC";
+
+  const [selectedToken, setSelectedToken] = useState(defaultToken);
+  // If the wallet switches chains and the selected token disappears, snap to
+  // whatever the new chain's default is so we never hand undefined to reads.
+  useEffect(() => {
+    if (!TOKENS[selectedToken]) setSelectedToken(defaultToken);
+  }, [TOKENS, selectedToken, defaultToken]);
+
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [panel, setPanel] = useState<"none" | "deposit" | "withdraw">("none");
 
-  const tokenInfo = TOKENS[selectedToken];
+  const tokenInfo = TOKENS[selectedToken] ?? TOKEN_LIST[0];
 
   const { data: vaultBalance, isLoading: balanceLoading } = useReadContract({
     address: TRICKLE_VAULT_ADDRESS,

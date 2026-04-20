@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Droplets, Check, Loader } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
 import { useToast } from "./Toast";
-import { TOKENS } from "@/config/tokens";
+import { useChainTokens, useIsTestnet } from "@/hooks/useChain";
 
 const MINT_ABI = [
   {
@@ -26,18 +26,21 @@ const MINT_ABI = [
 // Mint 1,000 tUSDC (6 desimal)
 const FAUCET_AMOUNT = 1_000n * 10n ** 6n;
 
-// Hanya tampil kalau address mock token sudah di-deploy (bukan zero address)
-const MOCK_TOKEN_ADDRESS = TOKENS.tUSDC?.address;
-const IS_MOCK_DEPLOYED =
-  MOCK_TOKEN_ADDRESS &&
-  MOCK_TOKEN_ADDRESS !== "0x0000000000000000000000000000000000000000";
-
 export default function Navbar() {
   const { address, isConnected } = useAccount();
   const { toast, update } = useToast();
   const [mounted, setMounted] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [claimed, setClaimed] = useState(false);
+
+  // Faucet only surfaces on the Sepolia mock (mainnet USDC has no public mint).
+  const TOKENS = useChainTokens();
+  const isTestnet = useIsTestnet();
+  const MOCK_TOKEN_ADDRESS = TOKENS.tUSDC?.address;
+  const IS_MOCK_DEPLOYED =
+    isTestnet &&
+    !!MOCK_TOKEN_ADDRESS &&
+    MOCK_TOKEN_ADDRESS !== "0x0000000000000000000000000000000000000000";
   // Simpan ID toast pending agar bisa di-update (bukan buat toast baru)
   const [pendingToastId, setPendingToastId] = useState<string | null>(null);
   const claimedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

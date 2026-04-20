@@ -21,8 +21,13 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { TOKEN_LIST } from "@/config/tokens";
 import { ERC20_ABI } from "@/config/contracts";
+import {
+  useChainTokenList,
+  useExplorerUrl,
+  useChainLabel,
+  useIsTestnet,
+} from "@/hooks/useChain";
 import { TokenIcon } from "./ui/TokenIcon";
 import { DISCONNECT_INTENT_KEY } from "./Providers";
 
@@ -75,6 +80,11 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
   const [mounted, setMounted] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const TOKEN_LIST = useChainTokenList();
+  const explorerUrl = useExplorerUrl();
+  const chainLabel = useChainLabel();
+  const isTestnet = useIsTestnet();
 
   React.useEffect(() => setMounted(true), []);
   React.useEffect(() => () => {
@@ -209,7 +219,9 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                       </button>
                     </div>
                     <p className="mt-0.5 text-[11.5px] text-[var(--fg-mute)]">
-                      {connector?.name ? `${connector.name} · ` : ""}Celo Sepolia · Testnet
+                      {connector?.name ? `${connector.name} · ` : ""}
+                      {chainLabel}
+                      {isTestnet ? " · Testnet" : " · Mainnet"}
                     </p>
                   </div>
                 </div>
@@ -302,7 +314,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                     icon={<ExternalLink size={14} strokeWidth={2} />}
                     label="View on Celoscan"
                     hint="Explorer"
-                    href={`https://sepolia.celoscan.io/address/${address}`}
+                    href={`${explorerUrl}/address/${address}`}
                     external
                     trailing={<ChevronRight size={14} className="text-[var(--fg-faint)]" />}
                   />

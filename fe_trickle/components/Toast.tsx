@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useExplorerUrl } from "@/hooks/useChain";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -206,6 +207,7 @@ function ToastCard({
   onDismiss: (id: string) => void;
 }) {
   const s = STYLE[item.type];
+  const explorerUrl = useExplorerUrl();
 
   return (
     <motion.div
@@ -236,7 +238,7 @@ function ToastCard({
           )}
           {item.txHash && (
             <a
-              href={`https://sepolia.celoscan.io/tx/${item.txHash}`}
+              href={`${explorerUrl}/tx/${item.txHash}`}
               target="_blank"
               rel="noreferrer"
               className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11.5px] font-medium text-[var(--accent)] transition-colors hover:text-[var(--accent-2)]"

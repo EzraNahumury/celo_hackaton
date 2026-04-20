@@ -12,12 +12,13 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, AlertTriangle, ArrowRight } from "lucide-react";
+import { TRICKLE_VAULT_ABI, ERC20_ABI } from "@/config/contracts";
 import {
-  TRICKLE_VAULT_ABI,
-  TRICKLE_VAULT_ADDRESS,
-  ERC20_ABI,
-} from "@/config/contracts";
-import { TOKENS, TOKEN_LIST } from "@/config/tokens";
+  useVaultAddress,
+  useChainTokens,
+  useChainTokenList,
+  useExplorerUrl,
+} from "@/hooks/useChain";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
 import { useToast } from "@/components/Toast";
@@ -53,8 +54,17 @@ export default function CreateStream() {
   const queryClient = useQueryClient();
   const { toast, update } = useToast();
 
+  const TOKENS = useChainTokens();
+  const TOKEN_LIST = useChainTokenList();
+  const TRICKLE_VAULT_ADDRESS = useVaultAddress();
+  const explorerUrl = useExplorerUrl();
+  const defaultToken = TOKEN_LIST[0]?.symbol ?? "USDC";
+
   const [payeeAddress, setPayeeAddress] = useState("");
-  const [selectedToken, setSelectedToken] = useState("tUSDC");
+  const [selectedToken, setSelectedToken] = useState(defaultToken);
+  useEffect(() => {
+    if (!TOKENS[selectedToken]) setSelectedToken(defaultToken);
+  }, [TOKENS, selectedToken, defaultToken]);
   const [monthlySalary, setMonthlySalary] = useState("");
   const [formStep, setFormStep] = useState<"form" | "review">("form");
   const [phase, setPhase] = useState<Phase>("idle");
@@ -70,7 +80,7 @@ export default function CreateStream() {
     payee: `0x${string}`;
   } | null>(null);
 
-  const tokenInfo = TOKENS[selectedToken];
+  const tokenInfo = TOKENS[selectedToken] ?? TOKEN_LIST[0];
 
   const { data: vaultBalance } = useReadContract({
     address: TRICKLE_VAULT_ADDRESS,
@@ -350,7 +360,7 @@ export default function CreateStream() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
-              href={`https://sepolia.celoscan.io/tx/${createTxHash}`}
+              href={`${explorerUrl}/tx/${createTxHash}`}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-flex items-center gap-1 font-mono text-[11.5px] text-[var(--accent)]/70 hover:text-[var(--accent)] transition-colors"

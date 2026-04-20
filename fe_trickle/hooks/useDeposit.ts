@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ERC20_ABI, TRICKLE_VAULT_ABI, TRICKLE_VAULT_ADDRESS } from "@/config/contracts";
+import { ERC20_ABI, TRICKLE_VAULT_ABI } from "@/config/contracts";
+import { useVaultAddress } from "./useChain";
 
 export type DepositPhase = "idle" | "approving" | "depositing" | "done" | "error";
 
@@ -26,6 +27,7 @@ export interface UseDepositReturn {
  * Replaces the fragile setTimeout approach.
  */
 export function useDeposit(): UseDepositReturn {
+  const TRICKLE_VAULT_ADDRESS = useVaultAddress();
   const [phase, setPhase] = useState<DepositPhase>("idle");
   // Store pending params in a ref to avoid stale closures in useEffect
   const pending = useRef<{ tokenAddress: `0x${string}`; amount: bigint } | null>(null);

@@ -3,6 +3,16 @@
 import "dotenv/config";
 import { createPublicClient, http, fallback, defineChain, isAddress } from "viem";
 
+const celoMainnet = defineChain({
+  id: 42220,
+  name: "Celo",
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: ["https://forno.celo.org", "https://rpc.ankr.com/celo"],
+    },
+  },
+});
 const celoSepolia = defineChain({
   id: 11142220,
   name: "Celo Sepolia Testnet",
@@ -18,11 +28,21 @@ const celoSepolia = defineChain({
   },
   testnet: true,
 });
+const CHAIN =
+  (process.env.CHAIN ?? "").toLowerCase() === "sepolia"
+    ? celoSepolia
+    : celoMainnet;
 
 const VAULT_ADDRESS =
-  process.env.VAULT_ADDRESS ?? "0x42cADdd47E795A6e04d820A6c140AF04159C7542";
+  process.env.VAULT_ADDRESS ??
+  (CHAIN === celoMainnet
+    ? "0x8a3e5d16F088A1D96f554970e5eED8468e7ddc05"
+    : "0x42cADdd47E795A6e04d820A6c140AF04159C7542");
 const TOKEN_ADDRESS =
-  process.env.TOKEN_ADDRESS ?? "0x01C5C0122039549AD1493B8220cABEdD739BC44E";
+  process.env.TOKEN_ADDRESS ??
+  (CHAIN === celoMainnet
+    ? "0xcebA9300f2b948710d2653dD7B07f33A8B32118C"
+    : "0x01C5C0122039549AD1493B8220cABEdD739BC44E");
 
 if (!isAddress(VAULT_ADDRESS) || !isAddress(TOKEN_ADDRESS)) {
   console.error("✗ bad address in env");
@@ -30,9 +50,9 @@ if (!isAddress(VAULT_ADDRESS) || !isAddress(TOKEN_ADDRESS)) {
 }
 
 const client = createPublicClient({
-  chain: celoSepolia,
+  chain: CHAIN,
   transport: fallback(
-    celoSepolia.rpcUrls.default.http.map((u) => http(u)),
+    CHAIN.rpcUrls.default.http.map((u) => http(u)),
     { retryCount: 2, retryDelay: 300 },
   ),
 });
@@ -80,7 +100,7 @@ async function main() {
         console.log(`  ✗ ${name}: ${e.shortMessage ?? e.message}`);
       });
 
-  console.log("chain & rpc:");
+  console.log(`chain: ${CHAIN.name}`);
   await check("chain id", async () => await client.getChainId());
   await check("block number", async () => await client.getBlockNumber());
 

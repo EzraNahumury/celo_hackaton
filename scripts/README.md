@@ -1,8 +1,9 @@
 # Trickle onchain spam
 
 Background cron that keeps the Trickle leaderboard busy by running tiny
-`deposit` → `withdrawBalance` cycles from a hot wallet on Celo Sepolia.
-Each cycle submits 2 onchain txs.
+`deposit` → `withdrawBalance` cycles from a hot wallet. Defaults to **Celo
+Mainnet**; set `CHAIN=sepolia` in `.env` to target Sepolia instead. Each
+cycle submits 2 onchain txs.
 
 ## Setup
 

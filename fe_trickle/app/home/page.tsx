@@ -6,16 +6,22 @@ import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useEffect, useState } from "react";
+import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import {
-  TRICKLE_VAULT_ABI,
-  TRICKLE_VAULT_ADDRESS,
-} from "@/config/contracts";
+  useVaultAddress,
+  useChainLabel,
+  useIsTestnet,
+} from "@/hooks/useChain";
 import { cn } from "@/lib/cn";
 
 export default function HomePage() {
   const { address, isConnected } = useAccount();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  const TRICKLE_VAULT_ADDRESS = useVaultAddress();
+  const chainLabel = useChainLabel();
+  const isTestnet = useIsTestnet();
 
   // Live block — the heartbeat of the app
   const { data: blockNumber } = useBlockNumber({
@@ -108,7 +114,7 @@ export default function HomePage() {
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
                 </span>
                 <span className="text-[11.5px] font-medium uppercase tracking-[0.12em] text-[var(--fg-mute)]">
-                  Celo Sepolia
+                  {chainLabel}
                 </span>
               </div>
               <span
@@ -123,7 +129,7 @@ export default function HomePage() {
             <div className="mt-2 grid grid-cols-3 divide-x divide-[var(--divider)]">
               <StripStat label="Block time" value="~1s" />
               <StripStat label="Gas" value="sub-cent" />
-              <StripStat label="Status" value="Testnet" />
+              <StripStat label="Status" value={isTestnet ? "Testnet" : "Mainnet"} />
             </div>
           </div>
         </motion.div>

@@ -1,3 +1,5 @@
+import { MAINNET_ID, SEPOLIA_ID, DEFAULT_CHAIN_ID } from "./chains";
+
 export interface TokenInfo {
   address: `0x${string}`;
   symbol: string;
@@ -7,15 +9,29 @@ export interface TokenInfo {
 }
 
 /**
- * Tokens on Celo Sepolia Testnet (chain 11142220)
- * tUSDC adalah token test dengan mint publik — gunakan untuk testing.
- * Address tUSDC diisi setelah menjalankan: forge script script/DeployMockToken.s.sol
- * Set NEXT_PUBLIC_MOCK_TOKEN_ADDRESS di .env.local untuk override.
+ * Celo Mainnet (chain 42220) — production USDC.
  */
-export const TOKENS: Record<string, TokenInfo> = {
+const MAINNET_TOKENS: Record<string, TokenInfo> = {
+  USDC: {
+    address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    icon: "/tokens/usdt.png",
+  },
+};
+
+/**
+ * Celo Sepolia (chain 11142220) — testnet USDC/USDm plus our own mock
+ * with a public `mint()` (faucet button), deployed by
+ * `forge script script/DeployMockToken.s.sol` and pinned via
+ * NEXT_PUBLIC_MOCK_TOKEN_ADDRESS.
+ */
+const SEPOLIA_TOKENS: Record<string, TokenInfo> = {
   tUSDC: {
-    address: (process.env.NEXT_PUBLIC_MOCK_TOKEN_ADDRESS ??
-      "0x0000000000000000000000000000000000000000") as `0x${string}`,
+    address:
+      (process.env.NEXT_PUBLIC_MOCK_TOKEN_ADDRESS as `0x${string}`) ??
+      "0x0000000000000000000000000000000000000000",
     symbol: "tUSDC",
     name: "Test USD Coin",
     decimals: 6,
@@ -37,8 +53,23 @@ export const TOKENS: Record<string, TokenInfo> = {
   },
 };
 
-export const TOKEN_LIST = Object.values(TOKENS);
+export const TOKENS_BY_CHAIN: Record<number, Record<string, TokenInfo>> = {
+  [MAINNET_ID]: MAINNET_TOKENS,
+  [SEPOLIA_ID]: SEPOLIA_TOKENS,
+};
 
-// Kept for reference — Alfajores was sunset end of 2025, do not use
-export const TESTNET_TOKENS = TOKENS;
-export const TESTNET_TOKEN_LIST = TOKEN_LIST;
+export function tokensFor(chainId?: number): Record<string, TokenInfo> {
+  if (chainId && TOKENS_BY_CHAIN[chainId]) return TOKENS_BY_CHAIN[chainId];
+  return TOKENS_BY_CHAIN[DEFAULT_CHAIN_ID];
+}
+
+export function tokenListFor(chainId?: number): TokenInfo[] {
+  return Object.values(tokensFor(chainId));
+}
+
+/**
+ * Legacy exports — resolve against the default chain (mainnet). Only use
+ * these in non-React modules; React code should prefer `useChainTokens()`.
+ */
+export const TOKENS: Record<string, TokenInfo> = tokensFor(DEFAULT_CHAIN_ID);
+export const TOKEN_LIST: TokenInfo[] = tokenListFor(DEFAULT_CHAIN_ID);

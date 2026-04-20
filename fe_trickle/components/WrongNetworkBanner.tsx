@@ -1,11 +1,21 @@
 "use client";
 
 import { useChainId, useSwitchChain, useAccount } from "wagmi";
-import { celoSepolia } from "@/config/wagmi";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, ArrowRightLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+  DEFAULT_CHAIN_ID,
+  SUPPORTED_CHAIN_IDS,
+  chainLabelFor,
+} from "@/config/chains";
 
+/**
+ * The app runs on Celo Mainnet AND Celo Sepolia — either is fine.
+ * We only nag the user if they're on something else entirely (e.g. Ethereum
+ * mainnet left over from another dapp) and offer a one-click switch back
+ * to mainnet, which is the production target.
+ */
 export function WrongNetworkBanner() {
   const { isConnected } = useAccount();
   const chainId = useChainId();
@@ -14,7 +24,8 @@ export function WrongNetworkBanner() {
 
   useEffect(() => setMounted(true), []);
 
-  const isWrongNetwork = mounted && isConnected && chainId !== celoSepolia.id;
+  const isWrongNetwork =
+    mounted && isConnected && !SUPPORTED_CHAIN_IDS.includes(chainId);
 
   return (
     <AnimatePresence>
@@ -34,12 +45,14 @@ export function WrongNetworkBanner() {
                 strokeWidth={2.25}
               />
               <p className="text-[12.5px] font-medium text-[var(--warn)]">
-                Jaringan salah — butuh{" "}
-                <span className="font-semibold">Celo Sepolia</span>
+                Wrong network — switch to{" "}
+                <span className="font-semibold">
+                  {chainLabelFor(DEFAULT_CHAIN_ID)}
+                </span>
               </p>
             </div>
             <button
-              onClick={() => switchChain({ chainId: celoSepolia.id })}
+              onClick={() => switchChain({ chainId: DEFAULT_CHAIN_ID })}
               disabled={isPending}
               className="flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--warn)] px-3 py-1 text-[11.5px] font-semibold text-black transition-opacity hover:opacity-80 disabled:opacity-50"
             >

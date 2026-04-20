@@ -4,7 +4,7 @@ import * as React from "react";
 import { formatUnits } from "viem";
 import { motion } from "framer-motion";
 import { ArrowDownToLine, Clock, X, ArrowRight } from "lucide-react";
-import { TOKEN_LIST } from "@/config/tokens";
+import { useChainTokenList } from "@/hooks/useChain";
 import { Button } from "./ui/Button";
 import { StreamTicker } from "./ui/AnimatedNumber";
 import { TokenIcon } from "./ui/TokenIcon";
@@ -65,10 +65,16 @@ const TOKEN_COLORS: Record<string, { bg: string; fg: string }> = {
   USDT: { bg: "#0E2A22", fg: "#6EE7B7" },
 };
 
-function tokenInfo(address: string) {
+function tokenInfoFrom(
+  list: { address: string; symbol: string; decimals: number; icon?: string }[],
+  address: string,
+) {
   return (
-    TOKEN_LIST.find((t) => t.address.toLowerCase() === address.toLowerCase()) ??
-    { symbol: "???", decimals: 18, icon: undefined as string | undefined }
+    list.find((t) => t.address.toLowerCase() === address.toLowerCase()) ?? {
+      symbol: "???",
+      decimals: 18,
+      icon: undefined as string | undefined,
+    }
   );
 }
 
@@ -97,7 +103,8 @@ export default function StreamCard({
   isPending,
 }: StreamCardProps) {
   const [now, setNow] = React.useState(0);
-  const info = tokenInfo(token);
+  const tokenList = useChainTokenList();
+  const info = tokenInfoFrom(tokenList, token);
   const color = TOKEN_COLORS[info.symbol] ?? {
     bg: "#252A3D",
     fg: "#B8BECE",

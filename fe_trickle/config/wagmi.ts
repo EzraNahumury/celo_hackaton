@@ -31,10 +31,10 @@ export const celoSepolia = defineChain({
  * connector bawa `icon`, `name`, dan `rdns`-nya sendiri.
  */
 export const config = createConfig({
-  chains: [celoSepolia, celo],
+  chains: [celo, celoSepolia],
   connectors: [],
   transports: {
+    [celo.id]:        http("https://forno.celo.org"),
     [celoSepolia.id]: http("https://forno.celo-sepolia.celo-testnet.org"),
-    [celo.id]:        http(),
   },
 });

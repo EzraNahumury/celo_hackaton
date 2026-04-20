@@ -11,7 +11,24 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-// ── Chain ─────────────────────────────────────────────────────────────────
+// ── Chains ────────────────────────────────────────────────────────────────
+// Selected automatically from CHAIN env (defaults to mainnet).
+const celoMainnet = defineChain({
+  id: 42220,
+  name: "Celo",
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: [
+        "https://forno.celo.org",
+        "https://rpc.ankr.com/celo",
+      ],
+    },
+  },
+  blockExplorers: {
+    default: { name: "Celoscan", url: "https://celoscan.io" },
+  },
+});
 const celoSepolia = defineChain({
   id: 11142220,
   name: "Celo Sepolia Testnet",
@@ -30,6 +47,10 @@ const celoSepolia = defineChain({
   },
   testnet: true,
 });
+const CHAIN =
+  (process.env.CHAIN ?? "").toLowerCase() === "sepolia"
+    ? celoSepolia
+    : celoMainnet;
 
 // ── ABIs ──────────────────────────────────────────────────────────────────
 const VAULT_ABI = [
@@ -118,15 +139,11 @@ const MIN_GAS_WEI = parseUnits("0.005", 18); // 0.005 CELO — roughly 2–3 tx 
 // ── Clients ───────────────────────────────────────────────────────────────
 const account = privateKeyToAccount(PRIVATE_KEY);
 const transport = fallback(
-  celoSepolia.rpcUrls.default.http.map((url) => http(url)),
+  CHAIN.rpcUrls.default.http.map((url) => http(url)),
   { rank: false, retryCount: 2, retryDelay: 400 },
 );
-const publicClient = createPublicClient({ chain: celoSepolia, transport });
-const walletClient = createWalletClient({
-  account,
-  chain: celoSepolia,
-  transport,
-});
+const publicClient = createPublicClient({ chain: CHAIN, transport });
+const walletClient = createWalletClient({ account, chain: CHAIN, transport });
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function ts() {
@@ -242,7 +259,7 @@ function installShutdownHandlers() {
 async function main() {
   installShutdownHandlers();
   console.log(
-    `[${ts()}] trickle spam started · ${account.address} · every ${INTERVAL_SECONDS}s · ${AMOUNT} token/cycle`,
+    `[${ts()}] trickle spam started · ${CHAIN.name} · ${account.address} · every ${INTERVAL_SECONDS}s · ${AMOUNT} token/cycle`,
   );
   await preflightChecks();
   await ensureAllowance();

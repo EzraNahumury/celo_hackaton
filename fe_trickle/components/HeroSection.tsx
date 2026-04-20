@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAccount, useBlockNumber } from "wagmi";
 import { ArrowRight } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
+import { useChainLabel } from "@/hooks/useChain";
 
 export default function HeroSection() {
   const router = useRouter();
@@ -156,6 +157,7 @@ function VersionPill() {
     watch: true,
     query: { refetchInterval: 5_000 },
   });
+  const chainLabel = useChainLabel();
   const label = blockNumber
     ? `Block ${blockNumber.toLocaleString("en-US")}`
     : "Connecting to Celo…";
@@ -173,7 +175,7 @@ function VersionPill() {
       </span>
       <span className="h-3 w-px bg-white/10" />
       <span className="text-[11px] font-medium tracking-tight text-white/55">
-        Celo Sepolia
+        {chainLabel}
       </span>
     </div>
   );

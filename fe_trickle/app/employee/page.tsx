@@ -18,8 +18,9 @@ import {
   TrendingUp,
   Calendar,
 } from "lucide-react";
-import { TRICKLE_VAULT_ABI, TRICKLE_VAULT_ADDRESS } from "@/config/contracts";
-import { TOKEN_LIST } from "@/config/tokens";
+import { TRICKLE_VAULT_ABI } from "@/config/contracts";
+import { useVaultAddress, useChainTokenList } from "@/hooks/useChain";
+import type { TokenInfo } from "@/config/tokens";
 import StreamCard, { StreamCardSkeleton } from "@/components/StreamCard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
@@ -49,25 +50,26 @@ const RANGE_SECONDS: Record<Range, number> = {
   ALL: 0,
 };
 
-function tokenMeta(address: string) {
+type TokenMeta = Pick<TokenInfo, "symbol" | "decimals">;
+const FALLBACK_TOKEN: TokenMeta = { symbol: "???", decimals: 18 };
+
+function tokenMetaFor(list: TokenInfo[], address: string): TokenMeta {
   return (
-    TOKEN_LIST.find((t) => t.address.toLowerCase() === address.toLowerCase()) ?? {
-      symbol: "???",
-      decimals: 18,
-    }
+    list.find((t) => t.address.toLowerCase() === address.toLowerCase()) ??
+    FALLBACK_TOKEN
   );
 }
-function streamAccrued(s: Stream, nowSec: number): number {
-  const m = tokenMeta(s.token);
+function streamAccrued(list: TokenInfo[], s: Stream, nowSec: number): number {
+  const m = tokenMetaFor(list, s.token);
   const raw = s.amountPerSec * BigInt(Math.max(0, nowSec - s.lastPaid));
   return parseFloat(formatUnits(raw, m.decimals));
 }
-function streamRatePerSec(s: Stream): number {
-  const m = tokenMeta(s.token);
+function streamRatePerSec(list: TokenInfo[], s: Stream): number {
+  const m = tokenMetaFor(list, s.token);
   return parseFloat(formatUnits(s.amountPerSec, m.decimals));
 }
-function streamMonthly(s: Stream): number {
-  const m = tokenMeta(s.token);
+function streamMonthly(list: TokenInfo[], s: Stream): number {
+  const m = tokenMetaFor(list, s.token);
   return parseFloat(formatUnits(s.amountPerSec * 2592000n, m.decimals));
 }
 
@@ -79,6 +81,9 @@ export default function EmployeeDashboard() {
   const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
   const { toast, update } = useToast();
+
+  const TRICKLE_VAULT_ADDRESS = useVaultAddress();
+  const TOKEN_LIST = useChainTokenList();
 
   const [now, setNow] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -136,12 +141,17 @@ export default function EmployeeDashboard() {
     .filter((s) => s.startTime > 0);
 
   const totalWithdrawableAccrued =
-    now > 0 ? streams.reduce((acc, s) => acc + streamAccrued(s, now), 0) : 0;
+    now > 0
+      ? streams.reduce((acc, s) => acc + streamAccrued(TOKEN_LIST, s, now), 0)
+      : 0;
   const totalRatePerSec = streams.reduce(
-    (acc, s) => acc + streamRatePerSec(s),
+    (acc, s) => acc + streamRatePerSec(TOKEN_LIST, s),
     0,
   );
-  const totalMonthly = streams.reduce((acc, s) => acc + streamMonthly(s), 0);
+  const totalMonthly = streams.reduce(
+    (acc, s) => acc + streamMonthly(TOKEN_LIST, s),
+    0,
+  );
 
   const earliestStart = streams.length
     ? Math.min(...streams.map((s) => s.startTime))
@@ -248,7 +258,9 @@ export default function EmployeeDashboard() {
 
   const isLoading = idsLoading || streamsLoading;
   const hasStreams = streams.length > 0;
-  const primarySymbol = streams[0] ? tokenMeta(streams[0].token).symbol : "USDC";
+  const primarySymbol = streams[0]
+    ? tokenMetaFor(TOKEN_LIST, streams[0].token).symbol
+    : TOKEN_LIST[0]?.symbol ?? "USDC";
   const runway = totalRatePerSec > 0
     ? Math.floor(totalWithdrawableAccrued / totalRatePerSec / 60)
     : 0;
@@ -529,7 +541,7 @@ export default function EmployeeDashboard() {
                   // Fire a withdraw tx for every stream that has something accrued.
                   // Wallets will queue prompts sequentially.
                   streams
-                    .filter((s) => streamAccrued(s, now) > 0)
+                    .filter((s) => streamAccrued(TOKEN_LIST, s, now) > 0)
                     .forEach((s) => handleWithdraw(s));
                 }}
                 disabled={isWithdrawPending || totalWithdrawableAccrued === 0}
