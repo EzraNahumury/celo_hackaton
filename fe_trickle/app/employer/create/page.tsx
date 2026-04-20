@@ -111,7 +111,7 @@ export default function CreateStream() {
     if (phase === "approving" && approveConfirmed && paramsRef.current) {
       setPhase("depositing");
       if (activeToastId.current)
-        update(activeToastId.current, { type: "pending", message: "Depositing to vault…", txHash: approveTxHash });
+        update(activeToastId.current, { type: "pending", message: "Funding payroll…", txHash: approveTxHash });
       doDeposit({
         address: TRICKLE_VAULT_ADDRESS,
         abi: TRICKLE_VAULT_ABI,
@@ -262,18 +262,13 @@ export default function CreateStream() {
             <ArrowLeft size={13} />
             Back
           </button>
-          <div className="mb-5">
-            <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-3)]">
-              New payroll stream
-            </p>
-            <h1 className="mt-0.5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
-              Create a salary stream
-            </h1>
-          </div>
+          <h1 className="mb-5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
+            New stream
+          </h1>
           <ConnectWalletPrompt
             eyebrow="Sign in required"
-            title="Connect to create a stream"
-            body="Connect a Celo wallet to deposit liquidity and open a per-second salary stream to an employee."
+            title="Connect to open a stream"
+            body="Link a Celo wallet to fund payroll and open a per-second salary stream to your teammate."
           />
         </div>
       </DashboardLayout>
@@ -391,14 +386,12 @@ export default function CreateStream() {
         </button>
 
         <div className="mb-8">
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--fg-mute)]">
-            New payroll stream
-          </p>
-          <h1 className="font-display text-[28px] font-semibold leading-[1.2] tracking-[-0.02em] text-[var(--fg)]">
-            Create a salary stream
+          <h1 className="font-display text-[26px] font-semibold leading-[1.2] tracking-[-0.02em] text-[var(--fg)]">
+            New stream
           </h1>
-          <p className="mt-1.5 text-[14px] text-[var(--fg-dim)]">
-            Define the employee, token, and monthly rate.
+          <p className="mt-1.5 text-[13.5px] text-[var(--fg-mute)]">
+            Pick the teammate, token, and monthly rate — Trickle computes the
+            per-second flow for you.
           </p>
         </div>
 
@@ -489,7 +482,7 @@ export default function CreateStream() {
               </FieldGroup>
 
               <div className="flex items-center justify-between rounded-xl bg-[var(--color-surface)] border border-[var(--border)] px-4 py-3">
-                <span className="text-[12.5px] text-[var(--fg-mute)]">Vault balance</span>
+                <span className="text-[12.5px] text-[var(--fg-mute)]">Payroll balance</span>
                 <span className="font-mono text-[13px] text-[var(--fg-dim)]">
                   {vaultNum.toFixed(2)} {tokenInfo.symbol}
                 </span>
@@ -544,7 +537,7 @@ export default function CreateStream() {
                     }
                   />
                   <SummaryRow
-                    label="Vault balance"
+                    label="Payroll balance"
                     value={
                       <span className="font-mono text-[var(--fg-dim)]">
                         {vaultNum.toFixed(2)} {tokenInfo.symbol}
@@ -561,11 +554,11 @@ export default function CreateStream() {
                     className="mt-0.5 shrink-0 text-[var(--warn)]"
                   />
                   <p className="text-[12.5px] leading-relaxed text-[var(--warn)]/90">
-                    Vault needs top-up — we&apos;ll approve and deposit{" "}
+                    Payroll needs a top-up — we&apos;ll approve and deposit{" "}
                     <span className="font-mono text-[var(--warn)]">
                       {(monthlyNum - vaultNum).toFixed(2)} {tokenInfo.symbol}
                     </span>{" "}
-                    before creating the stream.
+                    before opening the stream.
                   </p>
                 </div>
               )}

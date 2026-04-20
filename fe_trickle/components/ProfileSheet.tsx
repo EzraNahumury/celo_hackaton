@@ -24,6 +24,7 @@ import { cn } from "@/lib/cn";
 import { TOKEN_LIST } from "@/config/tokens";
 import { ERC20_ABI } from "@/config/contracts";
 import { TokenIcon } from "./ui/TokenIcon";
+import { DISCONNECT_INTENT_KEY } from "./Providers";
 
 interface ProfileSheetProps {
   open: boolean;
@@ -32,6 +33,34 @@ interface ProfileSheetProps {
 }
 
 const ZERO = "0x0000000000000000000000000000000000000000";
+
+/**
+ * Full disconnect: (1) mark intent so AutoReconnect skips on next load,
+ * (2) best-effort EIP-2255 wallet_revokePermissions so the wallet itself
+ * forgets the site approval, (3) disconnect from wagmi state.
+ */
+function handleDisconnect(wagmiDisconnect: () => void) {
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(DISCONNECT_INTENT_KEY, "1");
+    } catch {
+      // localStorage unavailable — next load may auto-reconnect, acceptable fallback
+    }
+    const eth = (
+      window as Window & {
+        ethereum?: {
+          request?: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+        };
+      }
+    ).ethereum;
+    // Not every wallet implements wallet_revokePermissions yet — fire-and-forget
+    eth?.request?.({
+      method: "wallet_revokePermissions",
+      params: [{ eth_accounts: {} }],
+    }).catch(() => {});
+  }
+  wagmiDisconnect();
+}
 
 const TOKEN_ACCENT: Record<string, { bg: string; fg: string }> = {
   tUSDC: { bg: "rgba(125, 211, 252, 0.12)", fg: "#7DD3FC" },
@@ -283,7 +312,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                     tone="danger"
                     onClick={() => {
                       onClose();
-                      disconnect();
+                      handleDisconnect(disconnect);
                     }}
                   />
                 </div>

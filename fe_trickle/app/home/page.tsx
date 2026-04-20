@@ -1,89 +1,132 @@
 "use client";
 
 import Link from "next/link";
-import { useAccount } from "wagmi";
+import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Wallet,
-  Download,
-  Timer,
-  ChartLine,
-  KeyRound,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useEffect, useState } from "react";
+import {
+  TRICKLE_VAULT_ABI,
+  TRICKLE_VAULT_ADDRESS,
+} from "@/config/contracts";
+import { cn } from "@/lib/cn";
 
 export default function HomePage() {
   const { address, isConnected } = useAccount();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // Live block — the heartbeat of the app
+  const { data: blockNumber } = useBlockNumber({
+    watch: true,
+    query: { refetchInterval: 5_000 },
+  });
+
+  // Live counts — only if wallet connected
+  const { data: payerIds } = useReadContract({
+    address: TRICKLE_VAULT_ADDRESS,
+    abi: TRICKLE_VAULT_ABI,
+    functionName: "getPayerStreamIds",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address, refetchInterval: 15_000 },
+  });
+  const { data: payeeIds } = useReadContract({
+    address: TRICKLE_VAULT_ADDRESS,
+    abi: TRICKLE_VAULT_ABI,
+    functionName: "getPayeeStreamIds",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address, refetchInterval: 15_000 },
+  });
+
+  const payerCount = Array.isArray(payerIds) ? payerIds.length : 0;
+  const payeeCount = Array.isArray(payeeIds) ? payeeIds.length : 0;
+
   return (
     <DashboardLayout>
       <div className="mx-auto w-full max-w-[480px] px-5">
-        {/* Greeting */}
+        {/* Greeting — no eyebrow, no welcome message. Just the user. */}
         <motion.header
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="pt-2"
         >
-          <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--fg-faint)]">
-            Welcome to Trickle
-          </p>
-          <h1 className="mt-2 font-display text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[var(--fg)]">
-            Stream your salary,
-            <br />
-            second by second.
-          </h1>
-          <p className="mt-3 text-[14px] leading-[1.55] text-[var(--fg-mute)]">
+          <h1 className="font-display text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] text-[var(--fg)]">
             {mounted && isConnected && address
-              ? `Signed in as ${address.slice(0, 6)}…${address.slice(-4)}. Pick a role to get going.`
-              : "Connect a wallet to manage streams or earnings."}
-          </p>
+              ? <>Welcome back.<br /><span className="text-[var(--fg-mute)]">What are you streaming today?</span></>
+              : <>Payroll,<br /><span className="text-[var(--fg-mute)]">second by second.</span></>}
+          </h1>
         </motion.header>
 
-        {/* Role cards */}
+        {/* Role cards — with live stream counts when connected */}
         <div className="mt-7 grid grid-cols-1 gap-3">
           <RoleCard
             href="/employer"
-            icon={<Wallet size={18} strokeWidth={2.1} />}
-            title="Open Vault"
-            subtitle="Deposit, manage streams, pay your team"
-            accent="var(--accent)"
+            title="Run payroll"
+            subtitle="Fund the flow, pay your team per second"
+            meta={
+              mounted && isConnected
+                ? {
+                    count: payerCount,
+                    label: payerCount === 1 ? "active stream" : "active streams",
+                    direction: "out",
+                  }
+                : null
+            }
             delay={0.06}
           />
           <RoleCard
             href="/employee"
-            icon={<Download size={18} strokeWidth={2.1} />}
-            title="Your Earnings"
-            subtitle="Watch salary accrue live, withdraw anytime"
-            accent="var(--accent-3)"
+            title="Collect earnings"
+            subtitle="Watch salary flow in, withdraw anytime"
+            meta={
+              mounted && isConnected
+                ? {
+                    count: payeeCount,
+                    label: payeeCount === 1 ? "incoming" : "incoming",
+                    direction: "in",
+                  }
+                : null
+            }
             delay={0.12}
           />
         </div>
 
-        {/* Quick stats / highlights */}
-        <motion.section
+        {/* Live network strip — single row, real data, replaces the "Why Trickle" block */}
+        <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.3,
-            delay: 0.18,
-            ease: [0.16, 1, 0.3, 1],
-          }}
+          transition={{ duration: 0.3, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="mt-8"
         >
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--fg-faint)]">
-            Why Trickle
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <Highlight icon={<Timer size={14} strokeWidth={2.1} />} label="Per-second" kind="pulse" delay={0} />
-            <Highlight icon={<ChartLine size={14} strokeWidth={2.1} />} label="Live accrual" kind="wave" delay={0.15} />
-            <Highlight icon={<KeyRound size={14} strokeWidth={2.1} />} label="Non-custodial" kind="breathe" delay={0.3} />
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--color-surface)]/60 px-4 py-3 backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--success)] opacity-60" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+                </span>
+                <span className="text-[11.5px] font-medium uppercase tracking-[0.12em] text-[var(--fg-mute)]">
+                  Celo Sepolia
+                </span>
+              </div>
+              <span
+                className="font-mono text-[12px] tabular text-[var(--fg-dim)]"
+                suppressHydrationWarning
+              >
+                {blockNumber
+                  ? `#${blockNumber.toLocaleString("en-US")}`
+                  : "syncing…"}
+              </span>
+            </div>
+            <div className="mt-2 grid grid-cols-3 divide-x divide-[var(--divider)]">
+              <StripStat label="Block time" value="~1s" />
+              <StripStat label="Gas" value="sub-cent" />
+              <StripStat label="Status" value="Testnet" />
+            </div>
           </div>
-        </motion.section>
+        </motion.div>
       </div>
     </DashboardLayout>
   );
@@ -91,19 +134,23 @@ export default function HomePage() {
 
 function RoleCard({
   href,
-  icon,
   title,
   subtitle,
-  accent,
+  meta,
   delay,
 }: {
   href: string;
-  icon: React.ReactNode;
   title: string;
   subtitle: string;
-  accent: string;
+  meta: { count: number; label: string; direction: "in" | "out" } | null;
   delay: number;
 }) {
+  const Arrow = meta?.direction === "out" ? ArrowUpRight : ArrowDownLeft;
+  const accent =
+    meta?.direction === "out"
+      ? "var(--accent-3)"
+      : "var(--success)";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -112,112 +159,61 @@ function RoleCard({
     >
       <Link
         href={href}
-        className="group relative flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--color-surface)]/75 p-4 backdrop-blur-md transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)]/85"
+        className="group relative flex items-stretch overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--color-surface)]/75 backdrop-blur-md transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)]/85"
         style={{ boxShadow: "var(--shadow-sm)" }}
       >
+        {/* Left rail with direction indicator */}
         <span
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl"
-          style={{
-            background: "var(--color-accent-soft)",
-            color: accent,
-          }}
-        >
-          {icon}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[15px] font-semibold tracking-tight text-[var(--fg)]">
-            {title}
-          </p>
-          <p className="mt-0.5 truncate text-[12.5px] text-[var(--fg-mute)]">
-            {subtitle}
-          </p>
-        </div>
-        <ArrowRight
-          size={16}
-          strokeWidth={2.2}
-          className="text-[var(--fg-faint)] transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[var(--fg)]"
+          aria-hidden
+          className="w-1 shrink-0"
+          style={{ background: accent, opacity: 0.55 }}
         />
+
+        <div className="flex flex-1 items-center gap-4 px-4 py-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="text-[15px] font-semibold tracking-tight text-[var(--fg)]">
+                {title}
+              </p>
+              {meta && meta.count > 0 && (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold tabular",
+                  )}
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    color: accent,
+                  }}
+                >
+                  <Arrow size={9} strokeWidth={2.75} />
+                  {meta.count} {meta.label}
+                </span>
+              )}
+            </div>
+            <p className="mt-0.5 truncate text-[12.5px] text-[var(--fg-mute)]">
+              {subtitle}
+            </p>
+          </div>
+          <ArrowRight
+            size={16}
+            strokeWidth={2.2}
+            className="text-[var(--fg-faint)] transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-[var(--fg)]"
+          />
+        </div>
       </Link>
     </motion.div>
   );
 }
 
-type IconLoop = {
-  animate: Record<string, number[]>;
-  transition: { duration: number; repeat: number; ease: [number, number, number, number] };
-};
-
-const ICON_LOOPS: Record<"pulse" | "wave" | "breathe", IconLoop> = {
-  pulse: {
-    animate: { scale: [1, 1.14, 1] },
-    transition: { duration: 1.7, repeat: Infinity, ease: [0.45, 0, 0.55, 1] },
-  },
-  wave: {
-    animate: { rotate: [-6, 6, -6], y: [0, -1.5, 0] },
-    transition: { duration: 2.2, repeat: Infinity, ease: [0.45, 0, 0.55, 1] },
-  },
-  breathe: {
-    animate: { scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] },
-    transition: { duration: 2.8, repeat: Infinity, ease: [0.45, 0, 0.55, 1] },
-  },
-};
-
-function Highlight({
-  icon,
-  label,
-  kind,
-  delay,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  kind: keyof typeof ICON_LOOPS;
-  delay: number;
-}) {
-  const loop = ICON_LOOPS[kind];
-
+function StripStat({ label, value }: { label: string; value: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.18 + delay, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -2 }}
-      className="group relative flex flex-col items-start gap-2 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--color-surface)]/60 px-3 py-3 backdrop-blur-md transition-colors duration-200 hover:border-[var(--border-strong)]"
-    >
-      {/* Ambient glow yang nyala pas hover */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background:
-            "radial-gradient(140% 80% at 0% 0%, rgba(99,102,241,0.16), transparent 55%)",
-        }}
-      />
-
-      {/* Soft pulse ring dibalik icon — subtle tapi hidup */}
-      <span className="relative grid h-7 w-7 shrink-0 place-items-center">
-        <motion.span
-          aria-hidden
-          className="absolute inset-0 rounded-lg bg-[var(--color-accent-soft)]"
-          animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.12, 1] }}
-          transition={{
-            duration: 2.4,
-            repeat: Infinity,
-            ease: [0.45, 0, 0.55, 1],
-            delay,
-          }}
-        />
-        <motion.span
-          className="relative grid h-7 w-7 place-items-center rounded-lg bg-[var(--color-accent-soft)] text-[var(--accent-3)]"
-          animate={loop.animate}
-          transition={{ ...loop.transition, delay }}
-        >
-          {icon}
-        </motion.span>
-      </span>
-
-      <span className="relative text-[12px] font-medium leading-tight text-[var(--fg-dim)] transition-colors duration-200 group-hover:text-[var(--fg)]">
+    <div className="px-3 first:pl-0 last:pr-0">
+      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--fg-faint)]">
         {label}
-      </span>
-    </motion.div>
+      </p>
+      <p className="mt-0.5 text-[12px] font-semibold text-[var(--fg-dim)]">
+        {value}
+      </p>
+    </div>
   );
 }

@@ -6,7 +6,6 @@ import {
   useReadContracts,
   useWriteContract,
   useWaitForTransactionReceipt,
-  type Connector,
 } from "wagmi";
 import { formatUnits, parseUnits } from "viem";
 import { useEffect, useRef, useState } from "react";
@@ -17,7 +16,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Plus,
-  Activity,
   Check,
   TrendingUp,
 } from "lucide-react";
@@ -30,6 +28,7 @@ import { TOKENS, TOKEN_LIST } from "@/config/tokens";
 import StreamCard, { StreamCardSkeleton } from "@/components/StreamCard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
+import { FlowIllustration } from "@/components/ui/FlowIllustration";
 import { useDeposit } from "@/hooks/useDeposit";
 import { useToast } from "@/components/Toast";
 import { Button } from "@/components/ui/Button";
@@ -53,7 +52,7 @@ function Skeleton({ className }: { className?: string }) {
 }
 
 export default function EmployerDashboard() {
-  const { address, isConnected, connector } = useAccount();
+  const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
   const { toast, update } = useToast();
 
@@ -149,8 +148,8 @@ export default function EmployerDashboard() {
     if (depositFlow.isDone) {
       toast({
         type: "success",
-        message: "Deposit successful",
-        description: `${depositAmount} ${tokenInfo.symbol} added to vault`,
+        message: "Payroll topped up",
+        description: `${depositAmount} ${tokenInfo.symbol} added to your payroll`,
         txHash: depositFlow.depositTxHash,
       });
       setDepositAmount("");
@@ -188,15 +187,15 @@ export default function EmployerDashboard() {
       functionName: "withdrawBalance",
       args: [tokenInfo.address, parseUnits(withdrawAmount, tokenInfo.decimals)],
     });
-    wbToastId.current = toast({ type: "pending", message: "Withdrawing from vault…" });
+    wbToastId.current = toast({ type: "pending", message: "Pulling funds from payroll…" });
   }
   useEffect(() => {
     if (wbSuccess) {
       if (wbToastId.current) {
         update(wbToastId.current, {
           type: "success",
-          message: "Withdrawn successfully",
-          description: `${withdrawAmount} ${tokenInfo.symbol} returned to wallet`,
+          message: "Funds returned",
+          description: `${withdrawAmount} ${tokenInfo.symbol} back in your wallet`,
           txHash: wbTxHash,
         });
         wbToastId.current = null;
@@ -245,7 +244,7 @@ export default function EmployerDashboard() {
         update(cancelToastId.current, {
           type: "success",
           message: "Stream cancelled",
-          description: "Remaining balance returned to vault",
+          description: "Unspent balance returned to your payroll",
           txHash: cancelTxHash,
         });
         cancelToastId.current = null;
@@ -259,18 +258,13 @@ export default function EmployerDashboard() {
     return (
       <DashboardLayout>
         <div className="mx-auto w-full max-w-[460px] px-5 pt-4">
-          <div className="mb-5">
-            <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-3)]">
-              Employer
-            </p>
-            <h1 className="mt-0.5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
-              Vault
-            </h1>
-          </div>
+          <h1 className="mb-5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
+            Payroll
+          </h1>
           <ConnectWalletPrompt
-            eyebrow="Vault locked"
-            title="Connect to open your vault"
-            body="Connect a Celo wallet to deposit liquidity and start paying employees per second."
+            eyebrow="Payroll locked"
+            title="Connect to run payroll"
+            body="Link a Celo wallet to fund your payroll and stream salaries to your team second by second."
           />
         </div>
       </DashboardLayout>
@@ -290,27 +284,24 @@ export default function EmployerDashboard() {
   const runway =
     ratePerSec > 0 ? Math.floor(balanceNum / ratePerSec / 86400) : null;
 
-  const greeting = getGreeting();
-
   return (
     <DashboardLayout>
       <div className="mx-auto w-full max-w-[460px] px-5">
-        {/* Greeting row */}
+        {/* Header — dashboard-native, not a greeting */}
         <motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-6 flex items-center gap-3"
+          className="mb-6 flex items-end justify-between gap-3"
         >
-          <WalletAvatar connector={mounted ? connector : undefined} />
-          <div>
-            <p className="text-[11.5px] text-[var(--fg-mute)]">
-              {greeting},
-            </p>
-            <p className="font-mono text-[13px] font-semibold text-[var(--fg)]">
-              {mounted && address ? `${address.slice(0, 6)}…${address.slice(-4)}` : ""}
-            </p>
-          </div>
+          <h1 className="font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
+            Payroll
+          </h1>
+          {streams.length > 0 && (
+            <span className="text-[11.5px] font-medium text-[var(--fg-mute)]">
+              {streams.length} open · {monthlyBurn.toFixed(0)} {tokenInfo.symbol}/mo
+            </span>
+          )}
         </motion.div>
 
         {/* Token tabs */}
@@ -340,7 +331,7 @@ export default function EmployerDashboard() {
           className="mb-4"
         >
           <p className="mb-2 text-[12.5px] text-[var(--fg-mute)]">
-            Vault overview
+            Available to stream
           </p>
           {balanceLoading ? (
             <Skeleton className="h-14 w-60" />
@@ -489,7 +480,7 @@ export default function EmployerDashboard() {
           ) : streams.length === 0 ? (
             <EmptyState
               title={`No ${selectedToken} streams`}
-              body="Create a salary stream to start paying an employee per second."
+              body="Open a new stream to start paying your team per second."
               cta={{ label: "Create stream", href: "/employer/create" }}
             />
           ) : (
@@ -509,14 +500,6 @@ export default function EmployerDashboard() {
       </div>
     </DashboardLayout>
   );
-}
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 5) return "Good night";
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
 }
 
 function ActionButton({
@@ -669,7 +652,7 @@ function WithdrawForm({
       </div>
       {over && (
         <p className="text-[12.5px] text-[var(--danger)]">
-          Amount exceeds vault balance.
+          Amount exceeds your payroll balance.
         </p>
       )}
     </div>
@@ -723,13 +706,9 @@ function EmptyState({
   cta?: { label: string; href: string };
 }) {
   return (
-    <Card padded={false} className="flex flex-col items-center px-6 py-12 text-center">
-      <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-accent-soft)]">
-        <Activity
-          size={20}
-          className="text-[var(--accent-3)]"
-          strokeWidth={1.75}
-        />
+    <Card padded={false} className="flex flex-col items-center px-6 py-10 text-center">
+      <div className="mb-5 text-[var(--accent-3)]">
+        <FlowIllustration />
       </div>
       <p className="mb-1 font-display text-[15px] font-semibold text-[var(--fg)]">
         {title}
@@ -748,34 +727,3 @@ function EmptyState({
   );
 }
 
-function WalletAvatar({ connector }: { connector: Connector | undefined }) {
-  const icon = (connector as (Connector & { icon?: string }) | undefined)?.icon;
-  const initial = connector?.name?.trim().slice(0, 1).toUpperCase() ?? "W";
-
-  return (
-    <span
-      className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full text-[13px] font-semibold text-white"
-      style={{
-        background: icon
-          ? "rgba(255,255,255,0.04)"
-          : "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
-        boxShadow: icon
-          ? "0 4px 12px -6px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08)"
-          : "0 6px 16px -6px rgba(79,70,229,0.55), inset 0 1px 0 rgba(255,255,255,0.2)",
-      }}
-    >
-      {icon ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={icon}
-          alt={connector?.name ?? "Wallet"}
-          width={40}
-          height={40}
-          className="h-full w-full object-contain"
-        />
-      ) : (
-        <span>{initial}</span>
-      )}
-    </span>
-  );
-}

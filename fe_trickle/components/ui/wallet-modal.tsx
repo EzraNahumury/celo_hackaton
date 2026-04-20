@@ -6,6 +6,7 @@ import { useConnect, type Connector } from "wagmi";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, Check, Loader2, Wallet } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { clearDisconnectIntent } from "../Providers";
 
 interface WalletModalProps {
   open: boolean;
@@ -58,6 +59,9 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
     setErrorFor(null);
     try {
       await connectAsync({ connector: c });
+      // User explicitly connected — wipe any lingering disconnect intent so
+      // future refreshes resume auto-reconnect normally.
+      clearDisconnectIntent();
       onClose();
     } catch (err) {
       const msg = (err as Error)?.message ?? "Connection rejected";

@@ -1,0 +1,13 @@
+{
+  "name": "trickle-scripts",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "spam": "node spam.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "viem": "^2.47.10"
+  }
+}

@@ -12,7 +12,6 @@ import { formatUnits } from "viem";
 import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Inbox,
   Copy,
   Check,
   ArrowDownToLine,
@@ -28,6 +27,7 @@ import { useToast } from "@/components/Toast";
 import { Card } from "@/components/ui/Card";
 import { StreamTicker } from "@/components/ui/AnimatedNumber";
 import { MiniChart } from "@/components/ui/MiniChart";
+import { FlowIllustration } from "@/components/ui/FlowIllustration";
 import { cn } from "@/lib/cn";
 
 type Stream = {
@@ -233,14 +233,9 @@ export default function EmployeeDashboard() {
     return (
       <DashboardLayout>
         <div className="mx-auto w-full max-w-[460px] px-5 pt-4">
-          <div className="mb-5">
-            <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-3)]">
-              Earnings
-            </p>
-            <h1 className="mt-0.5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
-              My payroll stream
-            </h1>
-          </div>
+          <h1 className="mb-5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
+            Earnings
+          </h1>
           <ConnectWalletPrompt
             eyebrow="Earnings hidden"
             title="Connect to see your earnings"
@@ -266,14 +261,20 @@ export default function EmployeeDashboard() {
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22 }}
-          className="mb-6"
+          className="mb-6 flex items-end justify-between gap-3"
         >
-          <p className="text-[11.5px] font-medium uppercase tracking-[0.14em] text-[var(--accent-3)]">
+          <h1 className="font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
             Earnings
-          </p>
-          <h1 className="mt-0.5 font-display text-[18px] font-semibold tracking-tight text-[var(--fg)]">
-            My payroll stream
           </h1>
+          {hasStreams && (
+            <span className="text-[11.5px] font-medium text-[var(--fg-mute)]">
+              {streams.length} stream{streams.length === 1 ? "" : "s"} · since{" "}
+              {new Date(earliestStart * 1000).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          )}
         </motion.div>
 
         {/* Big withdrawable */}
@@ -327,16 +328,18 @@ export default function EmployeeDashboard() {
           <Card padded={false} className="overflow-hidden p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[11.5px] text-[var(--fg-mute)]">Monthly</p>
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--fg-faint)]">
+                  Monthly rate
+                </p>
                 <p className="mt-1 font-display text-[20px] font-bold tabular text-[var(--fg)]">
                   {totalMonthly.toLocaleString("en-US", {
                     maximumFractionDigits: 2,
                   })}
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-md bg-[var(--color-success-soft)] px-1.5 py-0.5 text-[10.5px] font-semibold text-[var(--success)]">
+              <span className="inline-flex items-center gap-1 rounded-md bg-[var(--color-success-soft)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[var(--success)]">
                 <TrendingUp size={9} strokeWidth={3} />
-                live
+                Live
               </span>
             </div>
             <div className="mt-3 h-10 w-full">
@@ -352,16 +355,18 @@ export default function EmployeeDashboard() {
           <Card padded={false} className="overflow-hidden p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[11.5px] text-[var(--fg-mute)]">Streamed total</p>
+                <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--fg-faint)]">
+                  Lifetime streamed
+                </p>
                 <p className="mt-1 font-display text-[20px] font-bold tabular text-[var(--fg)]">
                   {totalStreamedSinceStart.toLocaleString("en-US", {
                     maximumFractionDigits: 2,
                   })}
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-md bg-[var(--color-accent-soft)] px-1.5 py-0.5 text-[10.5px] font-semibold text-[var(--accent-3)]">
+              <span className="inline-flex items-center gap-1 rounded-md bg-[var(--color-accent-soft)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[var(--accent-3)]">
                 <Calendar size={9} strokeWidth={3} />
-                {streams.length} stream{streams.length === 1 ? "" : "s"}
+                {streams.length} open
               </span>
             </div>
             <div className="mt-3 h-10 w-full">
@@ -442,20 +447,16 @@ export default function EmployeeDashboard() {
               <StreamCardSkeleton />
             </div>
           ) : !hasStreams ? (
-            <Card padded={false} className="flex flex-col items-center px-6 py-12 text-center">
-              <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-accent-soft)]">
-                <Inbox
-                  size={20}
-                  strokeWidth={1.75}
-                  className="text-[var(--accent-3)]"
-                />
+            <Card padded={false} className="flex flex-col items-center px-6 py-10 text-center">
+              <div className="mb-5 text-[var(--accent-3)]">
+                <FlowIllustration />
               </div>
               <p className="mb-1 font-display text-[15px] font-semibold text-[var(--fg)]">
-                No incoming streams
+                Nothing flowing yet
               </p>
               <p className="mx-auto max-w-[360px] text-[13px] text-[var(--fg-mute)]">
-                Share your address with your employer so they can open a
-                per-second salary stream to you.
+                Share your address with your employer — salary starts the
+                moment they open a stream to you.
               </p>
             </Card>
           ) : (
@@ -482,25 +483,25 @@ export default function EmployeeDashboard() {
             className="mt-6"
           >
             <h3 className="mb-3 font-display text-[14px] font-semibold tracking-tight text-[var(--fg)]">
-              Statistics
+              Stream breakdown
             </h3>
             <Card padded={false} className="divide-y divide-[var(--divider)]">
               <StatRow
-                label="Rate (per second)"
+                label="Rate per second"
                 value={totalRatePerSec.toFixed(8)}
                 suffix={primarySymbol}
               />
               <StatRow
-                label="Buffer time"
+                label="Uncollected"
                 value={`${runway}m`}
-                hint="Minutes of accrued since last withdraw"
+                hint="Minutes accrued since your last withdrawal"
               />
               <StatRow
-                label="Active streams"
+                label="Open streams"
                 value={streams.length.toString()}
               />
               <StatRow
-                label="First stream"
+                label="First stream opened"
                 value={
                   earliestStart
                     ? new Date(earliestStart * 1000).toLocaleDateString(

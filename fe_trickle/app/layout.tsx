@@ -19,13 +19,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trickle — Payroll streaming on Celo",
+  title: "Trickle",
   description:
     "Real-time salary streaming powered by Celo stablecoins. Get paid every second.",
-  icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
-  },
 };
 
 export default function RootLayout({
@@ -36,6 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${inter.variable} ${mono.variable} h-full antialiased`}
     >
       <body

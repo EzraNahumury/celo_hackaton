@@ -36,7 +36,17 @@
       "Bash(ls node_modules/wagmi/node_modules/@wagmi/connectors/dist/esm/exports)",
       "Bash(cp \"/c/Users/ASUS ROG/.claude/image-cache/379b6cbb-6441-4440-8f3f-4cca22e7efce/3.png\" \"/c/celo_hackaton/fe_trickle/public/tokens/usdm.png\")",
       "Bash(cp \"/c/Users/ASUS ROG/.claude/image-cache/379b6cbb-6441-4440-8f3f-4cca22e7efce/4.png\" \"/c/celo_hackaton/fe_trickle/public/tokens/usdt.png\")",
-      "Bash(cp \"/c/Users/ASUS ROG/.claude/image-cache/379b6cbb-6441-4440-8f3f-4cca22e7efce/5.png\" \"/c/celo_hackaton/fe_trickle/public/tokens/tusdt.png\")"
+      "Bash(cp \"/c/Users/ASUS ROG/.claude/image-cache/379b6cbb-6441-4440-8f3f-4cca22e7efce/5.png\" \"/c/celo_hackaton/fe_trickle/public/tokens/tusdt.png\")",
+      "Bash(node spam.mjs)",
+      "Bash(npm run *)",
+      "Bash(node smoke-test.mjs)",
+      "Bash(echo \"tsc=$?\")",
+      "Bash(awk -F'\"timestamp\":\"' 'NR > 0 { split\\($2, a, \"\\\\\"\"\\); ts = a[1]; if \\(ts > \"00:51:00\"\\) print $0 }' C:/celo_hackaton/fe_trickle/.next/dev/logs/next-development.log)",
+      "Bash(grep -oE '\"timestamp\":\"[^\"]*\"|\"message\":\"[^\"]{0,80}')",
+      "Bash(awk -F'\"timestamp\":\"' '{ split\\($2, a, \"\\\\\"\"\\); ts = a[1]; if \\(ts > \"00:50:00\"\\) print $0 }' C:/celo_hackaton/fe_trickle/.next/dev/logs/next-development.log)",
+      "Bash(awk -F'\"timestamp\":\"' '{ split\\($2, a, \"\\\\\"\"\\); ts = a[1]; if \\(ts > \"00:50:00\" && ts < \"00:53:00\"\\) print $0 }' C:/celo_hackaton/fe_trickle/.next/dev/logs/next-development.log)",
+      "Bash(grep -oE '\"message\":\"[^\"]{0,70}')",
+      "Bash(awk -F'\"timestamp\":\"' '{ split\\($2, a, \"\\\\\"\"\\); ts = a[1]; if \\(ts > \"00:53:30\"\\) print $0 }' C:/celo_hackaton/fe_trickle/.next/dev/logs/next-development.log)"
     ]
   }
 }

@@ -152,7 +152,7 @@ export function BottomNav({ onProfile }: BottomNavProps) {
     {
       href: "/employer",
       icon: Wallet,
-      label: "Vault",
+      label: "Payroll",
       match: (p) => p.startsWith("/employer"),
     },
     {

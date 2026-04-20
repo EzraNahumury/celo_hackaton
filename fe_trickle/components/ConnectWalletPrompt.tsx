@@ -14,7 +14,7 @@ interface ConnectWalletPromptProps {
 export function ConnectWalletPrompt({
   eyebrow = "Wallet required",
   title = "Connect your wallet",
-  body = "Link a Celo wallet to view your vault and manage salary streams.",
+  body = "Link a Celo wallet to run payroll and stream salaries second by second.",
 }: ConnectWalletPromptProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -26,40 +26,23 @@ export function ConnectWalletPrompt({
         transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
         className="flex flex-col items-center px-2"
       >
-        <div className="relative w-full overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--color-surface)] p-7 text-center shadow-[var(--shadow-md)]">
+        <div className="relative w-full overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--color-surface)] p-7 text-center shadow-[var(--shadow-sm)]">
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full"
+            className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full"
             style={{
               background:
-                "radial-gradient(closest-side, rgba(99,102,241,0.22), transparent 70%)",
-              filter: "blur(10px)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -left-16 -bottom-16 h-40 w-40 rounded-full"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(79,70,229,0.16), transparent 70%)",
-              filter: "blur(10px)",
+                "radial-gradient(closest-side, rgba(99,102,241,0.08), transparent 70%)",
+              filter: "blur(24px)",
             }}
           />
 
           <div className="relative">
-            <motion.div
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl"
-              style={{
-                background:
-                  "linear-gradient(140deg, #818CF8 0%, #4F46E5 100%)",
-                boxShadow:
-                  "0 12px 28px -8px rgba(99,102,241,0.55), inset 0 1px 0 rgba(255,255,255,0.3)",
-              }}
+            <div
+              className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-[var(--border-strong)] bg-[var(--color-surface-2)]"
             >
-              <Wallet size={22} strokeWidth={2.25} className="text-white" />
-            </motion.div>
+              <Wallet size={22} strokeWidth={2.25} className="text-[var(--accent-3)]" />
+            </div>
 
             <p className="text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-3)]">
               {eyebrow}

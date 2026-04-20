@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useAccount } from "wagmi";
+import { useAccount, useBlockNumber } from "wagmi";
 import { ArrowRight } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
 
@@ -81,7 +81,7 @@ export default function HeroSection() {
           <p className="text-center text-[14px] leading-[1.5] text-white/55">
             {showConnected
               ? "Wallet connected. Open your dashboard."
-              : "Nice to meet you. Ready to start streaming?"}
+              : "Payroll that flows per second. Ready when you are."}
           </p>
 
           {showConnected ? (
@@ -115,8 +115,8 @@ function IllustrationRobot() {
         className="absolute left-1/2 top-[58%] h-[46%] w-[72%] -translate-x-1/2 rounded-full"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(129,140,248,0.22), transparent 65%)",
-          filter: "blur(28px)",
+            "radial-gradient(ellipse at center, rgba(129,140,248,0.11), transparent 65%)",
+          filter: "blur(34px)",
         }}
       />
 
@@ -150,20 +150,30 @@ function IllustrationRobot() {
   );
 }
 
-/* ─── Vibrant lime-green status pill under the coin ─────── */
+/* ─── Live chain-status pill — real block number, heartbeats green ─────── */
 function VersionPill() {
+  const { data: blockNumber } = useBlockNumber({
+    watch: true,
+    query: { refetchInterval: 5_000 },
+  });
+  const label = blockNumber
+    ? `Block ${blockNumber.toLocaleString("en-US")}`
+    : "Connecting to Celo…";
   return (
     <div
-      className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5"
-      style={{
-        background: "#BEF264",
-        boxShadow:
-          "0 10px 24px -10px rgba(190,242,100,0.35), inset 0 1px 0 rgba(255,255,255,0.35)",
-      }}
+      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 backdrop-blur-md"
+      suppressHydrationWarning
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-[#0A0B14]" />
-      <span className="text-[11.5px] font-bold tracking-[0.04em] text-[#0A0B14]">
-        Live on Celo · v1.0
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10B981] opacity-60" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#10B981]" />
+      </span>
+      <span className="font-mono text-[11px] font-medium tracking-[0.02em] text-white/75 tabular">
+        {label}
+      </span>
+      <span className="h-3 w-px bg-white/10" />
+      <span className="text-[11px] font-medium tracking-tight text-white/55">
+        Celo Sepolia
       </span>
     </div>
   );

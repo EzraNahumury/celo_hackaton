@@ -163,13 +163,17 @@ export default function StreamCard({
 
       {/* Primary number */}
       {role === "payee" ? (
-        <div className="mb-5 rounded-2xl bg-[var(--color-accent-soft)] border border-[var(--accent)]/15 px-4 py-3.5">
-          <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-3)]">
+        <div className="relative mb-5 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--color-bg-2)] px-4 py-3.5">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-px animate-flow-stripe opacity-60"
+          />
+          <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--fg-mute)]">
             <span
-              className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse-dot"
+              className="h-1.5 w-1.5 rounded-full bg-[var(--accent-3)] animate-pulse-dot"
               aria-hidden
             />
-            Withdrawable
+            Flowing in
           </div>
           <div className="font-mono text-[26px] font-bold leading-none tabular text-[var(--fg)]">
             <StreamTicker
@@ -183,12 +187,16 @@ export default function StreamCard({
           </div>
         </div>
       ) : (
-        <div className="mb-5 flex items-center gap-2 rounded-2xl bg-[var(--color-bg-2)] border border-[var(--border)] px-4 py-3 text-[13px] text-[var(--fg-mute)]">
+        <div className="relative mb-5 flex items-center gap-2 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--color-bg-2)] px-4 py-3 text-[13px] text-[var(--fg-mute)]">
           <span
-            className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse-dot"
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-px animate-flow-stripe opacity-60"
+          />
+          <span
+            className="h-1.5 w-1.5 rounded-full bg-[var(--accent-3)] animate-pulse-dot"
             aria-hidden
           />
-          Streaming{" "}
+          Flowing out{" "}
           <span className="font-mono text-[var(--fg-dim)]">
             {ratePerSec.toFixed(8)}
           </span>{" "}
