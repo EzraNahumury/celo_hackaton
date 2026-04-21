@@ -350,6 +350,54 @@ The visual system is a dark-indigo SaaS aesthetic (background `#0A0B14`, surface
 
 ---
 
+## Use cases
+
+Trickle is a single primitive — a per-second stream of an ERC-20 — but that primitive maps cleanly onto a wide set of real-world payment patterns. The MiniPay surface widens this further: anyone with a phone and a Celo address is reachable.
+
+```mermaid
+flowchart LR
+    T(("TrickleVault<br/>per-second stream"))
+    T --> U1["Remote payroll<br/>in emerging markets"]
+    T --> U2["Freelancers &<br/>contractors"]
+    T --> U3["DAO contributor<br/>compensation"]
+    T --> U4["Creator &<br/>gig economy"]
+    T --> U5["Grants, vesting<br/>& scholarships"]
+    T --> U6["Family &<br/>domestic remittance"]
+
+    classDef vault fill:#161927,stroke:#6366F1,stroke-width:2px,color:#F5F7FB;
+    classDef use fill:#0F1119,stroke:#3A4055,color:#F5F7FB;
+    class T vault
+    class U1,U2,U3,U4,U5,U6 use
+```
+
+### 1. Remote payroll in emerging markets
+**Who:** companies hiring engineers, designers, support staff in LATAM / Africa / SEA where banking is slow or expensive.
+**Why Trickle:** worker is paid every second in USDC, withdraws to MiniPay anytime, no IBAN, no SWIFT, no FX desk. Sub-cent gas means even a $10 mid-week withdrawal makes economic sense.
+
+### 2. Freelancers & long-running contracts
+**Who:** independent developers, designers, copywriters on month-long engagements.
+**Why Trickle:** replaces the awkward 50% upfront / 50% on delivery dance. Client opens a stream for the engagement window; freelancer claims earned value continuously. If the relationship ends, `cancelStream` settles whatever was owed up to that second — no disputes about partial work.
+
+### 3. DAO contributor compensation
+**Who:** protocol DAOs, guilds, working groups paying core contributors from a multisig treasury.
+**Why Trickle:** one Safe → many streams. Contributors see a live "earned this month" counter. Treasury runway becomes legible (`balance / totalPaidPerSec` = seconds of payroll left). Cancellation is non-punitive — pending pay always settles before the stream closes.
+
+### 4. Creator economy & gig work
+**Who:** content platforms paying creators, agencies paying drivers / couriers / micro-task workers.
+**Why Trickle:** salary that mirrors how creators actually live (daily cash needs, not monthly cycles). MiniPay's 14M+ install base means the worker doesn't install anything new — the wallet is already there.
+
+### 5. Grants, scholarships & token vesting
+**Who:** ecosystem foundations, hackathon sponsors, universities, DAO grant programs.
+**Why Trickle:** a grant becomes a stream with a fixed end date instead of a milestone-gated PDF chase. Recipients pull funds as they need them. The same primitive doubles as a vesting schedule for advisors or early team — linear, transparent, revocable.
+
+### 6. Family & domestic remittance
+**Who:** workers abroad sending continuous support to family; households paying caregivers, tutors, domestic help.
+**Why Trickle:** instead of a chunky monthly transfer with high FX + remittance fees, the recipient receives a continuous USDC stream and withdraws as they need cash. This is the use case Celo + MiniPay was arguably built for.
+
+> Across all six, the protocol is identical. The differentiation is **distribution + cost**: MiniPay puts streams in front of users who already have the wallet, and Celo's fee model makes frequent small withdrawals viable.
+
+---
+
 ## Why Celo
 
 | | |
