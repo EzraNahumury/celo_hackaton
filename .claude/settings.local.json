@@ -49,7 +49,8 @@
       "Bash(awk -F'\"timestamp\":\"' '{ split\\($2, a, \"\\\\\"\"\\); ts = a[1]; if \\(ts > \"00:53:30\"\\) print $0 }' C:/celo_hackaton/fe_trickle/.next/dev/logs/next-development.log)",
       "Bash(git push *)",
       "Bash(node --check spam.mjs)",
-      "Bash(node --check smoke-test.mjs)"
+      "Bash(node --check smoke-test.mjs)",
+      "Bash(echo \"started pid=$!\")"
     ]
   }
 }

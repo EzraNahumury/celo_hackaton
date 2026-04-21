@@ -22,6 +22,12 @@ export const metadata: Metadata = {
   title: "Trickle",
   description:
     "Real-time salary streaming powered by Celo stablecoins. Get paid every second.",
+  verification: {
+    other: {
+      "talentapp:project_verification":
+        "e91424fb6c4fe298e3f347e6b5c51a5b498904436c99053b718542c7586d4881405c7a3d8186118dd58793c81faf62191d3b2ca0e465a3e5fbb7da7f739f30d9",
+    },
+  },
 };
 
 export default function RootLayout({
