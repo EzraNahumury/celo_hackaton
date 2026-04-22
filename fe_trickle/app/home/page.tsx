@@ -17,7 +17,8 @@ import { cn } from "@/lib/cn";
 export default function HomePage() {
   const { address, isConnected } = useAccount();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+// eslint-disable-next-line react-hooks/set-state-in-effect -- hydration guard
+useEffect(() => setMounted(true), []);
 
   const TRICKLE_VAULT_ADDRESS = useVaultAddress();
   const chainLabel = useChainLabel();

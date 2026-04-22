@@ -9,23 +9,51 @@ export interface TokenInfo {
 }
 
 /**
- * Celo Mainnet (chain 42220) — production USDC.
+ * Celo Mainnet (chain 42220) — stablecoins + native CELO.
+ *
+ * cUSD  0x765DE816845861e75A25fCA122bb6898B8B1282a  18 dec  Mento Celo Dollar
+ * USDC  0xcebA9300f2b948710d2653dD7B07f33A8B32118C   6 dec  Circle native USDC
+ * USDT  0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e   6 dec  Tether USD
+ * CELO  0x471EcE3750Da237f93B8E339c536989b8978a438  18 dec  GoldToken ERC-20 wrapper
  */
 const MAINNET_TOKENS: Record<string, TokenInfo> = {
+  cUSD: {
+    address: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
+    symbol: "cUSD",
+    name: "Celo Dollar",
+    decimals: 18,
+    icon: "/tokens/cusd.svg",
+  },
   USDC: {
     address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
-    icon: "/tokens/usdt.png",
+    icon: "/tokens/usdc.svg",
+  },
+  USDT: {
+    address: "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+    symbol: "USDT",
+    name: "Tether USD",
+    decimals: 6,
+    icon: "/tokens/usdt.svg",
+  },
+  CELO: {
+    address: "0x471EcE3750Da237f93B8E339c536989b8978a438",
+    symbol: "CELO",
+    name: "Celo Native Token",
+    decimals: 18,
+    icon: "/tokens/celo.svg",
   },
 };
 
 /**
- * Celo Sepolia (chain 11142220) — testnet USDC/USDm plus our own mock
- * with a public `mint()` (faucet button), deployed by
- * `forge script script/DeployMockToken.s.sol` and pinned via
- * NEXT_PUBLIC_MOCK_TOKEN_ADDRESS.
+ * Celo Sepolia testnet (chain 11142220).
+ *
+ * tUSDC – mock token with public mint() for faucet, deployed by DeployMockToken.s.sol
+ * USDC  – 0x01C5C0122039549AD1493B8220cABEdD739BC44E   6 dec
+ * USDm  – 0xEF4d55D6dE8e8d73232827Cd1e9b2F2dBb45bC80  18 dec  Mento Dollar (testnet cUSD)
+ * USDT  – 0xd077A400968890Eacc75cdc901F0356c943e4fDb   6 dec
  */
 const SEPOLIA_TOKENS: Record<string, TokenInfo> = {
   tUSDC: {
@@ -37,19 +65,26 @@ const SEPOLIA_TOKENS: Record<string, TokenInfo> = {
     decimals: 6,
     icon: "/tokens/tusdc.png",
   },
+  USDm: {
+    address: "0xEF4d55D6dE8e8d73232827Cd1e9b2F2dBb45bC80",
+    symbol: "USDm",
+    name: "Mento Dollar (testnet)",
+    decimals: 18,
+    icon: "/tokens/cusd.png",
+  },
   USDC: {
     address: "0x01C5C0122039549AD1493B8220cABEdD739BC44E",
     symbol: "USDC",
     name: "USD Coin",
     decimals: 6,
-    icon: "/tokens/usdt.png",
+    icon: "/tokens/tusdc.png",
   },
-  USDm: {
-    address: "0xEF4d55D6dE8e8d73232827Cd1e9b2F2dBb45bC80",
-    symbol: "USDm",
-    name: "Mento Dollar",
-    decimals: 18,
-    icon: "/tokens/usdm.png",
+  USDT: {
+    address: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
+    symbol: "USDT",
+    name: "Tether USD",
+    decimals: 6,
+    icon: "/tokens/usdt.png",
   },
 };
 

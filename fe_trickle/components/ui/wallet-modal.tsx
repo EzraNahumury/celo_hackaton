@@ -4,7 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { useConnect, type Connector } from "wagmi";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, Check, Loader2, Wallet } from "lucide-react";
+import { X, Check, Loader2, Wallet } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { clearDisconnectIntent } from "../Providers";
 

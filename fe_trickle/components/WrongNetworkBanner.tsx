@@ -21,8 +21,8 @@ export function WrongNetworkBanner() {
   const chainId = useChainId();
   const { switchChain, isPending } = useSwitchChain();
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+// eslint-disable-next-line react-hooks/set-state-in-effect -- hydration guard
+useEffect(() => setMounted(true), []);
 
   const isWrongNetwork =
     mounted && isConnected && !SUPPORTED_CHAIN_IDS.includes(chainId);

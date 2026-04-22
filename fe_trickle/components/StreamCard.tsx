@@ -63,6 +63,7 @@ const TOKEN_COLORS: Record<string, { bg: string; fg: string }> = {
   cUSD: { bg: "#1E2141", fg: "#A5B4FC" },
   USDC: { bg: "#0F2A4A", fg: "#7DD3FC" },
   USDT: { bg: "#0E2A22", fg: "#6EE7B7" },
+  CELO: { bg: "#2A2A1A", fg: "#FCFF52" },
 };
 
 function tokenInfoFrom(

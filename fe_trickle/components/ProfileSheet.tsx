@@ -69,9 +69,12 @@ function handleDisconnect(wagmiDisconnect: () => void) {
 
 const TOKEN_ACCENT: Record<string, { bg: string; fg: string }> = {
   tUSDC: { bg: "rgba(125, 211, 252, 0.12)", fg: "#7DD3FC" },
-  USDC:  { bg: "rgba(47, 99, 255, 0.14)",  fg: "#6B8EFF" },
+  USDC:  { bg: "rgba(47,  99, 255, 0.14)",  fg: "#6B8EFF" },
+  USDT:  { bg: "rgba(80,  205, 137, 0.14)", fg: "#50CD89" },
   USDm:  { bg: "rgba(110, 231, 183, 0.12)", fg: "#6EE7B7" },
-  _:     { bg: "rgba(255,255,255,0.06)",   fg: "#B8BECE" },
+  cUSD:  { bg: "rgba(252, 211, 77,  0.14)", fg: "#FCD34D" },
+  CELO:  { bg: "rgba(252, 255, 82,  0.12)", fg: "#FCFF52" },
+  _:     { bg: "rgba(255, 255, 255, 0.06)", fg: "#B8BECE" },
 };
 
 export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {

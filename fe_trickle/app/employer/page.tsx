@@ -52,9 +52,6 @@ export default function EmployerDashboard() {
   const queryClient = useQueryClient();
   const { toast, update } = useToast();
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   const TOKENS = useChainTokens();
   const TOKEN_LIST = useChainTokenList();
   const TRICKLE_VAULT_ADDRESS = useVaultAddress();

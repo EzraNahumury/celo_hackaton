@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { ERC20_ABI, TRICKLE_VAULT_ABI } from "@/config/contracts";
 import { useVaultAddress } from "./useChain";
@@ -8,7 +8,6 @@ import { useVaultAddress } from "./useChain";
 export type DepositPhase = "idle" | "approving" | "depositing" | "done" | "error";
 
 export interface UseDepositReturn {
-  /** Start the approve → deposit sequence */
   deposit: (tokenAddress: `0x${string}`, amount: bigint) => void;
   phase: DepositPhase;
   approveTxHash: `0x${string}` | undefined;
@@ -21,76 +20,61 @@ export interface UseDepositReturn {
   error: Error | null;
 }
 
-/**
- * Properly chains approve → deposit, waiting for each transaction
- * to be confirmed on-chain before triggering the next one.
- * Replaces the fragile setTimeout approach.
- */
 export function useDeposit(): UseDepositReturn {
   const TRICKLE_VAULT_ADDRESS = useVaultAddress();
   const [phase, setPhase] = useState<DepositPhase>("idle");
-  // Store pending params in a ref to avoid stale closures in useEffect
-  const pending = useRef<{ tokenAddress: `0x${string}`; amount: bigint } | null>(null);
+  const [pendingAmount, setPendingAmount] = useState<bigint | null>(null);
+  const [pendingToken, setPendingToken] = useState<`0x${string}` | null>(null);
+  const [approveHash, setApproveHash] = useState<`0x${string}` | undefined>(undefined);
+  const [depositHash, setDepositHash] = useState<`0x${string}` | undefined>(undefined);
 
-  // ── Step 1: approve ────────────────────────────────────────────────────────
   const {
     writeContract: doApprove,
-    data: approveTxHash,
+    data: aHash,
     error: approveWriteError,
     reset: resetApprove,
   } = useWriteContract();
 
   const { isSuccess: approveConfirmed, isError: approveReceiptFailed } =
-    useWaitForTransactionReceipt({ hash: approveTxHash, pollingInterval: 1_500 });
+    useWaitForTransactionReceipt({ hash: approveHash, pollingInterval: 1_500 });
 
-  // ── Step 2: deposit ────────────────────────────────────────────────────────
   const {
     writeContract: doDeposit,
-    data: depositTxHash,
+    data: dHash,
     error: depositWriteError,
     reset: resetDeposit,
   } = useWriteContract();
 
   const { isSuccess: depositConfirmed, isError: depositReceiptFailed } =
-    useWaitForTransactionReceipt({ hash: depositTxHash, pollingInterval: 1_500 });
+    useWaitForTransactionReceipt({ hash: depositHash, pollingInterval: 1_500 });
 
-  // ── Transition: approving → depositing ────────────────────────────────────
-  useEffect(() => {
-    if (phase === "approving" && approveConfirmed && pending.current) {
-      setPhase("depositing");
-      doDeposit({
-        address: TRICKLE_VAULT_ADDRESS,
-        abi: TRICKLE_VAULT_ABI,
-        functionName: "deposit",
-        args: [pending.current.tokenAddress, pending.current.amount],
-      });
-    }
-  }, [approveConfirmed, phase, doDeposit]);
+  if (aHash !== undefined && aHash !== approveHash) setApproveHash(aHash);
+  if (dHash !== undefined && dHash !== depositHash) setDepositHash(dHash);
 
-  // ── Transition: depositing → done ─────────────────────────────────────────
-  useEffect(() => {
-    if (phase === "depositing" && depositConfirmed) {
-      setPhase("done");
-    }
-  }, [depositConfirmed, phase]);
+  if (approveConfirmed && phase === "approving" && pendingToken && pendingAmount) {
+    setPhase("depositing");
+    doDeposit({
+      address: TRICKLE_VAULT_ADDRESS,
+      abi: TRICKLE_VAULT_ABI,
+      functionName: "deposit",
+      args: [pendingToken, pendingAmount],
+    });
+  }
 
-  // ── Error handling ────────────────────────────────────────────────────────
-  useEffect(() => {
-    if ((approveWriteError || approveReceiptFailed) && phase === "approving") {
-      setPhase("error");
-    }
-  }, [approveWriteError, approveReceiptFailed, phase]);
+  if (depositConfirmed && phase === "depositing") {
+    setPhase("done");
+  }
 
-  useEffect(() => {
-    if ((depositWriteError || depositReceiptFailed) && phase === "depositing") {
-      setPhase("error");
-    }
-  }, [depositWriteError, depositReceiptFailed, phase]);
-
-  // ── Public API ────────────────────────────────────────────────────────────
+  if ((approveWriteError || approveReceiptFailed) && phase === "approving") {
+    setPhase("error");
+  }
+  if ((depositWriteError || depositReceiptFailed) && phase === "depositing") {
+    setPhase("error");
+  }
 
   function deposit(tokenAddress: `0x${string}`, amount: bigint) {
-    pending.current = { tokenAddress, amount };
+    setPendingToken(tokenAddress);
+    setPendingAmount(amount);
     setPhase("approving");
     doApprove({
       address: tokenAddress,
@@ -101,7 +85,8 @@ export function useDeposit(): UseDepositReturn {
   }
 
   function reset() {
-    pending.current = null;
+    setPendingToken(null);
+    setPendingAmount(null);
     setPhase("idle");
     resetApprove();
     resetDeposit();
@@ -112,8 +97,8 @@ export function useDeposit(): UseDepositReturn {
   return {
     deposit,
     phase,
-    approveTxHash,
-    depositTxHash,
+    approveTxHash: approveHash,
+    depositTxHash: depositHash,
     reset,
     isIdle: phase === "idle",
     isPending: phase === "approving" || phase === "depositing",
