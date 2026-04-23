@@ -37,7 +37,7 @@ function rankConnector(c: Connector): number {
 }
 
 export function WalletModal({ open, onClose }: WalletModalProps) {
-  const { connectors, connectAsync, isPending, variables } = useConnect();
+  const { connectors, connect, isPending, variables } = useConnect();
   const [mounted, setMounted] = React.useState(false);
   const [errorFor, setErrorFor] = React.useState<string | null>(null);
 
@@ -55,18 +55,11 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
     };
   }, [open, onClose]);
 
-  async function handleConnect(c: Connector) {
+  function handleConnect(c: Connector) {
     setErrorFor(null);
-    try {
-      await connectAsync({ connector: c });
-      // User explicitly connected — wipe any lingering disconnect intent so
-      // future refreshes resume auto-reconnect normally.
-      clearDisconnectIntent();
-      onClose();
-    } catch (err) {
-      const msg = (err as Error)?.message ?? "Connection rejected";
-      setErrorFor(`${c.id}:${msg.slice(0, 80)}`);
-    }
+    clearDisconnectIntent();
+    connect({ connector: c });
+    onClose();
   }
 
   const ordered = [...connectors].sort(

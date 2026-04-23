@@ -10,7 +10,6 @@ import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import {
   useVaultAddress,
   useChainLabel,
-  useIsTestnet,
 } from "@/hooks/useChain";
 import { cn } from "@/lib/cn";
 
@@ -22,7 +21,6 @@ useEffect(() => setMounted(true), []);
 
   const TRICKLE_VAULT_ADDRESS = useVaultAddress();
   const chainLabel = useChainLabel();
-  const isTestnet = useIsTestnet();
 
   // Live block — the heartbeat of the app
   const { data: blockNumber } = useBlockNumber({
@@ -130,7 +128,7 @@ useEffect(() => setMounted(true), []);
             <div className="mt-2 grid grid-cols-3 divide-x divide-[var(--divider)]">
               <StripStat label="Block time" value="~1s" />
               <StripStat label="Gas" value="sub-cent" />
-              <StripStat label="Status" value={isTestnet ? "Testnet" : "Mainnet"} />
+              <StripStat label="Status" value={chainLabel} />
             </div>
           </div>
         </motion.div>
