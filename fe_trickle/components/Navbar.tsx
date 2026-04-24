@@ -7,11 +7,13 @@ import { useAccount } from "wagmi";
 import { motion } from "framer-motion";
 import { Wallet } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
+import { useIsMiniPay } from "@/hooks/useMiniPay";
 
 export default function Navbar() {
   const { address, isConnected } = useAccount();
   const [walletOpen, setWalletOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const isMiniPay = useIsMiniPay();
   // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration guard
   useEffect(() => setMounted(true), []);
 
@@ -67,7 +69,7 @@ export default function Navbar() {
                   </span>
                 </span>
               ) : (
-                mounted && (
+                mounted && !isMiniPay && (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}

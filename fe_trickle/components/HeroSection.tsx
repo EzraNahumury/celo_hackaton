@@ -8,12 +8,14 @@ import { useAccount, useBlockNumber } from "wagmi";
 import { ArrowRight } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
 import { useChainLabel } from "@/hooks/useChain";
+import { useIsMiniPay } from "@/hooks/useMiniPay";
 
 export default function HeroSection() {
   const router = useRouter();
   const { isConnected } = useAccount();
   const [mounted, setMounted] = React.useState(false);
   const [walletOpen, setWalletOpen] = React.useState(false);
+  const isMiniPay = useIsMiniPay();
   // null = haven't observed a value yet; first run records it without redirecting.
   const prevConnectedRef = React.useRef<boolean | null>(null);
   React.useEffect(() => setMounted(true), []);
@@ -91,7 +93,7 @@ export default function HeroSection() {
               label="Open dashboard"
             />
           ) : (
-            mounted && (
+            mounted && !isMiniPay && (
               <CTAButton
                 onClick={() => setWalletOpen(true)}
                 label="Let's get started"

@@ -27,6 +27,7 @@ import {
   useExplorerUrl,
   useChainLabel,
 } from "@/hooks/useChain";
+import { useIsMiniPay } from "@/hooks/useMiniPay";
 import { TokenIcon } from "./ui/TokenIcon";
 import { setDisconnectIntent } from "./Providers";
 
@@ -52,6 +53,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
   const [mounted, setMounted] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMiniPay = useIsMiniPay();
 
   const TOKEN_LIST = useChainTokenList();
   const explorerUrl = useExplorerUrl();
@@ -319,16 +321,18 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                   <p className="mx-auto mt-1 max-w-[320px] text-[12.5px] text-[var(--fg-mute)]">
                     Connect a wallet to start streaming or receiving salary on Celo.
                   </p>
-                  <button
-                    onClick={() => {
-                      onClose();
-                      onConnect?.();
-                    }}
-                    className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 text-[13px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)]"
-                  >
-                    <Wallet size={14} />
-                    Connect wallet
-                  </button>
+                  {!isMiniPay && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onConnect?.();
+                      }}
+                      className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 text-[13px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)]"
+                    >
+                      <Wallet size={14} />
+                      Connect wallet
+                    </button>
+                  )}
                 </div>
               </div>
             )}

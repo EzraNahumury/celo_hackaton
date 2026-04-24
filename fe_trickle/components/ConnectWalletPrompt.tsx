@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { Wallet, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
+import { useIsMiniPay } from "@/hooks/useMiniPay";
 
 interface ConnectWalletPromptProps {
   eyebrow?: string;
@@ -17,6 +18,7 @@ export function ConnectWalletPrompt({
   body = "Link a Celo wallet to run payroll and stream salaries second by second.",
 }: ConnectWalletPromptProps) {
   const [open, setOpen] = React.useState(false);
+  const isMiniPay = useIsMiniPay();
 
   return (
     <>
@@ -54,18 +56,20 @@ export function ConnectWalletPrompt({
               {body}
             </p>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
-              onClick={() => setOpen(true)}
-              className="mx-auto mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[var(--accent-2)]"
-              style={{ boxShadow: "var(--shadow-accent)" }}
-            >
-              <Wallet size={15} strokeWidth={2.25} />
-              Connect wallet
-              <ArrowRight size={14} strokeWidth={2.25} />
-            </motion.button>
+            {!isMiniPay && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                onClick={() => setOpen(true)}
+                className="mx-auto mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[var(--accent-2)]"
+                style={{ boxShadow: "var(--shadow-accent)" }}
+              >
+                <Wallet size={15} strokeWidth={2.25} />
+                Connect wallet
+                <ArrowRight size={14} strokeWidth={2.25} />
+              </motion.button>
+            )}
 
             <div className="mt-6 flex items-center justify-center gap-5 text-[11.5px] text-[var(--fg-mute)]">
               <span className="inline-flex items-center gap-1.5">
