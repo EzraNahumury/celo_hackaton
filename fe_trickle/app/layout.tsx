@@ -22,6 +22,7 @@ export const metadata: Metadata = {
   title: "Trickle",
   description:
     "Real-time salary streaming powered by Celo stablecoins. Get paid every second.",
+  manifest: "/manifest.json",
   verification: {
     other: {
       "talentapp:project_verification":

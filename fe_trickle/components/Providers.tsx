@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider, useAccount, useDisconnect } from "wagmi";
+import { WagmiProvider, useAccount, useConnect, useDisconnect } from "wagmi";
 import { config } from "@/config/wagmi";
 import { useEffect, useState } from "react";
 import { ToastProvider } from "@/components/Toast";
@@ -75,6 +75,23 @@ export function setDisconnectIntent() {
   } catch {}
 }
 
+function MiniPayAutoConnect() {
+  const { isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMiniPay =
+      (window as Window & { ethereum?: { isMiniPay?: boolean } }).ethereum
+        ?.isMiniPay === true;
+    if (!isMiniPay || isConnected) return;
+    const injectedConnector = connectors.find((c) => c.type === "injected");
+    if (injectedConnector) connect({ connector: injectedConnector });
+  }, [isConnected, connect, connectors]);
+
+  return null;
+}
+
 /**
  * Watches for wagmi auto-reconnect after a page reload when user previously
  * clicked Disconnect. Immediately undoes that reconnect so the wallet stays
@@ -111,6 +128,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
+          <MiniPayAutoConnect />
           <UndoAutoReconnect />
           {children}
         </ToastProvider>
