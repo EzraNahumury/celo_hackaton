@@ -114,6 +114,7 @@ const {
   TOKEN_DECIMALS = "6",
   INTERVAL_SECONDS = "45",
   AMOUNT = "0.01",
+  MODE = "loop", // "loop" = forever, "once" = single cycle then exit (for CI cron)
 } = process.env;
 
 function die(msg) {
@@ -241,6 +242,10 @@ async function loop() {
   }
 }
 
+async function once() {
+  await pulse(1);
+}
+
 function installShutdownHandlers() {
   const shutdown = (sig) => {
     if (stopping) return;
@@ -257,12 +262,23 @@ function installShutdownHandlers() {
 
 // ── Main ──────────────────────────────────────────────────────────────────
 async function main() {
+  const singleShot = MODE.toLowerCase() === "once";
   installShutdownHandlers();
   console.log(
-    `[${ts()}] trickle spam started · ${CHAIN.name} · ${account.address} · every ${INTERVAL_SECONDS}s · ${AMOUNT} token/cycle`,
+    singleShot
+      ? `[${ts()}] trickle spam (once) · ${CHAIN.name} · ${account.address} · ${AMOUNT} token`
+      : `[${ts()}] trickle spam started · ${CHAIN.name} · ${account.address} · every ${INTERVAL_SECONDS}s · ${AMOUNT} token/cycle`,
   );
   await preflightChecks();
   await ensureAllowance();
+  if (singleShot) {
+    await once();
+    const runtime = Math.round((Date.now() - stats.startedAt) / 1000);
+    console.log(
+      `[${ts()}] done. ok=${stats.ok} fail=${stats.fail} txs=${stats.txs} in ${runtime}s.`,
+    );
+    process.exit(stats.fail > 0 ? 1 : 0);
+  }
   await loop();
 }
 
