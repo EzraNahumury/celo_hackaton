@@ -5,7 +5,7 @@ import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import {
   useVaultAddress,
@@ -47,6 +47,28 @@ useEffect(() => setMounted(true), []);
   const payerCount = Array.isArray(payerIds) ? payerIds.length : 0;
   const payeeCount = Array.isArray(payeeIds) ? payeeIds.length : 0;
 
+  const showLive = mounted && isConnected;
+
+  const payerMeta = useMemo<RoleMeta | null>(
+    () =>
+      showLive
+        ? {
+            count: payerCount,
+            label: payerCount === 1 ? "active stream" : "active streams",
+            direction: "out",
+          }
+        : null,
+    [showLive, payerCount],
+  );
+
+  const payeeMeta = useMemo<RoleMeta | null>(
+    () =>
+      showLive
+        ? { count: payeeCount, label: "incoming", direction: "in" }
+        : null,
+    [showLive, payeeCount],
+  );
+
   return (
     <DashboardLayout>
       <div className="mx-auto w-full max-w-[480px] px-5">
@@ -70,30 +92,14 @@ useEffect(() => setMounted(true), []);
             href="/employer"
             title="Run payroll"
             subtitle="Fund the flow, pay your team per second"
-            meta={
-              mounted && isConnected
-                ? {
-                    count: payerCount,
-                    label: payerCount === 1 ? "active stream" : "active streams",
-                    direction: "out",
-                  }
-                : null
-            }
+            meta={payerMeta}
             delay={0.06}
           />
           <RoleCard
             href="/employee"
             title="Collect earnings"
             subtitle="Watch salary flow in, withdraw anytime"
-            meta={
-              mounted && isConnected
-                ? {
-                    count: payeeCount,
-                    label: payeeCount === 1 ? "incoming" : "incoming",
-                    direction: "in",
-                  }
-                : null
-            }
+            meta={payeeMeta}
             delay={0.12}
           />
         </div>
@@ -137,7 +143,9 @@ useEffect(() => setMounted(true), []);
   );
 }
 
-function RoleCard({
+type RoleMeta = { count: number; label: string; direction: "in" | "out" };
+
+const RoleCard = memo(function RoleCard({
   href,
   title,
   subtitle,
@@ -147,7 +155,7 @@ function RoleCard({
   href: string;
   title: string;
   subtitle: string;
-  meta: { count: number; label: string; direction: "in" | "out" } | null;
+  meta: RoleMeta | null;
   delay: number;
 }) {
   const Arrow = meta?.direction === "out" ? ArrowUpRight : ArrowDownLeft;
@@ -208,7 +216,7 @@ function RoleCard({
       </Link>
     </motion.div>
   );
-}
+});
 
 function StripStat({ label, value }: { label: string; value: string }) {
   return (

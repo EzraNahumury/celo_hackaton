@@ -67,6 +67,7 @@ export function BottomNav({ onProfile }: BottomNavProps) {
   const rippleTimersRef = React.useRef<Set<ReturnType<typeof setTimeout>>>(
     new Set(),
   );
+  const rippleIdRef = React.useRef(0);
 
   React.useEffect(
     () => () => {
@@ -77,7 +78,7 @@ export function BottomNav({ onProfile }: BottomNavProps) {
   );
 
   function addRipple(x: number, y: number) {
-    const id = Date.now() + Math.random();
+    const id = ++rippleIdRef.current;
     setRipples((r) => [...r, { x, y, id }]);
     const handle = setTimeout(() => {
       setRipples((r) => r.filter((rp) => rp.id !== id));
@@ -147,27 +148,30 @@ export function BottomNav({ onProfile }: BottomNavProps) {
     applyDeform(e.clientX, e.clientY);
   }
 
-  const items: Item[] = [
-    { href: "/home", icon: Home, label: "Home", match: (p) => p === "/home" },
-    {
-      href: "/employer",
-      icon: Wallet,
-      label: "Payroll",
-      match: (p) => p.startsWith("/employer"),
-    },
-    {
-      href: "/employee",
-      icon: Download,
-      label: "Earnings",
-      match: (p) => p.startsWith("/employee"),
-    },
-    {
-      icon: User,
-      label: "Profile",
-      match: () => false,
-      onClick: onProfile,
-    },
-  ];
+  const items = React.useMemo<Item[]>(
+    () => [
+      { href: "/home", icon: Home, label: "Home", match: (p) => p === "/home" },
+      {
+        href: "/employer",
+        icon: Wallet,
+        label: "Payroll",
+        match: (p) => p.startsWith("/employer"),
+      },
+      {
+        href: "/employee",
+        icon: Download,
+        label: "Earnings",
+        match: (p) => p.startsWith("/employee"),
+      },
+      {
+        icon: User,
+        label: "Profile",
+        match: () => false,
+        onClick: onProfile,
+      },
+    ],
+    [onProfile],
+  );
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
@@ -243,7 +247,8 @@ export function BottomNav({ onProfile }: BottomNavProps) {
                     <button
                       key={item.label}
                       onClick={item.onClick}
-                      className="appearance-none bg-transparent outline-none focus-visible:outline-none"
+                      aria-label={item.label}
+                      className="appearance-none rounded-xl bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#2F3FFF] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
                     >
                       {content}
                     </button>
@@ -253,7 +258,9 @@ export function BottomNav({ onProfile }: BottomNavProps) {
                   <Link
                     key={item.label}
                     href={item.href ?? "/"}
-                    className="outline-none focus-visible:outline-none"
+                    aria-label={item.label}
+                    aria-current={active ? "page" : undefined}
+                    className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#2F3FFF] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
                   >
                     {content}
                   </Link>
