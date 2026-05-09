@@ -4,7 +4,6 @@ import {
   createPublicClient,
   createWalletClient,
   http,
-  fallback,
   parseUnits,
   formatUnits,
   defineChain,
@@ -170,12 +169,14 @@ const MAX_UINT256 =
   0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn;
 const MIN_GAS_WEI = parseUnits("0.005", 18);
 
-// ── Shared transport (single instance, reused by all wallets) ────────────
-const transport = fallback(
-  CHAIN.rpcUrls.default.http.map((url) => http(url)),
-  { rank: false, retryCount: 2, retryDelay: 400 },
-);
+// ── Shared transport (pinned to primary RPC to avoid cross-node read-after-write races) ────────────
+// Multi-node fallback caused "exceeded allowance" / "insufficient balance" reverts because
+// dependent tx hit a different node than the one that confirmed the prior tx receipt.
+const transport = http(CHAIN.rpcUrls.default.http[0], { retryCount: 3, retryDelay: 500 });
 const publicClient = createPublicClient({ chain: CHAIN, transport });
+
+const settleMs = 1200; // wait for state propagation between dependent tx
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function ts() {
   return new Date().toISOString().slice(11, 19);
@@ -224,9 +225,10 @@ async function processWallet(privateKey, idx) {
         functionName: "approve",
         args: [VAULT_ADDRESS, MAX_UINT256],
       });
-      await publicClient.waitForTransactionReceipt({ hash });
+      await publicClient.waitForTransactionReceipt({ hash, confirmations: 2 });
       result.txs += 1;
       console.log(`${tag} approve ${hash}`);
+      await sleep(settleMs);
     }
 
     // deposit
@@ -236,9 +238,10 @@ async function processWallet(privateKey, idx) {
       functionName: "deposit",
       args: [TOKEN_ADDRESS, amountWei],
     });
-    await publicClient.waitForTransactionReceipt({ hash: depHash });
+    await publicClient.waitForTransactionReceipt({ hash: depHash, confirmations: 2 });
     result.txs += 1;
     console.log(`${tag} deposit ${depHash}`);
+    await sleep(settleMs);
 
     // withdrawBalance
     const wdrHash = await wallet.writeContract({
@@ -247,7 +250,7 @@ async function processWallet(privateKey, idx) {
       functionName: "withdrawBalance",
       args: [TOKEN_ADDRESS, amountWei],
     });
-    await publicClient.waitForTransactionReceipt({ hash: wdrHash });
+    await publicClient.waitForTransactionReceipt({ hash: wdrHash, confirmations: 2 });
     result.txs += 1;
     console.log(`${tag} withdraw ${wdrHash}`);
 
