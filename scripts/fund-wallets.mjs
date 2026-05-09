@@ -49,7 +49,7 @@ const CHAIN =
 const {
   FUNDER_KEY,
   WALLETS,
-  WALLETS_FILE = "scripts/wallets.json",
+  WALLETS_FILE = "wallets.json",
   RECIPIENTS, // optional: JSON array OR comma-separated addresses
   AMOUNT_CELO = "0.5",
   SKIP_IF_BALANCE_GE = "0.45", // skip wallet if it already has at least this much CELO (idempotent re-runs)

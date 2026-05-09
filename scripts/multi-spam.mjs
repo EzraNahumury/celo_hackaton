@@ -102,7 +102,7 @@ const ERC20_ABI = [
 // ── Env ───────────────────────────────────────────────────────────────────
 const {
   WALLETS,
-  WALLETS_FILE = "scripts/wallets.json",
+  WALLETS_FILE = "wallets.json",
   VAULT_ADDRESS,
   TOKEN_ADDRESS,
   TOKEN_DECIMALS = "18",

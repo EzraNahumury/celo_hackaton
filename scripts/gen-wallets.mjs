@@ -2,7 +2,7 @@ import { writeFileSync, existsSync } from "node:fs";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 const COUNT = Number(process.env.COUNT ?? process.argv[2] ?? 100);
-const OUT = process.env.OUT ?? process.argv[3] ?? "scripts/wallets.json";
+const OUT = process.env.OUT ?? process.argv[3] ?? "wallets.json";
 
 if (!Number.isFinite(COUNT) || COUNT < 1 || COUNT > 10_000) {
   console.error(`✗ COUNT must be 1..10000 (got ${COUNT})`);
