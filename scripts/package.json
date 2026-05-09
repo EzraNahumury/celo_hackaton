@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "spam": "node spam.mjs",
-    "multi-spam": "node multi-spam.mjs"
+    "multi-spam": "node multi-spam.mjs",
+    "fund": "node fund-wallets.mjs",
+    "gen-wallets": "node gen-wallets.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
