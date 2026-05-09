@@ -172,11 +172,32 @@ const MIN_GAS_WEI = parseUnits("0.005", 18);
 // ── Shared transport (pinned to primary RPC to avoid cross-node read-after-write races) ────────────
 // Multi-node fallback caused "exceeded allowance" / "insufficient balance" reverts because
 // dependent tx hit a different node than the one that confirmed the prior tx receipt.
-const transport = http(CHAIN.rpcUrls.default.http[0], { retryCount: 3, retryDelay: 500 });
+const transport = http(CHAIN.rpcUrls.default.http[0], {
+  retryCount: 3,
+  retryDelay: 500,
+  timeout: 30_000, // 30s — primary RPC slows under high concurrent load
+});
 const publicClient = createPublicClient({ chain: CHAIN, transport });
 
 const settleMs = 1200; // wait for state propagation between dependent tx
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function withRetry(fn, label, attempts = 2) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const msg = err?.shortMessage ?? err?.message ?? "";
+      const transient = /timeout|took too long|network|fetch|503|504/i.test(msg);
+      if (!transient || i === attempts - 1) throw err;
+      console.warn(`${label} retry (${msg})`);
+      await sleep(1500);
+    }
+  }
+  throw lastErr;
+}
 
 function ts() {
   return new Date().toISOString().slice(11, 19);
@@ -219,38 +240,62 @@ async function processWallet(privateKey, idx) {
       args: [account.address, VAULT_ADDRESS],
     });
     if (allowance < amountWei * 100n) {
-      const hash = await wallet.writeContract({
-        address: TOKEN_ADDRESS,
-        abi: ERC20_ABI,
-        functionName: "approve",
-        args: [VAULT_ADDRESS, MAX_UINT256],
-      });
-      await publicClient.waitForTransactionReceipt({ hash, confirmations: 2 });
+      const hash = await withRetry(
+        () =>
+          wallet.writeContract({
+            address: TOKEN_ADDRESS,
+            abi: ERC20_ABI,
+            functionName: "approve",
+            args: [VAULT_ADDRESS, MAX_UINT256],
+          }),
+        `${tag} approve`,
+      );
+      await withRetry(
+        () =>
+          publicClient.waitForTransactionReceipt({ hash, confirmations: 2 }),
+        `${tag} approve-receipt`,
+      );
       result.txs += 1;
       console.log(`${tag} approve ${hash}`);
       await sleep(settleMs);
     }
 
     // deposit
-    const depHash = await wallet.writeContract({
-      address: VAULT_ADDRESS,
-      abi: VAULT_ABI,
-      functionName: "deposit",
-      args: [TOKEN_ADDRESS, amountWei],
-    });
-    await publicClient.waitForTransactionReceipt({ hash: depHash, confirmations: 2 });
+    const depHash = await withRetry(
+      () =>
+        wallet.writeContract({
+          address: VAULT_ADDRESS,
+          abi: VAULT_ABI,
+          functionName: "deposit",
+          args: [TOKEN_ADDRESS, amountWei],
+        }),
+      `${tag} deposit`,
+    );
+    await withRetry(
+      () =>
+        publicClient.waitForTransactionReceipt({ hash: depHash, confirmations: 2 }),
+      `${tag} deposit-receipt`,
+    );
     result.txs += 1;
     console.log(`${tag} deposit ${depHash}`);
     await sleep(settleMs);
 
     // withdrawBalance
-    const wdrHash = await wallet.writeContract({
-      address: VAULT_ADDRESS,
-      abi: VAULT_ABI,
-      functionName: "withdrawBalance",
-      args: [TOKEN_ADDRESS, amountWei],
-    });
-    await publicClient.waitForTransactionReceipt({ hash: wdrHash, confirmations: 2 });
+    const wdrHash = await withRetry(
+      () =>
+        wallet.writeContract({
+          address: VAULT_ADDRESS,
+          abi: VAULT_ABI,
+          functionName: "withdrawBalance",
+          args: [TOKEN_ADDRESS, amountWei],
+        }),
+      `${tag} withdraw`,
+    );
+    await withRetry(
+      () =>
+        publicClient.waitForTransactionReceipt({ hash: wdrHash, confirmations: 2 }),
+      `${tag} withdraw-receipt`,
+    );
     result.txs += 1;
     console.log(`${tag} withdraw ${wdrHash}`);
 
