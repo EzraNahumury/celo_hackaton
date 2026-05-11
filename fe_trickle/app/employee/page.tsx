@@ -85,11 +85,13 @@ export default function EmployeeDashboard() {
   const TRICKLE_VAULT_ADDRESS = useVaultAddress();
   const TOKEN_LIST = useChainTokenList();
 
+  const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState(0);
   const [copied, setCopied] = useState(false);
   const [range, setRange] = useState<Range>("1D");
 
   useEffect(() => {
+    setMounted(true);
     setNow(Math.floor(Date.now() / 1000));
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(id);
@@ -184,14 +186,16 @@ export default function EmployeeDashboard() {
     totalWithdrawableAccrued,
   ]);
 
-  const withdrawToastId = useRef<string | null>(null);
+  const pendingToastIds = useRef<string[]>([]);
   const {
     writeContract: doWithdraw,
     data: withdrawTxHash,
     isPending: isWithdrawPending,
+    isError: isWriteError,
   } = useWriteContract();
-  const { isSuccess: withdrawSuccess, isError: withdrawFailed } =
+  const { isSuccess: withdrawSuccess, isError: withdrawReceiptFailed } =
     useWaitForTransactionReceipt({ hash: withdrawTxHash, pollingInterval: 1_500 });
+  const withdrawFailed = isWriteError || withdrawReceiptFailed;
 
   function handleWithdraw(s: Stream) {
     doWithdraw({
@@ -204,27 +208,31 @@ export default function EmployeeDashboard() {
         s.amountPerSec,
       ],
     });
-    withdrawToastId.current = toast({ type: "pending", message: "Withdrawing earnings…" });
+    const id = toast({ type: "pending", message: "Withdrawing earnings…" });
+    pendingToastIds.current.push(id);
   }
   useEffect(() => {
     if (withdrawSuccess) {
-      if (withdrawToastId.current) {
-        update(withdrawToastId.current, {
+      const ids = pendingToastIds.current;
+      ids.forEach((id, i) => {
+        update(id, {
           type: "success",
           message: "Withdrawal successful",
           description: "Tokens sent to your wallet",
-          txHash: withdrawTxHash,
+          txHash: i === ids.length - 1 ? withdrawTxHash : undefined,
         });
-        withdrawToastId.current = null;
-      }
+      });
+      pendingToastIds.current = [];
       queryClient.invalidateQueries();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withdrawSuccess]);
   useEffect(() => {
-    if (withdrawFailed && withdrawToastId.current) {
-      update(withdrawToastId.current, { type: "error", message: "Withdrawal failed" });
-      withdrawToastId.current = null;
+    if (withdrawFailed) {
+      pendingToastIds.current.forEach((id) => {
+        update(id, { type: "error", message: "Withdrawal failed" });
+      });
+      pendingToastIds.current = [];
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withdrawFailed]);
@@ -239,18 +247,18 @@ export default function EmployeeDashboard() {
     } catch {}
   }
 
-  if (!isConnected) {
+  if (!mounted || !isConnected) {
     return (
       <DashboardLayout>
         <div className="mx-auto w-full max-w-[460px] px-5 pt-4">
           <h1 className="mb-5 font-display text-[22px] font-semibold tracking-tight text-[var(--fg)]">
             Earnings
           </h1>
-          <ConnectWalletPrompt
+          {mounted && <ConnectWalletPrompt
             eyebrow="Earnings hidden"
             title="Connect to see your earnings"
             body="Connect a Celo wallet to view incoming streams and withdraw your salary anytime."
-          />
+          />}
         </div>
       </DashboardLayout>
     );
