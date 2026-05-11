@@ -115,7 +115,7 @@ export default function EmployeeDashboard() {
     functionName: "getStream" as const,
     args: [id] as const,
   }));
-  const { data: streamResults, isLoading: streamsLoading } = useReadContracts({
+  const { data: streamResults, isLoading: streamsLoading, refetch: refetchStreams } = useReadContracts({
     contracts: streamCalls,
     query: { enabled: streamCalls.length > 0 },
   });
@@ -224,6 +224,9 @@ export default function EmployeeDashboard() {
       });
       pendingToastIds.current = [];
       queryClient.invalidateQueries();
+      refetchStreams();
+      const retryId = setTimeout(() => refetchStreams(), 3_000);
+      return () => clearTimeout(retryId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withdrawSuccess]);
