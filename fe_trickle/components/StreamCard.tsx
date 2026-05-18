@@ -3,7 +3,7 @@
 import * as React from "react";
 import { formatUnits } from "viem";
 import { motion } from "framer-motion";
-import { ArrowDownToLine, Clock, X, ArrowRight } from "lucide-react";
+import { ArrowDownToLine, Clock, X, ArrowRight, AlertTriangle } from "lucide-react";
 import { useChainTokenList } from "@/hooks/useChain";
 import { Button } from "./ui/Button";
 import { StreamTicker } from "./ui/AnimatedNumber";
@@ -57,6 +57,8 @@ interface StreamCardProps {
   onWithdraw?: () => void;
   onCancel?: () => void;
   isPending?: boolean;
+  /** Vault runway in days for this token — shows health warning when low */
+  runwayDays?: number;
 }
 
 const TOKEN_COLORS: Record<string, { bg: string; fg: string }> = {
@@ -102,6 +104,7 @@ export default function StreamCard({
   onWithdraw,
   onCancel,
   isPending,
+  runwayDays,
 }: StreamCardProps) {
   const [now, setNow] = React.useState(0);
   const tokenList = useChainTokenList();
@@ -153,6 +156,21 @@ export default function StreamCard({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--fg)]">
               <span>{info.symbol} stream</span>
+              {role === "payer" && runwayDays !== undefined && runwayDays <= 14 && (
+                <span
+                  title={`${runwayDays}d runway remaining`}
+                  className={
+                    runwayDays <= 3
+                      ? "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--danger)]/10 text-[var(--danger)]"
+                      : runwayDays <= 7
+                        ? "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--warn)]/10 text-[var(--warn)]"
+                        : "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--warn)]/[0.06] text-[var(--warn)]/70"
+                  }
+                >
+                  <AlertTriangle size={9} strokeWidth={2.5} />
+                  {runwayDays}d
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1 text-[12px] text-[var(--fg-mute)]">
               <span>{directionLabel}</span>

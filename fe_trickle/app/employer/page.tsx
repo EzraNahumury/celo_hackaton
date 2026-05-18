@@ -19,6 +19,7 @@ import {
   Check,
   TrendingUp,
   Users,
+  AlertTriangle,
 } from "lucide-react";
 import { TRICKLE_VAULT_ABI, ERC20_ABI } from "@/config/contracts";
 import { useVaultAddress, useChainTokens, useChainTokenList } from "@/hooks/useChain";
@@ -372,9 +373,7 @@ export default function EmployerDashboard() {
               </span>
             )}
             {runway !== null && runway > 0 && (
-              <span className="text-[12px] text-[var(--fg-mute)]">
-                · {runway.toLocaleString()}d runway
-              </span>
+              <RunwayBadge days={runway} />
             )}
           </div>
 
@@ -386,6 +385,26 @@ export default function EmployerDashboard() {
             {tokenInfo.symbol}
           </div>
         </motion.div>
+
+        {/* Low runway warning */}
+        {runway !== null && runway <= 7 && streams.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22 }}
+            className="mb-4 flex items-start gap-3 rounded-xl border border-[var(--danger)]/20 bg-[var(--danger)]/[0.05] px-4 py-3"
+          >
+            <AlertTriangle
+              size={14}
+              className="mt-0.5 shrink-0 text-[var(--danger)]"
+            />
+            <p className="text-[12.5px] leading-relaxed text-[var(--danger)]/90">
+              {runway <= 0
+                ? "Payroll balance depleted — streams may stall. Deposit now."
+                : `Only ${runway}d of runway left — top up before payroll stalls.`}
+            </p>
+          </motion.div>
+        )}
 
         {/* Action row */}
         <motion.div
@@ -503,6 +522,7 @@ export default function EmployerDashboard() {
                   role="payer"
                   onCancel={() => handleCancel(s)}
                   isPending={isCancelPending}
+                  runwayDays={runway ?? undefined}
                 />
               ))}
             </div>
@@ -735,6 +755,36 @@ function EmptyState({
         </Link>
       ) : null}
     </Card>
+  );
+}
+
+function RunwayBadge({ days }: { days: number }) {
+  const isCritical = days <= 3;
+  const isLow = days <= 7;
+  const isWarning = days <= 14;
+
+  if (!isWarning) {
+    return (
+      <span className="text-[12px] text-[var(--fg-mute)]">
+        · {days.toLocaleString()}d runway
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-semibold",
+        isCritical
+          ? "bg-[var(--danger)]/10 text-[var(--danger)]"
+          : isLow
+            ? "bg-[var(--warn)]/10 text-[var(--warn)]"
+            : "bg-[var(--warn)]/[0.06] text-[var(--warn)]/80"
+      )}
+    >
+      <AlertTriangle size={10} strokeWidth={2.5} />
+      {days}d runway
+    </span>
   );
 }
 
