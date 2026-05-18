@@ -18,6 +18,7 @@ import {
   Plus,
   Check,
   TrendingUp,
+  Users,
 } from "lucide-react";
 import { TRICKLE_VAULT_ABI, ERC20_ABI } from "@/config/contracts";
 import { useVaultAddress, useChainTokens, useChainTokenList } from "@/hooks/useChain";
@@ -391,7 +392,7 @@ export default function EmployerDashboard() {
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, delay: 0.1 }}
-          className="mb-6 grid grid-cols-3 gap-2.5"
+          className="mb-6 grid grid-cols-2 gap-2.5"
         >
           <ActionButton
             active={panel === "deposit"}
@@ -414,6 +415,12 @@ export default function EmployerDashboard() {
               primary
               icon={<Plus size={15} strokeWidth={2.5} />}
               label="New stream"
+            />
+          </Link>
+          <Link href="/employer/batch" className="contents">
+            <ActionButton
+              icon={<Users size={15} strokeWidth={2.25} />}
+              label="Batch payroll"
             />
           </Link>
         </motion.div>
