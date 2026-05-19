@@ -18,6 +18,7 @@ import {
   Plus,
   Trash2,
   ArrowRight,
+  Upload,
 } from "lucide-react";
 import { TRICKLE_VAULT_ABI, ERC20_ABI } from "@/config/contracts";
 import {
@@ -56,6 +57,17 @@ function genId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function parseCsv(text: string): { address: string; salary: string }[] {
+  const lines = text.trim().split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return [];
+  const firstCell = lines[0].split(",")[0].trim().replace(/^["']|["']$/g, "");
+  const startIdx = firstCell.toLowerCase().startsWith("0x") && firstCell.length === 42 ? 0 : 1;
+  return lines.slice(startIdx).map((line) => {
+    const cols = line.split(",").map((c) => c.trim().replace(/^["']|["']$/g, ""));
+    return { address: cols[0] ?? "", salary: cols[1] ?? "" };
+  }).filter((r) => r.address.length > 0);
+}
+
 export default function BatchPayroll() {
   const { address, isConnected } = useAccount();
   const router = useRouter();
@@ -82,6 +94,7 @@ export default function BatchPayroll() {
 
   const activeToastId = useRef<string | null>(null);
   const nextIndexRef = useRef(0);
+  const csvInputRef = useRef<HTMLInputElement>(null);
   const paramsRef = useRef<{
     tokenAddress: `0x${string}`;
     needed: bigint;
@@ -349,6 +362,33 @@ export default function BatchPayroll() {
     resetCreate();
   }
 
+  function handleCsvImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const rows = parseCsv(text);
+      if (!rows.length) {
+        toast({ type: "error", message: "CSV empty or unreadable" });
+        return;
+      }
+      const imported = rows.slice(0, MAX_EMPLOYEES).map((r) => ({
+        id: genId(),
+        address: r.address,
+        salary: r.salary,
+      }));
+      const skipped = rows.length - imported.length;
+      setEmployees(imported);
+      toast({
+        type: "success",
+        message: `Imported ${imported.length} employee${imported.length !== 1 ? "s" : ""}${skipped > 0 ? ` · ${skipped} skipped (max ${MAX_EMPLOYEES})` : ""}`,
+      });
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
   const isPending =
     phase === "approving" || phase === "depositing" || phase === "creating";
   const canProceed = validEmployees.length >= 1 && !hasDuplicates;
@@ -534,15 +574,34 @@ export default function BatchPayroll() {
                   ))}
                 </div>
 
-                {employees.length < MAX_EMPLOYEES && (
+                <div className="mt-3 flex items-center gap-4">
+                  {employees.length < MAX_EMPLOYEES && (
+                    <button
+                      onClick={addEmployee}
+                      className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[var(--accent-3)] transition-colors hover:text-[var(--accent)]"
+                    >
+                      <Plus size={13} strokeWidth={2.5} />
+                      Add team member
+                    </button>
+                  )}
                   <button
-                    onClick={addEmployee}
-                    className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[var(--accent-3)] transition-colors hover:text-[var(--accent)]"
+                    onClick={() => csvInputRef.current?.click()}
+                    className="relative inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[var(--fg-mute)] transition-colors hover:text-[var(--fg)]"
                   >
-                    <Plus size={13} strokeWidth={2.5} />
-                    Add team member
+                    <Upload size={13} strokeWidth={2} />
+                    Import CSV
+                    <span className="ml-0.5 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white leading-none">
+                      New
+                    </span>
                   </button>
-                )}
+                  <input
+                    ref={csvInputRef}
+                    type="file"
+                    accept=".csv,text/csv"
+                    className="hidden"
+                    onChange={handleCsvImport}
+                  />
+                </div>
               </FieldGroup>
 
               {/* Totals summary */}
