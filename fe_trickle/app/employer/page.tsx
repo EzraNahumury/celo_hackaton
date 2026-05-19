@@ -440,6 +440,7 @@ export default function EmployerDashboard() {
             <ActionButton
               icon={<Users size={15} strokeWidth={2.25} />}
               label="Batch payroll"
+              isNew
             />
           </Link>
         </motion.div>
@@ -538,12 +539,14 @@ function ActionButton({
   label,
   active,
   primary,
+  isNew,
   onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   primary?: boolean;
+  isNew?: boolean;
   onClick?: () => void;
 }) {
   return (
@@ -553,7 +556,7 @@ function ActionButton({
       transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center gap-2 rounded-2xl border px-3 py-3.5 text-[13.5px] font-semibold transition-colors",
+        "relative flex items-center justify-center gap-2 rounded-2xl border px-3 py-3.5 text-[13.5px] font-semibold transition-colors",
         primary
           ? "border-transparent bg-[var(--accent)] text-white shadow-[var(--shadow-accent)] hover:bg-[var(--accent-2)]"
           : active
@@ -561,6 +564,11 @@ function ActionButton({
             : "border-[var(--border)] bg-[var(--color-surface)] text-[var(--fg)] hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)]",
       )}
     >
+      {isNew && (
+        <span className="absolute right-2 top-2 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white leading-none">
+          New
+        </span>
+      )}
       {icon}
       {label}
     </motion.button>
