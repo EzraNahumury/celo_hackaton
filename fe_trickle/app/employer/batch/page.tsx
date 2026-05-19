@@ -29,6 +29,7 @@ import {
 } from "@/hooks/useChain";
 import DashboardLayout from "@/components/DashboardLayout";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
+import { TokenSelector } from "@/components/TokenSelector";
 import { useToast } from "@/components/Toast";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -498,42 +499,11 @@ export default function BatchPayroll() {
             >
               {/* Token selector */}
               <FieldGroup label="Token">
-                <div className="grid grid-cols-3 gap-2">
-                  {TOKEN_LIST.map((t) => (
-                    <button
-                      key={t.symbol}
-                      onClick={() => setSelectedToken(t.symbol)}
-                      className={cn(
-                        "rounded-xl border px-3 py-3 text-left transition-all duration-200 ease-out",
-                        selectedToken === t.symbol
-                          ? "border-[var(--accent)]/40 bg-[var(--color-accent-soft)]"
-                          : "border-[var(--border)] bg-[var(--color-surface)] hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)]"
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "flex items-center gap-2 text-[13px] font-medium",
-                          selectedToken === t.symbol
-                            ? "text-[var(--accent-3)]"
-                            : "text-[var(--fg)]"
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            selectedToken === t.symbol
-                              ? "bg-[var(--accent)]"
-                              : "bg-[var(--color-fg-faint)]"
-                          )}
-                        />
-                        {t.symbol}
-                      </div>
-                      <p className="mt-1 text-[11.5px] text-[var(--fg-mute)]">
-                        {t.name}
-                      </p>
-                    </button>
-                  ))}
-                </div>
+                <TokenSelector
+                  tokens={TOKEN_LIST}
+                  selected={selectedToken}
+                  onChange={setSelectedToken}
+                />
               </FieldGroup>
 
               {/* Employee rows */}
