@@ -5,6 +5,7 @@ import { WagmiProvider, useAccount, useConnect, useDisconnect } from "wagmi";
 import { config } from "@/config/wagmi";
 import { useEffect, useState } from "react";
 import { ToastProvider } from "@/components/Toast";
+import { ThemeProvider } from "next-themes";
 
 /**
  * Some wallet extensions / in-app browsers monkey-patch `history.pushState`
@@ -127,11 +128,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <MiniPayAutoConnect />
-          <UndoAutoReconnect />
-          {children}
-        </ToastProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <ToastProvider>
+            <MiniPayAutoConnect />
+            <UndoAutoReconnect />
+            {children}
+          </ToastProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

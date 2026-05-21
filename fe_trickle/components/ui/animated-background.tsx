@@ -11,8 +11,7 @@ export function AnimatedBackground({ className }: AnimatedBackgroundProps) {
   return (
     <div
       aria-hidden
-      className={cn("fixed inset-0 z-0", className)}
-      style={{ background: "#000000" }}
+      className={cn("fixed inset-0 z-0 bg-[var(--color-bg)]", className)}
     />
   );
 }
