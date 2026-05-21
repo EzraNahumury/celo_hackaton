@@ -98,14 +98,23 @@ export default function HeroSection() {
               label="Open dashboard"
             />
           ) : mounted && isMiniPay ? (
-            <div className="flex items-center gap-1.5" aria-label="Connecting via MiniPay">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="h-2 w-2 rounded-full bg-white/35 animate-pulse"
-                  style={{ animationDelay: `${i * 0.2}s` }}
-                />
-              ))}
+            <div
+              className="flex h-[54px] w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white/[0.04]"
+              aria-label="Connecting via MiniPay"
+            >
+              <svg
+                className="h-4 w-4 animate-spin text-white/50"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+              <span className="text-[14px] font-medium text-white/45">
+                Connecting via MiniPay…
+              </span>
             </div>
           ) : (
             mounted && !isMiniPay && (
