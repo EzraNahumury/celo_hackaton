@@ -9,6 +9,7 @@ import { ArrowRight } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
 import { useChainLabel } from "@/hooks/useChain";
 import { useIsMiniPay } from "@/hooks/useMiniPay";
+import { MiniPayBadge } from "./ui/MiniPayBadge";
 
 export default function HeroSection() {
   const router = useRouter();
@@ -81,9 +82,13 @@ export default function HeroSection() {
           className="flex flex-col items-center gap-5"
           suppressHydrationWarning
         >
+          {mounted && isMiniPay && <MiniPayBadge />}
+
           <p className="text-center text-[14px] leading-[1.5] text-white/55">
             {showConnected
               ? "Wallet connected. Open your dashboard."
+              : isMiniPay
+              ? "Connecting your wallet…"
               : "Payroll that flows per second. Ready when you are."}
           </p>
 
@@ -92,6 +97,16 @@ export default function HeroSection() {
               onClick={() => router.push("/home")}
               label="Open dashboard"
             />
+          ) : mounted && isMiniPay ? (
+            <div className="flex items-center gap-1.5" aria-label="Connecting via MiniPay">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="h-2 w-2 rounded-full bg-white/35 animate-pulse"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
           ) : (
             mounted && !isMiniPay && (
               <CTAButton

@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Wallet } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
 import { useIsMiniPay } from "@/hooks/useMiniPay";
+import { MiniPayBadge } from "./ui/MiniPayBadge";
 
 export default function Navbar() {
   const { address, isConnected } = useAccount();
@@ -58,7 +59,8 @@ export default function Navbar() {
 
             {/* Right controls */}
             <div className="flex items-center gap-1.5">
-              {mounted && isConnected && address ? (
+              {mounted && isMiniPay && <MiniPayBadge />}
+              {mounted && isConnected && address && (
                 <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-3">
                   <span
                     className="h-1.5 w-1.5 rounded-full bg-[#10B981]"
@@ -68,22 +70,21 @@ export default function Navbar() {
                     {address.slice(0, 5)}…{address.slice(-4)}
                   </span>
                 </span>
-              ) : (
-                mounted && !isMiniPay && (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
-                    onClick={() => setWalletOpen(true)}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#2F3FFF] px-3.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#1D2BE8]"
-                    style={{
-                      boxShadow: "0 6px 16px -4px rgba(47,63,255,0.5)",
-                    }}
-                  >
-                    <Wallet size={13} strokeWidth={2.25} />
-                    Connect
-                  </motion.button>
-                )
+              )}
+              {mounted && !isMiniPay && !isConnected && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                  onClick={() => setWalletOpen(true)}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#2F3FFF] px-3.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#1D2BE8]"
+                  style={{
+                    boxShadow: "0 6px 16px -4px rgba(47,63,255,0.5)",
+                  }}
+                >
+                  <Wallet size={13} strokeWidth={2.25} />
+                  Connect
+                </motion.button>
               )}
             </div>
           </div>
