@@ -2,8 +2,8 @@ name: onchain-multi-spam
 
 on:
   schedule:
-    # Offset from hour-start to dodge Actions queue.
-    - cron: "3-59/5 * * * *"
+    # Every 30 min — ~48 runs/day, sustainable gas burn.
+    - cron: "3,33 * * * *"
   workflow_dispatch: {}
 
 concurrency:
