@@ -144,10 +144,8 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 24, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[440px] overflow-hidden rounded-t-[28px] border border-white/[0.06] shadow-[var(--shadow-lg)] sm:rounded-[28px]"
+            className="relative w-full max-w-[440px] overflow-hidden rounded-t-[28px] border border-[var(--border)] bg-[var(--color-surface)]/95 shadow-[var(--shadow-lg)] backdrop-blur-[32px] sm:rounded-[28px]"
             style={{
-              background: "rgba(10, 11, 20, 0.82)",
-              backdropFilter: "blur(32px) saturate(160%)",
               WebkitBackdropFilter: "blur(32px) saturate(160%)",
             }}
           >
@@ -159,7 +157,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
               </h2>
               <button
                 onClick={onClose}
-                className="grid h-8 w-8 place-items-center rounded-full text-[var(--fg-mute)] transition-colors hover:bg-white/[0.06] hover:text-[var(--fg)]"
+                className="grid h-8 w-8 place-items-center rounded-full text-[var(--fg-mute)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]"
               >
                 <X size={14} strokeWidth={2.2} />
               </button>
@@ -178,7 +176,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                       <button
                         onClick={copyAddress}
                         aria-label={copied ? "Copied" : "Copy address"}
-                        className="grid h-6 w-6 place-items-center rounded-md text-[var(--fg-faint)] transition-colors hover:bg-white/[0.06] hover:text-[var(--fg)]"
+                        className="grid h-6 w-6 place-items-center rounded-md text-[var(--fg-faint)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]"
                       >
                         {copied ? (
                           <Check
@@ -199,7 +197,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                 </div>
 
                 {/* Token balances */}
-                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)]">
                   <div className="flex items-center justify-between px-4 pt-3 pb-2">
                     <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-faint)]">
                       Balances
@@ -212,7 +210,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                         onClick={() => refetchBalances()}
                         disabled={balancesFetching}
                         aria-label="Refresh balances"
-                        className="grid h-6 w-6 place-items-center rounded-md text-[var(--fg-faint)] transition-colors hover:bg-white/[0.06] hover:text-[var(--fg)] disabled:cursor-not-allowed"
+                        className="grid h-6 w-6 place-items-center rounded-md text-[var(--fg-faint)] transition-colors hover:bg-[var(--color-surface-3)] hover:text-[var(--fg)] disabled:cursor-not-allowed"
                       >
                         <RefreshCw
                           size={11}
@@ -238,7 +236,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                       return (
                         <div
                           key={token.symbol}
-                          className="flex items-center justify-between rounded-xl px-2.5 py-2 transition-colors hover:bg-white/[0.03]"
+                          className="flex items-center justify-between rounded-xl px-2.5 py-2 transition-colors hover:bg-[var(--color-surface-3)]"
                         >
                           <div className="flex min-w-0 items-center gap-3">
                             <TokenIcon
@@ -311,7 +309,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
               </div>
             ) : (
               <div className="px-5 pb-5">
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-center">
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--color-surface-2)] p-5 text-center">
                   <div className="mx-auto mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--accent-3)]">
                     <Wallet size={18} />
                   </div>
@@ -379,7 +377,7 @@ function WalletAvatar({ connector }: { connector: Connector | undefined }) {
       )}
       <span
         aria-hidden
-        className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#0A0B14] bg-[var(--success)]"
+        className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[var(--color-surface)] bg-[var(--success)]"
       />
     </span>
   );
@@ -408,13 +406,13 @@ function SheetAction({
     "group flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-[13px] font-medium transition-colors",
     tone === "danger"
       ? "text-[var(--fg-dim)] hover:bg-[var(--color-danger-soft)] hover:text-[var(--danger)]"
-      : "text-[var(--fg)] hover:bg-white/[0.04]",
+      : "text-[var(--fg)] hover:bg-[var(--color-surface-2)]",
   );
   const iconCls = cn(
     "grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-colors",
     tone === "danger"
-      ? "bg-white/[0.04] text-[var(--fg-mute)] group-hover:bg-[var(--color-danger-soft)] group-hover:text-[var(--danger)]"
-      : "bg-white/[0.04] text-[var(--fg-dim)] group-hover:text-[var(--fg)]",
+      ? "bg-[var(--color-surface-2)] text-[var(--fg-mute)] group-hover:bg-[var(--color-danger-soft)] group-hover:text-[var(--danger)]"
+      : "bg-[var(--color-surface-2)] text-[var(--fg-dim)] group-hover:text-[var(--fg)]",
   );
   const content = (
     <>
