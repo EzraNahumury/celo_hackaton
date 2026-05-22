@@ -9,12 +9,19 @@ import { Wallet } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
 import { useIsMiniPay } from "@/hooks/useMiniPay";
 import { MiniPayBadge } from "./ui/MiniPayBadge";
+import { usePathname } from "next/navigation";
+import { ThemeToggle } from "./ui/ThemeToggle";
 
 export default function Navbar() {
   const { address, isConnected } = useAccount();
   const [walletOpen, setWalletOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isMiniPay = useIsMiniPay();
+  const pathname = usePathname();
+  const isDashboard =
+    pathname.startsWith("/home") ||
+    pathname.startsWith("/employer") ||
+    pathname.startsWith("/employee");
   // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration guard
   useEffect(() => setMounted(true), []);
 
@@ -59,6 +66,7 @@ export default function Navbar() {
 
             {/* Right controls */}
             <div className="flex items-center gap-1.5">
+              {isDashboard && <ThemeToggle />}
               {mounted && isMiniPay && <MiniPayBadge />}
               {mounted && isConnected && address && (
                 <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-3">

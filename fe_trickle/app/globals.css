@@ -82,6 +82,49 @@
 }
 
 
+html.light {
+  /* Surfaces */
+  --color-bg: #F0F2F8;
+  --color-bg-2: #F5F7FC;
+  --color-bg-3: #FAFBFF;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #F0F2F8;
+  --color-surface-3: #E8EAF0;
+
+  /* Text */
+  --color-fg: #0F1119;
+  --color-fg-dim: #3A4055;
+  --color-fg-mute: #6B7280;
+  --color-fg-faint: #9CA3AF;
+
+  /* Lines */
+  --color-border: rgba(0, 0, 0, 0.07);
+  --color-border-strong: rgba(0, 0, 0, 0.12);
+  --color-divider: rgba(0, 0, 0, 0.08);
+
+  /* Aliases */
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --fg: var(--color-fg);
+  --fg-dim: var(--color-fg-dim);
+  --fg-mute: var(--color-fg-mute);
+  --fg-faint: var(--color-fg-faint);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --divider: var(--color-divider);
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  background-clip: content-box;
+  border: 3px solid transparent;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+  background-clip: content-box;
+  border: 3px solid transparent;
+}
+
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 html { background: var(--color-bg); color: var(--color-fg); }
 body { color: var(--color-fg); background: transparent; }
