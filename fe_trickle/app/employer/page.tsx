@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { Card } from "@/components/ui/Card";
 import { AnimatedNumber, StreamTicker } from "@/components/ui/AnimatedNumber";
+import { TransactionHistorySection } from "@/components/ui/TransactionHistorySection";
 import { cn } from "@/lib/cn";
 
 type Stream = {
@@ -528,6 +529,16 @@ export default function EmployerDashboard() {
               ))}
             </div>
           )}
+        </motion.div>
+
+        {/* Transaction history */}
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, delay: 0.18 }}
+          className="mt-8"
+        >
+          <TransactionHistorySection role="payer" />
         </motion.div>
       </div>
     </DashboardLayout>
