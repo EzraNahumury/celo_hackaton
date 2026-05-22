@@ -47,7 +47,7 @@ export default function HeroSection() {
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="text-center"
         >
-          <h1 className="font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.028em] text-white">
+          <h1 className="font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.028em] text-[var(--fg)]">
             Stream your salary,
             <br />
             live on Celo.
@@ -84,7 +84,7 @@ export default function HeroSection() {
         >
           {mounted && isMiniPay && <MiniPayBadge />}
 
-          <p className="text-center text-[14px] leading-[1.5] text-white/55">
+          <p className="text-center text-[14px] leading-[1.5] text-[var(--fg-mute)]">
             {showConnected
               ? "Wallet connected. Open your dashboard."
               : isMiniPay
@@ -99,11 +99,11 @@ export default function HeroSection() {
             />
           ) : mounted && isMiniPay ? (
             <div
-              className="flex h-[54px] w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white/[0.04]"
+              className="flex h-[54px] w-full items-center justify-center gap-3 rounded-full border border-[var(--border)] bg-[var(--color-surface-2)]"
               aria-label="Connecting via MiniPay"
             >
               <svg
-                className="h-4 w-4 animate-spin text-white/50"
+                className="h-4 w-4 animate-spin text-[var(--fg-mute)]"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -112,7 +112,7 @@ export default function HeroSection() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
-              <span className="text-[14px] font-medium text-white/45">
+              <span className="text-[14px] font-medium text-[var(--fg-mute)]">
                 Connecting via MiniPay…
               </span>
             </div>
@@ -189,18 +189,18 @@ function VersionPill() {
     : "Connecting to Celo…";
   return (
     <div
-      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 backdrop-blur-md"
+      className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] px-3 py-1.5 backdrop-blur-md"
       suppressHydrationWarning
     >
       <span className="relative flex h-1.5 w-1.5">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10B981] opacity-60" />
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#10B981]" />
       </span>
-      <span className="font-mono text-[11px] font-medium tracking-[0.02em] text-white/75 tabular">
+      <span className="font-mono text-[11px] font-medium tracking-[0.02em] text-[var(--fg-dim)] tabular">
         {label}
       </span>
-      <span className="h-3 w-px bg-white/10" />
-      <span className="text-[11px] font-medium tracking-tight text-white/55">
+      <span className="h-3 w-px bg-[var(--border)]" />
+      <span className="text-[11px] font-medium tracking-tight text-[var(--fg-mute)]">
         {chainLabel}
       </span>
     </div>

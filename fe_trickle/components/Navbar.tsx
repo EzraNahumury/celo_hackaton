@@ -34,20 +34,17 @@ export default function Navbar() {
         className="pointer-events-auto relative w-full max-w-[440px]"
       >
         <div
-          className="relative rounded-[24px] border border-white/[0.07]"
+          className="relative rounded-[24px] border border-[var(--border)] bg-[var(--color-surface)]/90 shadow-[var(--shadow-md)]"
           style={{
-            background: "rgba(16, 18, 28, 0.55)",
             backdropFilter: "blur(24px) saturate(180%)",
             WebkitBackdropFilter: "blur(24px) saturate(180%)",
-            boxShadow:
-              "0 20px 40px -12px rgba(0,0,0,0.5), 0 6px 16px -8px rgba(0,0,0,0.35)",
           }}
         >
           <div className="relative flex h-[52px] items-center justify-between px-2.5">
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-white/[0.06]"
+              className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-[var(--color-surface-2)]"
             >
               <span className="grid h-7 w-7 place-items-center">
                 <Image
@@ -69,7 +66,7 @@ export default function Navbar() {
               {isDashboard && <ThemeToggle />}
               {mounted && isMiniPay && <MiniPayBadge />}
               {mounted && isConnected && address && (
-                <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-3">
+                <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] px-3">
                   <span
                     className="h-1.5 w-1.5 rounded-full bg-[#10B981]"
                     aria-hidden

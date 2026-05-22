@@ -83,6 +83,8 @@
 
 
 html.light {
+  background: var(--color-bg); /* explicit override — Tailwind @theme cascade can't shadow this */
+
   /* Surfaces */
   --color-bg: #F0F2F8;
   --color-bg-2: #F5F7FC;
