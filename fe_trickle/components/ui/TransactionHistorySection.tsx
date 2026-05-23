@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDownToLine,
@@ -164,6 +165,8 @@ function TxRow({
   );
 }
 
+const PAGE_SIZE = 5;
+
 export function TransactionHistorySection({
   role,
 }: TransactionHistorySectionProps) {
@@ -172,8 +175,18 @@ export function TransactionHistorySection({
   const tokenList = useChainTokenList();
   const explorerUrl = useExplorerUrl();
   const { events, isLoading } = useTransactionHistory(address, role);
+  const [showAll, setShowAll] = useState(false);
 
   if (!address) return null;
+
+  // Filter out dust amounts that would display as "0.00"
+  const meaningful = events.filter((e) => {
+    if (e.amount == null) return true;
+    const { decimals } = tokenMeta(tokenList, e.tokenAddress);
+    return parseFloat(formatUnits(e.amount, decimals)) >= 0.005;
+  });
+
+  const visible = showAll ? meaningful : meaningful.slice(0, PAGE_SIZE);
 
   return (
     <div>
@@ -189,23 +202,35 @@ export function TransactionHistorySection({
           <SkeletonRow />
           <SkeletonRow />
         </div>
-      ) : events.length === 0 ? (
+      ) : meaningful.length === 0 ? (
         <p className="py-4 text-center text-[12.5px] text-[var(--fg-faint)]">
           No recent activity.
         </p>
       ) : (
-        <div className="-mx-3 flex flex-col">
-          {events.map((event, i) => (
-            <TxRow
-              key={`${event.txHash}-${i}`}
-              event={event}
-              role={role}
-              currentBlock={blockNumber ?? event.blockNumber}
-              tokenList={tokenList}
-              explorerUrl={explorerUrl}
-            />
-          ))}
-        </div>
+        <>
+          <div className="-mx-3 flex flex-col">
+            {visible.map((event, i) => (
+              <TxRow
+                key={`${event.txHash}-${i}`}
+                event={event}
+                role={role}
+                currentBlock={blockNumber ?? event.blockNumber}
+                tokenList={tokenList}
+                explorerUrl={explorerUrl}
+              />
+            ))}
+          </div>
+          {meaningful.length > PAGE_SIZE && (
+            <button
+              onClick={() => setShowAll((v) => !v)}
+              className="mt-2 w-full rounded-xl py-2 text-[12.5px] font-medium text-[var(--fg-mute)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]"
+            >
+              {showAll
+                ? "Show less"
+                : `Show ${meaningful.length - PAGE_SIZE} more`}
+            </button>
+          )}
+        </>
       )}
     </div>
   );
