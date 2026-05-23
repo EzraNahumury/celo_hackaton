@@ -55,15 +55,18 @@ export function useTransactionHistory(
   const publicClient = usePublicClient();
   const { data: blockNumber } = useBlockNumber();
 
-  // Refresh key changes every 10k blocks (~2.7h) — avoids RPC spam on every block
-  const blockEpoch = blockNumber != null ? blockNumber / 10_000n : 0n;
+  // Refresh key changes every 50k blocks (~3d) — stream events are infrequent
+  const blockEpoch = blockNumber != null ? blockNumber / 50_000n : 0n;
 
   const { data: events = [], isLoading } = useQuery<TxEvent[]>({
     queryKey: ["tx-history", role, address, blockEpoch.toString()],
     queryFn: async (): Promise<TxEvent[]> => {
       if (!address || blockNumber == null || !publicClient) return [];
 
-      const fromBlock = blockNumber > 10_000n ? blockNumber - 10_000n : 0n;
+      // ~14 days of recent tx (deposits/withdrawals). Stream events use a wider
+      // window since streams may have been opened months ago.
+      const fromBlock = blockNumber > 200_000n ? blockNumber - 200_000n : 0n;
+      const streamFromBlock = blockNumber > 500_000n ? blockNumber - 500_000n : 0n;
       const toBlock = blockNumber;
 
       if (role === "payer") {
@@ -92,7 +95,7 @@ export function useTransactionHistory(
                 address: vaultAddress,
                 event: ABI_STREAM_CREATED,
                 args: { payer: address },
-                fromBlock,
+                fromBlock: streamFromBlock,
                 toBlock,
               })
               .catch(() => []),
@@ -101,7 +104,7 @@ export function useTransactionHistory(
                 address: vaultAddress,
                 event: ABI_STREAM_CANCELLED,
                 args: { payer: address },
-                fromBlock,
+                fromBlock: streamFromBlock,
                 toBlock,
               })
               .catch(() => []),
@@ -167,7 +170,7 @@ export function useTransactionHistory(
             address: vaultAddress,
             event: ABI_STREAM_CREATED,
             args: { payee: address },
-            fromBlock,
+            fromBlock: streamFromBlock,
             toBlock,
           })
           .catch(() => []),
@@ -176,7 +179,7 @@ export function useTransactionHistory(
             address: vaultAddress,
             event: ABI_STREAM_CANCELLED,
             args: { payee: address },
-            fromBlock,
+            fromBlock: streamFromBlock,
             toBlock,
           })
           .catch(() => []),
