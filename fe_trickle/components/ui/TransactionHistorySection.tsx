@@ -106,7 +106,9 @@ function TxRow({
     const prefix =
       event.kind === "deposit" || event.kind === "withdrawn" ? "+" : "";
     const sym = symbol !== "?" ? ` ${symbol}` : "";
-    amountStr = `${prefix}${num.toFixed(2)}${sym}`;
+    // Adaptive precision: show enough digits so small amounts aren't "0.00"
+    const dp = num === 0 ? 2 : num < 0.001 ? 6 : num < 0.01 ? 4 : num < 1 ? 3 : 2;
+    amountStr = `${prefix}${num.toFixed(dp)}${sym}`;
   }
 
   const counterpartyShort = event.counterparty
@@ -179,14 +181,7 @@ export function TransactionHistorySection({
 
   if (!address) return null;
 
-  // Filter out dust amounts that would display as "0.00"
-  const meaningful = events.filter((e) => {
-    if (e.amount == null) return true;
-    const { decimals } = tokenMeta(tokenList, e.tokenAddress);
-    return parseFloat(formatUnits(e.amount, decimals)) >= 0.005;
-  });
-
-  const visible = showAll ? meaningful : meaningful.slice(0, PAGE_SIZE);
+  const visible = showAll ? events : events.slice(0, PAGE_SIZE);
 
   return (
     <div>
@@ -202,7 +197,7 @@ export function TransactionHistorySection({
           <SkeletonRow />
           <SkeletonRow />
         </div>
-      ) : meaningful.length === 0 ? (
+      ) : events.length === 0 ? (
         <p className="py-4 text-center text-[12.5px] text-[var(--fg-faint)]">
           No recent activity.
         </p>
@@ -220,14 +215,14 @@ export function TransactionHistorySection({
               />
             ))}
           </div>
-          {meaningful.length > PAGE_SIZE && (
+          {events.length > PAGE_SIZE && (
             <button
               onClick={() => setShowAll((v) => !v)}
               className="mt-2 w-full rounded-xl py-2 text-[12.5px] font-medium text-[var(--fg-mute)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]"
             >
               {showAll
                 ? "Show less"
-                : `Show ${meaningful.length - PAGE_SIZE} more`}
+                : `Show ${events.length - PAGE_SIZE} more`}
             </button>
           )}
         </>
