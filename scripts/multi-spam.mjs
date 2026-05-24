@@ -316,7 +316,9 @@ async function processWallet(privateKey, idx) {
     result.ok = true;
   } catch (err) {
     result.err = err?.shortMessage ?? err?.message ?? String(err);
-    console.error(`${tag} FAIL: ${result.err}`);
+    const reason = err?.cause?.reason ?? err?.cause?.shortMessage ?? err?.details ?? "";
+    const data = err?.cause?.data ?? err?.data ?? "";
+    console.error(`${tag} FAIL: ${result.err}${reason ? ` | reason: ${reason}` : ""}${data ? ` | data: ${data}` : ""}`);
   }
   return result;
 }
