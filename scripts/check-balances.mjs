@@ -4,6 +4,10 @@
  */
 import "dotenv/config";
 import { createPublicClient, http, parseUnits, formatUnits, defineChain, isAddress } from "viem";
+
+const VAULT_ABI_SIM = [
+  { type: "function", name: "deposit", inputs: [{ name: "token", type: "address" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
+];
 import { privateKeyToAccount } from "viem/accounts";
 
 const celoMainnet = defineChain({
@@ -76,8 +80,24 @@ for (let i = 0; i < keys.length; i++) {
   else if (!hasAllow) { status = "NO_ALLOW"; noAllowCount++; }
   else { okCount++; }
 
+  // Simulate deposit to get exact revert reason
+  let simResult = "sim_ok";
+  if (status === "OK") {
+    try {
+      await client.simulateContract({
+        address: VAULT_ADDRESS,
+        abi: VAULT_ABI_SIM,
+        functionName: "deposit",
+        args: [TOKEN_ADDRESS, AMOUNT],
+        account: addr,
+      });
+    } catch (err) {
+      simResult = `sim_FAIL: ${err?.shortMessage ?? err?.cause?.reason ?? err?.message ?? String(err)}`;
+    }
+  }
+
   const label = i < (WALLETS ? JSON.parse(WALLETS).length : 0) ? "OLD" : "NEW";
-  console.log(`${String(i+1).padEnd(4)} ${addr}  ${fmt(walletBal).padEnd(14)} ${fmt(vaultBal).padEnd(14)} ${allowance > 10n**30n ? "MAX".padEnd(14) : fmt(allowance).padEnd(14)} [${label}] ${status}`);
+  console.log(`${String(i+1).padEnd(4)} ${addr}  ${fmt(walletBal).padEnd(14)} ${fmt(vaultBal).padEnd(14)} ${allowance > 10n**30n ? "MAX".padEnd(14) : fmt(allowance).padEnd(14)} [${label}] ${status} ${simResult}`);
 }
 
 console.log(`\nSummary: ok=${okCount} no_usdc=${noUsdcCount} no_allow=${noAllowCount} total=${keys.length}`);
