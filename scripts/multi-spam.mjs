@@ -101,6 +101,7 @@ const ERC20_ABI = [
 // ── Env ───────────────────────────────────────────────────────────────────
 const {
   WALLETS,
+  NEW_WALLETS,
   WALLETS_FILE = "wallets.json",
   VAULT_ADDRESS,
   TOKEN_ADDRESS,
@@ -128,19 +129,7 @@ function normalizeKey(raw) {
   return k;
 }
 
-function loadKeys() {
-  let source = "env WALLETS";
-  let raw = WALLETS;
-  if (!raw) {
-    try {
-      raw = readFileSync(WALLETS_FILE, "utf8");
-      source = `file ${WALLETS_FILE}`;
-    } catch {
-      die(
-        `No keys found. Set WALLETS env (JSON array) or create ${WALLETS_FILE}.`,
-      );
-    }
-  }
+function parseKeyArray(raw, source) {
   let arr;
   try {
     arr = JSON.parse(raw);
@@ -156,7 +145,32 @@ function loadKeys() {
     else bad.push(i);
   });
   if (bad.length)
-    die(`Invalid key at indices: ${bad.join(", ")} (must be 64-hex).`);
+    die(`Invalid key at indices in ${source}: ${bad.join(", ")} (must be 64-hex).`);
+  return keys;
+}
+
+function loadKeys() {
+  let raw = WALLETS;
+  let source = "env WALLETS";
+  if (!raw) {
+    try {
+      raw = readFileSync(WALLETS_FILE, "utf8");
+      source = `file ${WALLETS_FILE}`;
+    } catch {
+      die(
+        `No keys found. Set WALLETS env (JSON array) or create ${WALLETS_FILE}.`,
+      );
+    }
+  }
+  const keys = parseKeyArray(raw, source);
+
+  // Merge NEW_WALLETS if provided (additive — old wallets untouched)
+  if (NEW_WALLETS) {
+    const extra = parseKeyArray(NEW_WALLETS, "env NEW_WALLETS");
+    keys.push(...extra);
+    source += ` + NEW_WALLETS (${extra.length})`;
+  }
+
   if (!keys.length) die("No valid keys after parsing.");
   return { keys, source };
 }
