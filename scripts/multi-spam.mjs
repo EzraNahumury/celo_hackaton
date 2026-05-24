@@ -172,6 +172,11 @@ function loadKeys() {
   }
 
   if (!keys.length) die("No valid keys after parsing.");
+  // Shuffle so NEW wallets don't always run last — helps detect ordering/RPC bias
+  for (let i = keys.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [keys[i], keys[j]] = [keys[j], keys[i]];
+  }
   return { keys, source };
 }
 
