@@ -25,4 +25,4 @@ jobs:
           TOKEN_ADDRESS: ${{ secrets.TOKEN_ADDRESS }}
           VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
           TOKEN_DECIMALS: ${{ vars.TOKEN_DECIMALS || '6' }}
-        run: node check-balances.mjs
+        run: node check-balances.mjs && node check-streams.mjs
