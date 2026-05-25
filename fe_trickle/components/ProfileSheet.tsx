@@ -59,6 +59,8 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
   const explorerUrl = useExplorerUrl();
   const chainLabel = useChainLabel();
 
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+
   React.useEffect(() => setMounted(true), []);
   React.useEffect(() => () => {
     if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -70,6 +72,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
@@ -156,8 +159,11 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                 Account
               </h2>
               <button
+                ref={closeButtonRef}
+                type="button"
                 onClick={onClose}
-                className="grid h-8 w-8 place-items-center rounded-full text-[var(--fg-mute)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]"
+                aria-label="Close account panel"
+                className="grid h-8 w-8 place-items-center rounded-full text-[var(--fg-mute)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
               >
                 <X size={14} strokeWidth={2.2} />
               </button>
