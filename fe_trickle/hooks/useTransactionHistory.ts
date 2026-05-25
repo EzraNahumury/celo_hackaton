@@ -60,11 +60,14 @@ export function useTransactionHistory(
   const publicClient = usePublicClient();
   const { data: blockNumber } = useBlockNumber();
 
-  // Refresh key changes every 50k blocks (~3d) — stream events are infrequent
-  const blockEpoch = blockNumber != null ? blockNumber / 50_000n : 0n;
+  // Refresh key changes every 50k blocks (~3d) — stream events are infrequent.
+  // Guard against the undefined→defined transition emitting two cache keys
+  // (0n then real epoch) which used to trigger a duplicate fetch on first load.
+  const blockEpochKey =
+    blockNumber != null ? (blockNumber / 50_000n).toString() : null;
 
   const { data: events = [], isLoading, isError, refetch } = useQuery<TxEvent[]>({
-    queryKey: ["tx-history", role, address, blockEpoch.toString()],
+    queryKey: ["tx-history", role, address, blockEpochKey],
     queryFn: async (): Promise<TxEvent[]> => {
       if (!address || blockNumber == null || !publicClient) return [];
 
