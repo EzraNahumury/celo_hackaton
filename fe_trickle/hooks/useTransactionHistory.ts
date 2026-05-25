@@ -89,6 +89,32 @@ export function blocksAgo(delta: bigint): string {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+/**
+ * Fetches the last ~14 days of TrickleVault activity for a given address,
+ * normalized into {@link TxEvent}s sorted newest-first and capped at 20 rows.
+ *
+ * Behavior:
+ *  - `role` controls which side's events are fetched. A `payer` sees their
+ *    own deposits / balance-withdraws / streams opened or cancelled. A
+ *    `payee` sees withdrawals they claimed plus streams targeting them.
+ *  - The deposit/withdraw window is the last 200k blocks (~14d on Celo).
+ *    Stream open/close events use a wider 500k block window because streams
+ *    may have started months ago and the user still wants to see "X stream
+ *    created on Y" context.
+ *  - The hook is gated on the address, the public client, and the latest
+ *    block number — it does not fire until all three are available.
+ *  - `withdrawn` event logs don't carry the token address, so the hook
+ *    falls back to `getStream(streamId)` to resolve it. If that read fails
+ *    (e.g. stream was already cleaned up) the row renders without a symbol
+ *    instead of being dropped.
+ *  - Per-event-type RPC failures use `Promise.allSettled` so partial outages
+ *    surface whatever data is available; only when *every* event-type call
+ *    in the role branch rejects does `isError` flip.
+ *
+ * @param address — wallet address to query for, or undefined to disable.
+ * @param role — which side of the relationship to fetch.
+ * @returns events plus loading/error flags and a stable refetch callback.
+ */
 export function useTransactionHistory(
   address: `0x${string}` | undefined,
   role: "payer" | "payee"
