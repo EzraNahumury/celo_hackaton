@@ -18,9 +18,12 @@ export function ThemeToggle() {
   // a flash of empty space inside the navbar.
   return (
     <button
+      type="button"
       onClick={() => mounted && setTheme(isDark ? "light" : "dark")}
       aria-label={label}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] text-[var(--fg-dim)] transition-colors hover:bg-[var(--color-surface-3)] hover:text-[var(--fg)]"
+      aria-pressed={mounted ? isDark : undefined}
+      title={mounted ? label : undefined}
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] text-[var(--fg-dim)] transition-colors hover:bg-[var(--color-surface-3)] hover:text-[var(--fg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
     >
       {mounted ? (
         isDark ? (
