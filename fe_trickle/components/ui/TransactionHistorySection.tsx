@@ -102,9 +102,15 @@ function TxRow({
     currentBlock >= event.blockNumber ? currentBlock - event.blockNumber : 0n
   );
 
+  // Narrow via discriminated union: only deposit / balance-withdrawn /
+  // withdrawn carry an amount. Only stream-* and withdrawn carry a counterparty.
+  const amount = "amount" in event ? event.amount : undefined;
+  const counterparty =
+    "counterparty" in event ? event.counterparty : undefined;
+
   let amountStr: string | null = null;
-  if (event.amount != null) {
-    const num = parseFloat(formatUnits(event.amount, decimals));
+  if (amount != null) {
+    const num = parseFloat(formatUnits(amount, decimals));
     const prefix =
       event.kind === "deposit" || event.kind === "withdrawn" ? "+" : "";
     const sym = symbol !== "?" ? ` ${symbol}` : "";
@@ -113,8 +119,8 @@ function TxRow({
     amountStr = `${prefix}${num.toFixed(dp)}${sym}`;
   }
 
-  const counterpartyShort = event.counterparty
-    ? `${event.counterparty.slice(0, 6)}…${event.counterparty.slice(-4)}`
+  const counterpartyShort = counterparty
+    ? `${counterparty.slice(0, 6)}…${counterparty.slice(-4)}`
     : null;
 
   const txUrl = `${explorerUrl}/tx/${event.txHash}`;

@@ -36,15 +36,7 @@ import { Card } from "@/components/ui/Card";
 import { AnimatedNumber, StreamTicker } from "@/components/ui/AnimatedNumber";
 import { TransactionHistorySection } from "@/components/ui/TransactionHistorySection";
 import { cn } from "@/lib/cn";
-
-type Stream = {
-  payer: string;
-  payee: string;
-  token: string;
-  amountPerSec: bigint;
-  lastPaid: number;
-  startTime: number;
-};
+import { parseStream, type Stream } from "@/lib/parseStream";
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn("skeleton", className)} />;
@@ -117,25 +109,8 @@ export default function EmployerDashboard() {
 
   const allStreams: Stream[] = (streamResults ?? [])
     .filter((r) => r.status === "success" && r.result)
-    .map((r) => {
-      const s = r.result as unknown as {
-        payer: string;
-        payee: string;
-        token: string;
-        amountPerSec: bigint;
-        lastPaid: bigint;
-        startTime: bigint;
-      };
-      return {
-        payer: s.payer,
-        payee: s.payee,
-        token: s.token,
-        amountPerSec: s.amountPerSec,
-        lastPaid: Number(s.lastPaid),
-        startTime: Number(s.startTime),
-      };
-    })
-    .filter((s) => s.startTime > 0);
+    .map((r) => parseStream(r.result))
+    .filter((s): s is Stream => s !== null && s.startTime > 0);
 
   const streams = allStreams.filter(
     (s) => s.token.toLowerCase() === tokenInfo.address.toLowerCase(),

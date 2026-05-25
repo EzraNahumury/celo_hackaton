@@ -4,21 +4,29 @@ import { parseAbiItem } from "viem";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import { useVaultAddress } from "@/hooks/useChain";
 
-export type TxEventKind =
-  | "deposit"
-  | "balance-withdrawn"
-  | "stream-created"
-  | "stream-cancelled"
-  | "withdrawn";
-
-export type TxEvent = {
-  kind: TxEventKind;
+type TxEventCommon = {
   blockNumber: bigint;
   txHash: `0x${string}`;
   tokenAddress: `0x${string}`;
-  amount?: bigint;
-  counterparty?: `0x${string}`;
 };
+
+/**
+ * Discriminated union over `kind` so amount/counterparty are present only
+ * for the event kinds that actually carry them. Consumers can narrow with
+ * a `switch (event.kind)` or `"amount" in event` check.
+ */
+export type TxEvent =
+  | (TxEventCommon & { kind: "deposit"; amount: bigint })
+  | (TxEventCommon & { kind: "balance-withdrawn"; amount: bigint })
+  | (TxEventCommon & { kind: "stream-created"; counterparty?: `0x${string}` })
+  | (TxEventCommon & { kind: "stream-cancelled"; counterparty?: `0x${string}` })
+  | (TxEventCommon & {
+      kind: "withdrawn";
+      amount: bigint;
+      counterparty?: `0x${string}`;
+    });
+
+export type TxEventKind = TxEvent["kind"];
 
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as `0x${string}`;
 
@@ -126,27 +134,27 @@ export function useTransactionHistory(
 
         const all: TxEvent[] = [
           ...deposits
-            .filter((l) => l.blockNumber != null)
-            .map((l) => ({
-              kind: "deposit" as TxEventKind,
+            .filter((l) => l.blockNumber != null && l.args.amount != null)
+            .map((l): TxEvent => ({
+              kind: "deposit",
               blockNumber: l.blockNumber!,
               txHash: (l.transactionHash ?? ZERO_ADDR) as `0x${string}`,
               tokenAddress: (l.args.token ?? ZERO_ADDR) as `0x${string}`,
-              amount: l.args.amount,
+              amount: l.args.amount!,
             })),
           ...balanceWithdrawals
-            .filter((l) => l.blockNumber != null)
-            .map((l) => ({
-              kind: "balance-withdrawn" as TxEventKind,
+            .filter((l) => l.blockNumber != null && l.args.amount != null)
+            .map((l): TxEvent => ({
+              kind: "balance-withdrawn",
               blockNumber: l.blockNumber!,
               txHash: (l.transactionHash ?? ZERO_ADDR) as `0x${string}`,
               tokenAddress: (l.args.token ?? ZERO_ADDR) as `0x${string}`,
-              amount: l.args.amount,
+              amount: l.args.amount!,
             })),
           ...streamsCreated
             .filter((l) => l.blockNumber != null)
-            .map((l) => ({
-              kind: "stream-created" as TxEventKind,
+            .map((l): TxEvent => ({
+              kind: "stream-created",
               blockNumber: l.blockNumber!,
               txHash: (l.transactionHash ?? ZERO_ADDR) as `0x${string}`,
               tokenAddress: (l.args.token ?? ZERO_ADDR) as `0x${string}`,
@@ -154,8 +162,8 @@ export function useTransactionHistory(
             })),
           ...streamsCancelled
             .filter((l) => l.blockNumber != null)
-            .map((l) => ({
-              kind: "stream-cancelled" as TxEventKind,
+            .map((l): TxEvent => ({
+              kind: "stream-cancelled",
               blockNumber: l.blockNumber!,
               txHash: (l.transactionHash ?? ZERO_ADDR) as `0x${string}`,
               tokenAddress: (l.args.token ?? ZERO_ADDR) as `0x${string}`,
@@ -208,10 +216,10 @@ export function useTransactionHistory(
       const streamsCancelled = streamsCancelledR.status === "fulfilled" ? streamsCancelledR.value : [];
 
       // Withdrawn event has no token field — resolve via getStream(streamId)
-      const withdrawalsResolved = await Promise.all(
+      const withdrawalsResolved: TxEvent[] = await Promise.all(
         withdrawals
-          .filter((l) => l.blockNumber != null)
-          .map(async (l) => {
+          .filter((l) => l.blockNumber != null && l.args.amount != null)
+          .map(async (l): Promise<TxEvent> => {
             let tokenAddress: `0x${string}` = ZERO_ADDR;
             try {
               const stream = await publicClient.readContract({
@@ -225,11 +233,11 @@ export function useTransactionHistory(
               // stream gone or RPC error — show amount without token symbol
             }
             return {
-              kind: "withdrawn" as TxEventKind,
+              kind: "withdrawn",
               blockNumber: l.blockNumber!,
               txHash: (l.transactionHash ?? ZERO_ADDR) as `0x${string}`,
               tokenAddress,
-              amount: l.args.amount,
+              amount: l.args.amount!,
               counterparty: l.args.payer ?? undefined,
             };
           })
@@ -239,8 +247,8 @@ export function useTransactionHistory(
         ...withdrawalsResolved,
         ...streamsCreated
           .filter((l) => l.blockNumber != null)
-          .map((l) => ({
-            kind: "stream-created" as TxEventKind,
+          .map((l): TxEvent => ({
+            kind: "stream-created",
             blockNumber: l.blockNumber!,
             txHash: (l.transactionHash ?? ZERO_ADDR) as `0x${string}`,
             tokenAddress: (l.args.token ?? ZERO_ADDR) as `0x${string}`,
@@ -248,8 +256,8 @@ export function useTransactionHistory(
           })),
         ...streamsCancelled
           .filter((l) => l.blockNumber != null)
-          .map((l) => ({
-            kind: "stream-cancelled" as TxEventKind,
+          .map((l): TxEvent => ({
+            kind: "stream-cancelled",
             blockNumber: l.blockNumber!,
             txHash: (l.transactionHash ?? ZERO_ADDR) as `0x${string}`,
             tokenAddress: (l.args.token ?? ZERO_ADDR) as `0x${string}`,
