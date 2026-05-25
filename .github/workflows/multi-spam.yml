@@ -2,8 +2,8 @@ name: onchain-multi-spam
 
 on:
   schedule:
-    # Every 10 min — ~144 runs/day. GH cron unreliable di interval pendek (sering delay).
-    - cron: "*/10 * * * *"
+    # Offset menit non-bulat → GH cron lebih jarang delay (menit :00 high-load).
+    - cron: "3,13,23,33,43,53 * * * *"
   workflow_dispatch: {}
 
 concurrency:
