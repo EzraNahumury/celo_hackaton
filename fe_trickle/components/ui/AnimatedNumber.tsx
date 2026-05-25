@@ -24,13 +24,21 @@ export function AnimatedNumber({
   suffix,
 }: AnimatedNumberProps) {
   const [display, setDisplay] = React.useState<number>(value);
+  const displayRef = React.useRef(value);
   const fromRef = React.useRef(value);
   const toRef = React.useRef(value);
   const startRef = React.useRef<number | null>(null);
   const rafRef = React.useRef<number | null>(null);
 
+  // Mirror display into a ref so the animation effect can read the latest
+  // value without taking display as a dependency — that would restart the
+  // tween on every frame.
   React.useEffect(() => {
-    fromRef.current = display;
+    displayRef.current = display;
+  }, [display]);
+
+  React.useEffect(() => {
+    fromRef.current = displayRef.current;
     toRef.current = value;
     startRef.current = null;
 
@@ -48,7 +56,6 @@ export function AnimatedNumber({
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration]);
 
   return (
