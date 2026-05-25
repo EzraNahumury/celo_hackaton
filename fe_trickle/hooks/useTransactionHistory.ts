@@ -4,16 +4,34 @@ import { parseAbiItem } from "viem";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import { useVaultAddress } from "@/hooks/useChain";
 
+/** Fields shared by every {@link TxEvent} variant. */
 type TxEventCommon = {
+  /** Block where the tx was mined. */
   blockNumber: bigint;
+  /** Transaction hash, suitable for explorer links. */
   txHash: `0x${string}`;
+  /** ERC20 the event was about (zero address when the log doesn't carry it
+   *  and the `getStream` fallback also failed). */
   tokenAddress: `0x${string}`;
 };
 
 /**
- * Discriminated union over `kind` so amount/counterparty are present only
- * for the event kinds that actually carry them. Consumers can narrow with
- * a `switch (event.kind)` or `"amount" in event` check.
+ * Normalized on-chain TrickleVault event for the activity feed.
+ *
+ * Discriminated union over `kind` — amount and counterparty are present only
+ * on the variants that actually carry them. Consumers can narrow with a
+ * `switch (event.kind)` or `"amount" in event` check.
+ *
+ * Variants:
+ *  - `deposit` — payer topped up their vault balance for a token. Carries `amount`.
+ *  - `balance-withdrawn` — payer pulled idle balance back to their wallet. Carries `amount`.
+ *  - `stream-created` — a new stream was opened (either side, depending on query role).
+ *  - `stream-cancelled` — a stream was terminated.
+ *  - `withdrawn` — payee claimed accrued earnings from a stream. Carries both
+ *    `amount` and `counterparty`.
+ *
+ * `counterparty` is the *other* address in the relationship: payee for a
+ * payer-side query, payer for a payee-side query.
  */
 export type TxEvent =
   | (TxEventCommon & { kind: "deposit"; amount: bigint })
@@ -26,6 +44,7 @@ export type TxEvent =
       counterparty?: `0x${string}`;
     });
 
+/** Union of all {@link TxEvent} kind discriminators. */
 export type TxEventKind = TxEvent["kind"];
 
 const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as `0x${string}`;
@@ -47,6 +66,21 @@ const ABI_WITHDRAWN = parseAbiItem(
   "event Withdrawn(bytes32 indexed streamId, address indexed payee, address indexed payer, uint256 amount)"
 );
 
+/**
+ * Formats a *seconds delta* as a short relative phrase ("3m ago", "2d ago").
+ *
+ * Despite the name, `delta` is in **seconds**, not blocks. The name is a
+ * historical artifact from before Celo blocks were 1s — keeping it stable
+ * to avoid touching the call sites.
+ *
+ * Strings are English-only by design (the app is not yet localized).
+ *
+ * @example
+ *   blocksAgo(45n)     // "45s ago"
+ *   blocksAgo(120n)    // "2m ago"
+ *   blocksAgo(7200n)   // "2h ago"
+ *   blocksAgo(172800n) // "2d ago"
+ */
 export function blocksAgo(delta: bigint): string {
   const s = Number(delta);
   if (s < 60) return `${s}s ago`;
