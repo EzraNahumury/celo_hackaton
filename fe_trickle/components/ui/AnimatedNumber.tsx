@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useReducedMotion } from "framer-motion";
 
 interface AnimatedNumberProps {
   value: number;
@@ -23,14 +24,30 @@ export function AnimatedNumber({
   prefix,
   suffix,
 }: AnimatedNumberProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [display, setDisplay] = React.useState<number>(value);
+  const displayRef = React.useRef(value);
   const fromRef = React.useRef(value);
   const toRef = React.useRef(value);
   const startRef = React.useRef<number | null>(null);
   const rafRef = React.useRef<number | null>(null);
 
+  // Mirror display into a ref so the animation effect can read the latest
+  // value without taking display as a dependency — that would restart the
+  // tween on every frame.
   React.useEffect(() => {
-    fromRef.current = display;
+    displayRef.current = display;
+  }, [display]);
+
+  React.useEffect(() => {
+    // Honor the OS reduced-motion preference — snap to the target value
+    // without tweening.
+    if (prefersReducedMotion) {
+      setDisplay(value);
+      return;
+    }
+
+    fromRef.current = displayRef.current;
     toRef.current = value;
     startRef.current = null;
 
@@ -48,8 +65,7 @@ export function AnimatedNumber({
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, duration]);
+  }, [value, duration, prefersReducedMotion]);
 
   return (
     <span className={className} suppressHydrationWarning>
@@ -80,11 +96,18 @@ export function StreamTicker({
   className?: string;
   suffix?: string;
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const [val, setVal] = React.useState(startValue);
   const startedAt = React.useRef<number | null>(null);
   const rafRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
+    // Reduced motion: show the static start value, don't tick.
+    if (prefersReducedMotion) {
+      setVal(startValue);
+      return;
+    }
+
     startedAt.current = performance.now();
     const base = startValue;
     const tick = (t: number) => {
@@ -96,7 +119,7 @@ export function StreamTicker({
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [ratePerSec, startValue]);
+  }, [ratePerSec, startValue, prefersReducedMotion]);
 
   return (
     <span className={className} suppressHydrationWarning>
