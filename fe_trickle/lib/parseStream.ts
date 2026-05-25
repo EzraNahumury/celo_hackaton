@@ -6,6 +6,11 @@
  * That bypasses TypeScript: if the ABI changes shape, the cast silently lies.
  * `parseStream` validates the shape at runtime and returns `null` on mismatch,
  * letting callers filter bad rows instead of crashing on access.
+ *
+ * Viem ABI decoding quirk: small uints (≤ uint48) are decoded as `number`,
+ * not `bigint`. `lastPaid` and `startTime` are `uint40` on-chain, so the
+ * shape check must accept both. `amountPerSec` is `uint216` so it stays
+ * bigint-only.
  */
 
 export type Stream = {
@@ -17,16 +22,11 @@ export type Stream = {
   startTime: number;
 };
 
-type StreamShape = {
-  payer: string;
-  payee: string;
-  token: string;
-  amountPerSec: bigint;
-  lastPaid: bigint;
-  startTime: bigint;
-};
+function isNumericLike(v: unknown): v is number | bigint {
+  return typeof v === "number" || typeof v === "bigint";
+}
 
-function isStreamShape(v: unknown): v is StreamShape {
+function isStreamShape(v: unknown): boolean {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
   return (
@@ -34,19 +34,27 @@ function isStreamShape(v: unknown): v is StreamShape {
     typeof o.payee === "string" &&
     typeof o.token === "string" &&
     typeof o.amountPerSec === "bigint" &&
-    typeof o.lastPaid === "bigint" &&
-    typeof o.startTime === "bigint"
+    isNumericLike(o.lastPaid) &&
+    isNumericLike(o.startTime)
   );
 }
 
 export function parseStream(raw: unknown): Stream | null {
   if (!isStreamShape(raw)) return null;
+  const o = raw as {
+    payer: string;
+    payee: string;
+    token: string;
+    amountPerSec: bigint;
+    lastPaid: number | bigint;
+    startTime: number | bigint;
+  };
   return {
-    payer: raw.payer,
-    payee: raw.payee,
-    token: raw.token,
-    amountPerSec: raw.amountPerSec,
-    lastPaid: Number(raw.lastPaid),
-    startTime: Number(raw.startTime),
+    payer: o.payer,
+    payee: o.payee,
+    token: o.token,
+    amountPerSec: o.amountPerSec,
+    lastPaid: Number(o.lastPaid),
+    startTime: Number(o.startTime),
   };
 }
