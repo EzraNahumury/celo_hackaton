@@ -70,45 +70,48 @@ export function useTransactionHistory(
       const toBlock = blockNumber;
 
       if (role === "payer") {
-        const [deposits, balanceWithdrawals, streamsCreated, streamsCancelled] =
-          await Promise.all([
-            publicClient
-              .getLogs({
-                address: vaultAddress,
-                event: ABI_DEPOSIT,
-                args: { payer: address },
-                fromBlock,
-                toBlock,
-              })
-              .catch(() => []),
-            publicClient
-              .getLogs({
-                address: vaultAddress,
-                event: ABI_BALANCE_WITHDRAWN,
-                args: { payer: address },
-                fromBlock,
-                toBlock,
-              })
-              .catch(() => []),
-            publicClient
-              .getLogs({
-                address: vaultAddress,
-                event: ABI_STREAM_CREATED,
-                args: { payer: address },
-                fromBlock: streamFromBlock,
-                toBlock,
-              })
-              .catch(() => []),
-            publicClient
-              .getLogs({
-                address: vaultAddress,
-                event: ABI_STREAM_CANCELLED,
-                args: { payer: address },
-                fromBlock: streamFromBlock,
-                toBlock,
-              })
-              .catch(() => []),
-          ]);
+        const settled = await Promise.allSettled([
+          publicClient.getLogs({
+            address: vaultAddress,
+            event: ABI_DEPOSIT,
+            args: { payer: address },
+            fromBlock,
+            toBlock,
+          }),
+          publicClient.getLogs({
+            address: vaultAddress,
+            event: ABI_BALANCE_WITHDRAWN,
+            args: { payer: address },
+            fromBlock,
+            toBlock,
+          }),
+          publicClient.getLogs({
+            address: vaultAddress,
+            event: ABI_STREAM_CREATED,
+            args: { payer: address },
+            fromBlock: streamFromBlock,
+            toBlock,
+          }),
+          publicClient.getLogs({
+            address: vaultAddress,
+            event: ABI_STREAM_CANCELLED,
+            args: { payer: address },
+            fromBlock: streamFromBlock,
+            toBlock,
+          }),
+        ]);
+
+        const [depositsR, balanceWithdrawalsR, streamsCreatedR, streamsCancelledR] = settled;
+        const labels = ["Deposit", "BalanceWithdrawn", "StreamCreated", "StreamCancelled"] as const;
+        settled.forEach((r, i) => {
+          if (r.status === "rejected") {
+            console.warn(`[tx-history payer] ${labels[i]} getLogs failed:`, r.reason);
+          }
+        });
+        const deposits = depositsR.status === "fulfilled" ? depositsR.value : [];
+        const balanceWithdrawals = balanceWithdrawalsR.status === "fulfilled" ? balanceWithdrawalsR.value : [];
+        const streamsCreated = streamsCreatedR.status === "fulfilled" ? streamsCreatedR.value : [];
+        const streamsCancelled = streamsCancelledR.status === "fulfilled" ? streamsCancelledR.value : [];
 
         const all: TxEvent[] = [
           ...deposits
@@ -155,35 +158,40 @@ export function useTransactionHistory(
       }
 
       // payee role
-      const [withdrawals, streamsCreated, streamsCancelled] = await Promise.all([
-        publicClient
-          .getLogs({
-            address: vaultAddress,
-            event: ABI_WITHDRAWN,
-            args: { payee: address },
-            fromBlock,
-            toBlock,
-          })
-          .catch(() => []),
-        publicClient
-          .getLogs({
-            address: vaultAddress,
-            event: ABI_STREAM_CREATED,
-            args: { payee: address },
-            fromBlock: streamFromBlock,
-            toBlock,
-          })
-          .catch(() => []),
-        publicClient
-          .getLogs({
-            address: vaultAddress,
-            event: ABI_STREAM_CANCELLED,
-            args: { payee: address },
-            fromBlock: streamFromBlock,
-            toBlock,
-          })
-          .catch(() => []),
+      const settled = await Promise.allSettled([
+        publicClient.getLogs({
+          address: vaultAddress,
+          event: ABI_WITHDRAWN,
+          args: { payee: address },
+          fromBlock,
+          toBlock,
+        }),
+        publicClient.getLogs({
+          address: vaultAddress,
+          event: ABI_STREAM_CREATED,
+          args: { payee: address },
+          fromBlock: streamFromBlock,
+          toBlock,
+        }),
+        publicClient.getLogs({
+          address: vaultAddress,
+          event: ABI_STREAM_CANCELLED,
+          args: { payee: address },
+          fromBlock: streamFromBlock,
+          toBlock,
+        }),
       ]);
+
+      const [withdrawalsR, streamsCreatedR, streamsCancelledR] = settled;
+      const labels = ["Withdrawn", "StreamCreated", "StreamCancelled"] as const;
+      settled.forEach((r, i) => {
+        if (r.status === "rejected") {
+          console.warn(`[tx-history payee] ${labels[i]} getLogs failed:`, r.reason);
+        }
+      });
+      const withdrawals = withdrawalsR.status === "fulfilled" ? withdrawalsR.value : [];
+      const streamsCreated = streamsCreatedR.status === "fulfilled" ? streamsCreatedR.value : [];
+      const streamsCancelled = streamsCancelledR.status === "fulfilled" ? streamsCancelledR.value : [];
 
       // Withdrawn event has no token field — resolve via getStream(streamId)
       const withdrawalsResolved = await Promise.all(
