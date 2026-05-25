@@ -581,8 +581,12 @@ export default function EmployeeDashboard() {
                 Withdraw all
               </button>
               <button
+                type="button"
                 onClick={copyAddress}
-                className="flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] px-4 py-3 text-[14px] font-semibold text-[var(--fg)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)]"
+                disabled={copied}
+                aria-live="polite"
+                aria-label={copied ? "Address copied to clipboard" : "Copy your address to share"}
+                className="flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] px-4 py-3 text-[14px] font-semibold text-[var(--fg)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)] disabled:cursor-default disabled:opacity-90 disabled:hover:border-[var(--border)] disabled:hover:bg-[var(--color-surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
               >
                 {copied ? (
                   <>
