@@ -8,6 +8,8 @@ import {
   Play,
   X,
   ExternalLink,
+  AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { useAccount, useBlockNumber } from "wagmi";
 import { formatUnits } from "viem";
@@ -176,7 +178,7 @@ export function TransactionHistorySection({
   const { data: blockNumber } = useBlockNumber();
   const tokenList = useChainTokenList();
   const explorerUrl = useExplorerUrl();
-  const { events, isLoading } = useTransactionHistory(address, role);
+  const { events, isLoading, isError, refetch } = useTransactionHistory(address, role);
   const [showAll, setShowAll] = useState(false);
 
   if (!address) return null;
@@ -196,6 +198,28 @@ export function TransactionHistorySection({
           <SkeletonRow />
           <SkeletonRow />
           <SkeletonRow />
+        </div>
+      ) : isError ? (
+        <div
+          role="alert"
+          className="flex flex-col items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--color-surface-2)] px-4 py-5 text-center"
+        >
+          <AlertTriangle
+            size={16}
+            strokeWidth={2}
+            className="text-[var(--danger)]"
+          />
+          <p className="text-[12.5px] text-[var(--fg-dim)]">
+            Couldn&apos;t load recent activity. RPC may be unavailable.
+          </p>
+          <button
+            type="button"
+            onClick={refetch}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--color-surface)] px-3 py-1 text-[11.5px] font-medium text-[var(--fg)] transition-colors hover:bg-[var(--color-surface-3)]"
+          >
+            <RefreshCw size={11} strokeWidth={2.25} />
+            Retry
+          </button>
         </div>
       ) : events.length === 0 ? (
         <p className="py-4 text-center text-[12.5px] text-[var(--fg-faint)]">
