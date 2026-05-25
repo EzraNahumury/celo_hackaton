@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useReducedMotion } from "framer-motion";
 
 interface AnimatedNumberProps {
   value: number;
@@ -23,6 +24,7 @@ export function AnimatedNumber({
   prefix,
   suffix,
 }: AnimatedNumberProps) {
+  const prefersReducedMotion = useReducedMotion();
   const [display, setDisplay] = React.useState<number>(value);
   const displayRef = React.useRef(value);
   const fromRef = React.useRef(value);
@@ -38,6 +40,13 @@ export function AnimatedNumber({
   }, [display]);
 
   React.useEffect(() => {
+    // Honor the OS reduced-motion preference — snap to the target value
+    // without tweening.
+    if (prefersReducedMotion) {
+      setDisplay(value);
+      return;
+    }
+
     fromRef.current = displayRef.current;
     toRef.current = value;
     startRef.current = null;
@@ -56,7 +65,7 @@ export function AnimatedNumber({
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [value, duration]);
+  }, [value, duration, prefersReducedMotion]);
 
   return (
     <span className={className} suppressHydrationWarning>
