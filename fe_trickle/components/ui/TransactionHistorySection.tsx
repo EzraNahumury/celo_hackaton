@@ -241,8 +241,15 @@ export function TransactionHistorySection({
           </div>
           {events.length > PAGE_SIZE && (
             <button
+              type="button"
               onClick={() => setShowAll((v) => !v)}
-              className="mt-2 w-full rounded-xl py-2 text-[12.5px] font-medium text-[var(--fg-mute)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)]"
+              aria-expanded={showAll}
+              aria-label={
+                showAll
+                  ? `Hide ${events.length - PAGE_SIZE} additional transactions`
+                  : `Show ${events.length - PAGE_SIZE} more transactions`
+              }
+              className="mt-2 w-full rounded-xl py-2 text-[12.5px] font-medium text-[var(--fg-mute)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--fg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
             >
               {showAll
                 ? "Show less"

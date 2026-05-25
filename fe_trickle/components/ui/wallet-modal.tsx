@@ -40,6 +40,7 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
   const { connectors, connect, isPending, variables } = useConnect();
   const [mounted, setMounted] = React.useState(false);
   const [errorFor, setErrorFor] = React.useState<string | null>(null);
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => setMounted(true), []);
 
@@ -49,6 +50,10 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Move keyboard focus into the dialog so Esc/Tab land somewhere
+    // predictable. The close button is the safe default — accidental
+    // activation just closes the modal.
+    closeButtonRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
@@ -111,8 +116,11 @@ export function WalletModal({ open, onClose }: WalletModalProps) {
                 </p>
               </div>
               <button
+                ref={closeButtonRef}
+                type="button"
                 onClick={onClose}
-                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-3)] hover:text-[var(--fg)]"
+                aria-label="Close wallet selection dialog"
+                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-3)] hover:text-[var(--fg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
               >
                 <X size={15} />
               </button>
