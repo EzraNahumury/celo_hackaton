@@ -5,21 +5,53 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { ERC20_ABI, TRICKLE_VAULT_ABI } from "@/config/contracts";
 import { useVaultAddress } from "./useChain";
 
+/**
+ * Lifecycle of a two-step deposit flow.
+ *
+ * - `idle` — no deposit in flight; safe to call `deposit()`
+ * - `approving` — ERC20.approve sent, waiting for receipt
+ * - `depositing` — Vault.deposit sent (auto-triggered after approve confirms),
+ *   waiting for receipt
+ * - `done` — both tx confirmed; consumer should refresh balances and `reset()`
+ * - `error` — either approve or deposit reverted/failed; consumer should
+ *   surface `error` and call `reset()`
+ */
 export type DepositPhase = "idle" | "approving" | "depositing" | "done" | "error";
 
+/** Surface area of {@link useDeposit}. */
 export interface UseDepositReturn {
+  /** Kick off the flow. Calling this while a deposit is in flight is a no-op
+   *  on the contract side but will queue a new approve — prefer to wait for
+   *  `isDone` or call `reset()` between invocations. */
   deposit: (tokenAddress: `0x${string}`, amount: bigint) => void;
+  /** Current lifecycle phase — see {@link DepositPhase}. */
   phase: DepositPhase;
+  /** Tx hash of the approve, present once the wallet returns it. */
   approveTxHash: `0x${string}` | undefined;
+  /** Tx hash of the deposit, present once the wallet returns it. */
   depositTxHash: `0x${string}` | undefined;
+  /** Clears all internal state and underlying wagmi mutations. Call this on
+   *  successful completion or after handling an error to return to `idle`. */
   reset: () => void;
   isIdle: boolean;
+  /** True for both `approving` and `depositing` phases. */
   isPending: boolean;
   isDone: boolean;
   isError: boolean;
+  /** Whichever underlying mutation surfaced an error first. */
   error: Error | null;
 }
 
+/**
+ * Two-step deposit into TrickleVault: ERC20.approve then Vault.deposit.
+ *
+ * The hook owns the orchestration — it watches the approve receipt and
+ * automatically fires the deposit when it confirms, so consumers see a single
+ * `phase` state machine instead of juggling two wagmi mutations.
+ *
+ * Tx hashes are surfaced as soon as the wallet returns them so toasts can
+ * link out to the explorer immediately.
+ */
 export function useDeposit(): UseDepositReturn {
   const TRICKLE_VAULT_ADDRESS = useVaultAddress();
   const [phase, setPhase] = useState<DepositPhase>("idle");
