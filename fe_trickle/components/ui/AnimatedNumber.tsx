@@ -96,11 +96,18 @@ export function StreamTicker({
   className?: string;
   suffix?: string;
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const [val, setVal] = React.useState(startValue);
   const startedAt = React.useRef<number | null>(null);
   const rafRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
+    // Reduced motion: show the static start value, don't tick.
+    if (prefersReducedMotion) {
+      setVal(startValue);
+      return;
+    }
+
     startedAt.current = performance.now();
     const base = startValue;
     const tick = (t: number) => {
@@ -112,7 +119,7 @@ export function StreamTicker({
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [ratePerSec, startValue]);
+  }, [ratePerSec, startValue, prefersReducedMotion]);
 
   return (
     <span className={className} suppressHydrationWarning>
