@@ -50,7 +50,12 @@ export function blocksAgo(delta: bigint): string {
 export function useTransactionHistory(
   address: `0x${string}` | undefined,
   role: "payer" | "payee"
-): { events: TxEvent[]; isLoading: boolean } {
+): {
+  events: TxEvent[];
+  isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
+} {
   const vaultAddress = useVaultAddress();
   const publicClient = usePublicClient();
   const { data: blockNumber } = useBlockNumber();
@@ -58,7 +63,7 @@ export function useTransactionHistory(
   // Refresh key changes every 50k blocks (~3d) — stream events are infrequent
   const blockEpoch = blockNumber != null ? blockNumber / 50_000n : 0n;
 
-  const { data: events = [], isLoading } = useQuery<TxEvent[]>({
+  const { data: events = [], isLoading, isError, refetch } = useQuery<TxEvent[]>({
     queryKey: ["tx-history", role, address, blockEpoch.toString()],
     queryFn: async (): Promise<TxEvent[]> => {
       if (!address || blockNumber == null || !publicClient) return [];
@@ -108,6 +113,9 @@ export function useTransactionHistory(
             console.warn(`[tx-history payer] ${labels[i]} getLogs failed:`, r.reason);
           }
         });
+        if (settled.every((r) => r.status === "rejected")) {
+          throw new Error("All payer tx-history RPC calls failed");
+        }
         const deposits = depositsR.status === "fulfilled" ? depositsR.value : [];
         const balanceWithdrawals = balanceWithdrawalsR.status === "fulfilled" ? balanceWithdrawalsR.value : [];
         const streamsCreated = streamsCreatedR.status === "fulfilled" ? streamsCreatedR.value : [];
@@ -189,6 +197,9 @@ export function useTransactionHistory(
           console.warn(`[tx-history payee] ${labels[i]} getLogs failed:`, r.reason);
         }
       });
+      if (settled.every((r) => r.status === "rejected")) {
+        throw new Error("All payee tx-history RPC calls failed");
+      }
       const withdrawals = withdrawalsR.status === "fulfilled" ? withdrawalsR.value : [];
       const streamsCreated = streamsCreatedR.status === "fulfilled" ? streamsCreatedR.value : [];
       const streamsCancelled = streamsCancelledR.status === "fulfilled" ? streamsCancelledR.value : [];
@@ -249,7 +260,8 @@ export function useTransactionHistory(
     },
     enabled: !!address && blockNumber != null && !!publicClient,
     staleTime: 30_000,
+    retry: 1,
   });
 
-  return { events, isLoading };
+  return { events, isLoading, isError, refetch: () => void refetch() };
 }
