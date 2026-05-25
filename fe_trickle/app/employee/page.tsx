@@ -478,10 +478,28 @@ export default function EmployeeDashboard() {
               <p className="mb-1 font-display text-[15px] font-semibold text-[var(--fg)]">
                 Nothing flowing yet
               </p>
-              <p className="mx-auto max-w-[360px] text-[13px] text-[var(--fg-mute)]">
+              <p className="mx-auto mb-5 max-w-[360px] text-[13px] text-[var(--fg-mute)]">
                 Share your address with your employer — salary starts the
                 moment they open a stream to you.
               </p>
+              <button
+                type="button"
+                onClick={copyAddress}
+                aria-label={copied ? "Address copied" : "Copy your address"}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] px-4 py-2 text-[12.5px] font-semibold text-[var(--fg)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
+              >
+                {copied ? (
+                  <>
+                    <Check size={13} strokeWidth={2.5} className="text-[var(--success)]" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy size={13} strokeWidth={2} />
+                    Copy address
+                  </>
+                )}
+              </button>
             </Card>
           ) : (
             <div className="grid gap-3">
@@ -563,8 +581,12 @@ export default function EmployeeDashboard() {
                 Withdraw all
               </button>
               <button
+                type="button"
                 onClick={copyAddress}
-                className="flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] px-4 py-3 text-[14px] font-semibold text-[var(--fg)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)]"
+                disabled={copied}
+                aria-live="polite"
+                aria-label={copied ? "Address copied to clipboard" : "Copy your address to share"}
+                className="flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] px-4 py-3 text-[14px] font-semibold text-[var(--fg)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-2)] disabled:cursor-default disabled:opacity-90 disabled:hover:border-[var(--border)] disabled:hover:bg-[var(--color-surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
               >
                 {copied ? (
                   <>

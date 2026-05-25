@@ -158,7 +158,9 @@ export default function StreamCard({
               <span>{info.symbol} stream</span>
               {role === "payer" && runwayDays !== undefined && runwayDays <= 14 && (
                 <span
-                  title={`${runwayDays}d runway remaining`}
+                  role="status"
+                  title={`Stream balance covers ~${runwayDays} more day${runwayDays === 1 ? "" : "s"} at the current rate`}
+                  aria-label={`${runwayDays} day${runwayDays === 1 ? "" : "s"} of runway remaining`}
                   className={
                     runwayDays <= 3
                       ? "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-[var(--danger)]/10 text-[var(--danger)]"
@@ -168,7 +170,7 @@ export default function StreamCard({
                   }
                 >
                   <AlertTriangle size={9} strokeWidth={2.5} />
-                  {runwayDays}d
+                  {runwayDays}d left
                 </span>
               )}
             </div>
