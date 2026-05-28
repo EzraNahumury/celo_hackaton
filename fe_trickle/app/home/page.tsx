@@ -131,11 +131,9 @@ useEffect(() => setMounted(true), []);
                   : "syncing…"}
               </span>
             </div>
-            <div className="mt-2 grid grid-cols-3 divide-x divide-[var(--divider)]">
-              <StripStat label="Block time" value="~1s" />
-              <StripStat label="Gas" value="sub-cent" />
-              <StripStat label="Status" value={chainLabel} />
-            </div>
+            <p className="mt-2 text-[11.5px] text-[var(--fg-faint)]">
+              Payments settle in seconds, fees under a cent.
+            </p>
           </div>
         </motion.div>
       </div>
@@ -217,16 +215,3 @@ const RoleCard = memo(function RoleCard({
     </motion.div>
   );
 });
-
-function StripStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="px-3 first:pl-0 last:pr-0">
-      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--fg-faint)]">
-        {label}
-      </p>
-      <p className="mt-0.5 text-[12px] font-semibold text-[var(--fg-dim)]">
-        {value}
-      </p>
-    </div>
-  );
-}
