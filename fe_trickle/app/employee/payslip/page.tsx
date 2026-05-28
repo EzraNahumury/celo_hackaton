@@ -45,6 +45,12 @@ export default function PayslipPage() {
   const [now, setNow] = useState(0);
   useEffect(() => { setNow(Math.floor(Date.now() / 1000)); }, []);
 
+  const [employerName, setEmployerName] = useState("");
+  useEffect(() => {
+    const saved = localStorage.getItem("trickle_employer_name");
+    if (saved) setEmployerName(saved);
+  }, []);
+
   const { data: streamIds } = useReadContract({
     address: VAULT,
     abi: TRICKLE_VAULT_ABI,
@@ -130,6 +136,21 @@ export default function PayslipPage() {
         <p className="mb-4 text-[12px] text-[var(--fg-faint)]">
           Use your browser's Print → Save as PDF to export. Chrome and Safari recommended.
         </p>
+        <div className="mb-4">
+          <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--fg-faint)] mb-1.5">
+            Employer name (appears on payslip)
+          </label>
+          <input
+            type="text"
+            value={employerName}
+            onChange={(e) => {
+              setEmployerName(e.target.value);
+              localStorage.setItem("trickle_employer_name", e.target.value);
+            }}
+            placeholder="e.g. Acme Corp, PT Maju Bersama"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--color-surface)] px-3 py-2.5 text-[13px] text-[var(--fg)] placeholder:text-[var(--fg-faint)] focus:outline-none focus:border-[var(--accent-3)] transition-colors"
+          />
+        </div>
       </div>
 
       {/* Payslip document */}
@@ -163,13 +184,25 @@ export default function PayslipPage() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-lg bg-gray-50 dark:bg-white/5 px-4 py-3 print:bg-gray-50 print:border print:border-gray-200">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 print:text-gray-500 mb-1">
-              Recipient wallet
-            </p>
-            <p className="font-mono text-[13px] text-[var(--fg)] print:text-black break-all">
-              {address}
-            </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {employerName && (
+              <div className="rounded-lg bg-gray-50 dark:bg-white/5 px-4 py-3 print:bg-gray-50 print:border print:border-gray-200">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 print:text-gray-500 mb-1">
+                  Employer
+                </p>
+                <p className="text-[13px] font-semibold text-[var(--fg)] print:text-black">
+                  {employerName}
+                </p>
+              </div>
+            )}
+            <div className={`rounded-lg bg-gray-50 dark:bg-white/5 px-4 py-3 print:bg-gray-50 print:border print:border-gray-200 ${employerName ? "" : "sm:col-span-2"}`}>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 print:text-gray-500 mb-1">
+                Recipient wallet
+              </p>
+              <p className="font-mono text-[13px] text-[var(--fg)] print:text-black break-all">
+                {address}
+              </p>
+            </div>
           </div>
         </div>
 

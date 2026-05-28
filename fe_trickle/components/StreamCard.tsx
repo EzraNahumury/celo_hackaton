@@ -107,6 +107,7 @@ export default function StreamCard({
   runwayDays,
 }: StreamCardProps) {
   const [now, setNow] = React.useState(0);
+  const [confirmingCancel, setConfirmingCancel] = React.useState(false);
   const tokenList = useChainTokenList();
   const info = tokenInfoFrom(tokenList, token);
   const color = TOKEN_COLORS[info.symbol] ?? {
@@ -271,17 +272,47 @@ export default function StreamCard({
       )}
 
       {role === "payer" && onCancel && (
-        <Button
-          variant="secondary"
-          shape="pill"
-          onClick={onCancel}
-          disabled={isPending}
-          loading={isPending}
-          leftIcon={!isPending ? <X size={14} /> : null}
-          className="w-full"
-        >
-          Cancel stream
-        </Button>
+        confirmingCancel ? (
+          <div className="rounded-2xl border border-[var(--danger)]/20 bg-[var(--danger)]/5 p-4">
+            <p className="mb-3 text-[12.5px] text-[var(--fg-dim)]">
+              <span className="font-semibold text-[var(--danger)]">Cancel stream?</span>{" "}
+              <span className="font-mono">{shortAddr(payee)}</span> will stop receiving salary immediately. This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="danger"
+                shape="pill"
+                onClick={() => { setConfirmingCancel(false); onCancel(); }}
+                disabled={isPending}
+                loading={isPending}
+                leftIcon={!isPending ? <X size={14} /> : null}
+                className="flex-1"
+              >
+                Yes, cancel
+              </Button>
+              <Button
+                variant="secondary"
+                shape="pill"
+                onClick={() => setConfirmingCancel(false)}
+                disabled={isPending}
+                className="flex-1"
+              >
+                Keep stream
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="secondary"
+            shape="pill"
+            onClick={() => setConfirmingCancel(true)}
+            disabled={isPending}
+            leftIcon={<X size={14} />}
+            className="w-full"
+          >
+            Cancel stream
+          </Button>
+        )
       )}
     </motion.div>
   );

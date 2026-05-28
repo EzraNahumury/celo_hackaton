@@ -98,6 +98,25 @@ export default function HeroSection() {
               label="Open dashboard"
             />
           ) : mounted && isMiniPay ? (
+            <></>
+          ) : null}
+
+          {/* Feature chips — always visible */}
+          {mounted && !isMiniPay && !showConnected && (
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              {["MiniPay native", "Per-second streaming", "PDF payslip"].map((f) => (
+                <span
+                  key={f}
+                  className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11.5px] font-medium text-[var(--fg-mute)]"
+                >
+                  <span className="h-1 w-1 rounded-full bg-[#10B981]" aria-hidden />
+                  {f}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {mounted && isMiniPay ? (
             <div
               className="flex h-[54px] w-full items-center justify-center gap-3 rounded-full border border-[var(--border)] bg-[var(--color-surface-2)]"
               aria-label="Connecting via MiniPay"
@@ -117,7 +136,7 @@ export default function HeroSection() {
               </span>
             </div>
           ) : (
-            mounted && !isMiniPay && (
+            mounted && !isMiniPay && !showConnected && (
               <CTAButton
                 onClick={() => setWalletOpen(true)}
                 label="Let's get started"
