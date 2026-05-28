@@ -567,7 +567,7 @@ export default function EmployeeDashboard() {
                     .forEach((s) => handleWithdraw(s));
                 }}
                 disabled={isWithdrawPending || totalWithdrawableAccrued === 0}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)] disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
               >
                 <ArrowDownToLine size={15} strokeWidth={2.25} />
                 Withdraw all
