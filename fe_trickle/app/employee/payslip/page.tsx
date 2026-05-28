@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAccount, useBlockNumber } from "wagmi";
 import { useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
@@ -139,13 +140,22 @@ export default function PayslipPage() {
         {/* Header */}
         <div className="border-b border-gray-200 dark:border-gray-700 pb-5 mb-6 print:border-gray-300">
           <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400 print:text-gray-500">
-                Income Statement
-              </p>
-              <h1 className="mt-1 text-[26px] font-bold leading-tight text-[var(--fg)] print:text-black">
-                Trickle Payslip
-              </h1>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/logo.png"
+                alt="Trickle"
+                width={40}
+                height={40}
+                className="rounded-xl object-contain"
+              />
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400 print:text-gray-500">
+                  Income Statement
+                </p>
+                <h1 className="mt-1 text-[26px] font-bold leading-tight text-[var(--fg)] print:text-black">
+                  Trickle Payslip
+                </h1>
+              </div>
             </div>
             <div className="text-right">
               <p className="text-[11px] text-gray-400 print:text-gray-500">Generated</p>
