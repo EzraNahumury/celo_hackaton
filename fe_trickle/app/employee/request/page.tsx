@@ -46,7 +46,7 @@ export default function RequestPaymentPage() {
   }
 
   const amountNum = Number(amount);
-  const isValid = amountNum > 0 && !!token;
+  const isValid = amountNum > 0 && Number.isFinite(amountNum) && !!token;
   const perSec = amountNum > 0 ? amountNum / 2592000 : 0;
 
   function handleGenerate() {
@@ -68,13 +68,13 @@ export default function RequestPaymentPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleShare() {
+  async function handleShare() {
     if (!generated) return;
     const text = `Payment request: ${desc.trim() || `${amount} ${token}/mo`}\n${generated}`;
     if (navigator.share) {
       navigator.share({ title: "Payment Request", text, url: generated }).catch(() => {});
     } else {
-      handleCopy();
+      await handleCopy();
     }
   }
 

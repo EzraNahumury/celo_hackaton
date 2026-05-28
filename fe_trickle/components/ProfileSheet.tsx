@@ -42,7 +42,7 @@ const ZERO = "0x0000000000000000000000000000000000000000";
 const TOKEN_ACCENT: Record<string, { bg: string; fg: string }> = {
   USDC:  { bg: "rgba(47,  99, 255, 0.14)",  fg: "#6B8EFF" },
   USDT:  { bg: "rgba(80,  205, 137, 0.14)", fg: "#50CD89" },
-  cUSD:  { bg: "rgba(252, 211, 77,  0.14)", fg: "#FCD34D" },
+  USDm:  { bg: "rgba(252, 211, 77,  0.14)", fg: "#FCD34D" },
   CELO:  { bg: "rgba(252, 255, 82,  0.12)", fg: "#FCFF52" },
   _:     { bg: "rgba(255, 255, 255, 0.06)", fg: "#B8BECE" },
 };

@@ -7,7 +7,7 @@ export interface TokenInfo {
 }
 
 const MAINNET_TOKENS: Record<string, TokenInfo> = {
-  cUSD: {
+  USDm: {
     address: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
     symbol: "USDm",
     name: "Mento Dollar",

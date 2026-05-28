@@ -10,6 +10,7 @@ import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import {
   useVaultAddress,
   useChainLabel,
+  useIsSupportedChain,
 } from "@/hooks/useChain";
 import { cn } from "@/lib/cn";
 
@@ -21,6 +22,7 @@ useEffect(() => setMounted(true), []);
 
   const TRICKLE_VAULT_ADDRESS = useVaultAddress();
   const chainLabel = useChainLabel();
+  const isSupportedChain = useIsSupportedChain();
 
   // Live block — the heartbeat of the app
   const { data: blockNumber } = useBlockNumber({
@@ -85,6 +87,14 @@ useEffect(() => setMounted(true), []);
               : <>Payroll,<br /><span className="text-[var(--fg-mute)]">second by second.</span></>}
           </h1>
         </motion.header>
+
+        {/* Wrong-chain warning */}
+        {mounted && isConnected && !isSupportedChain && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-[var(--warn)]/30 bg-[var(--warn)]/8 px-4 py-3 text-[12.5px] text-[var(--warn)]">
+            <span className="mt-0.5 shrink-0">⚠</span>
+            <span>Wrong network — switch to Celo Mainnet to use Trickle.</span>
+          </div>
+        )}
 
         {/* Role cards — with live stream counts when connected */}
         <div className="mt-7 grid grid-cols-1 gap-3">
