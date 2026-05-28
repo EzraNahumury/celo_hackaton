@@ -8,7 +8,7 @@ import {
 } from "wagmi";
 import { parseUnits, formatUnits, isAddress } from "viem";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, AlertTriangle, ArrowRight } from "lucide-react";
@@ -61,12 +61,17 @@ export default function CreateStream() {
   const explorerUrl = useExplorerUrl();
   const defaultToken = TOKEN_LIST[0]?.symbol ?? "USDC";
 
-  const [payeeAddress, setPayeeAddress] = useState("");
-  const [selectedToken, setSelectedToken] = useState(defaultToken);
+  const searchParams = useSearchParams();
+  const prefillTo = searchParams.get("to") ?? "";
+  const prefillAmount = searchParams.get("amount") ?? "";
+  const prefillToken = searchParams.get("token") ?? "";
+
+  const [payeeAddress, setPayeeAddress] = useState(prefillTo);
+  const [selectedToken, setSelectedToken] = useState(prefillToken || defaultToken);
   useEffect(() => {
     if (!TOKENS[selectedToken]) setSelectedToken(defaultToken);
   }, [TOKENS, selectedToken, defaultToken]);
-  const [monthlySalary, setMonthlySalary] = useState("");
+  const [monthlySalary, setMonthlySalary] = useState(prefillAmount);
   const [formStep, setFormStep] = useState<"form" | "review">("form");
   const [phase, setPhase] = useState<Phase>("idle");
   const [needsDeposit, setNeedsDeposit] = useState(false);
@@ -403,6 +408,9 @@ export default function CreateStream() {
           <p className="mt-1.5 text-[13.5px] text-[var(--fg-mute)]">
             Pick the teammate, token, and monthly rate — Trickle computes the
             per-second flow for you.
+          </p>
+          <p className="mt-2 text-[12.5px] text-[var(--fg-faint)]">
+            Streams start immediately and pay continuously — no manual transfer needed each period.
           </p>
         </div>
 
