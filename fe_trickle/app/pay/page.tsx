@@ -88,8 +88,8 @@ function PayPage() {
 
           <div className="divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--color-surface)]">
             <Row label="Recipient" value={
-              <span className="font-mono text-[12.5px]">
-                {request.to.slice(0, 10)}…{request.to.slice(-8)}
+              <span className="break-all font-mono text-[11.5px]">
+                {request.to}
               </span>
             } />
             <Row label="Monthly" value={
