@@ -330,7 +330,7 @@ export function useTransactionHistory(
         .slice(0, 20);
     },
     enabled: !!address && blockNumber != null && !!publicClient,
-    staleTime: 30_000,
+    staleTime: 0,
     retry: 1,
   });
 
