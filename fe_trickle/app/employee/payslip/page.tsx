@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useBlockNumber } from "wagmi";
 import { useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { useRouter } from "next/navigation";
@@ -77,7 +77,9 @@ export default function PayslipPage() {
     [streams, TOKEN_LIST],
   );
 
+  const { data: currentBlock } = useBlockNumber();
   const { events, isLoading: txLoading } = useTransactionHistory(address, "payee");
+  const txReady = currentBlock != null;
 
   const generatedAt = useMemo(
     () => new Date().toLocaleString("en-US", {
@@ -108,7 +110,7 @@ export default function PayslipPage() {
   return (
     <>
       {/* Screen-only controls */}
-      <div className="mx-auto w-full max-w-[680px] px-5 pt-6 print:hidden">
+      <div className="mx-auto w-full max-w-[680px] px-5 pt-10 print:hidden">
         <div className="mb-5 flex items-center justify-between">
           <button
             onClick={() => router.back()}
@@ -132,7 +134,7 @@ export default function PayslipPage() {
       {/* Payslip document */}
       <div
         id="payslip"
-        className="mx-auto w-full max-w-[680px] px-5 pb-12 print:max-w-none print:px-10 print:pb-0"
+        className="mx-auto w-full max-w-[680px] px-5 pt-4 pb-12 print:max-w-none print:px-10 print:pt-10 print:pb-0"
       >
         {/* Header */}
         <div className="border-b border-gray-200 dark:border-gray-700 pb-5 mb-6 print:border-gray-300">
@@ -233,7 +235,7 @@ export default function PayslipPage() {
           <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400 print:text-gray-500">
             Transaction History
           </h2>
-          {txLoading ? (
+          {txLoading || !txReady ? (
             <p className="text-[13px] text-gray-400 print:text-gray-500">Loading…</p>
           ) : events.length === 0 ? (
             <p className="text-[13px] text-gray-400 print:text-gray-500">No recent transactions.</p>
@@ -272,7 +274,7 @@ export default function PayslipPage() {
                           {amount}
                         </td>
                         <td className="px-4 py-3 text-right text-gray-500 print:text-gray-600">
-                          {now > 0 ? blocksAgo(BigInt(now) - ev.blockNumber) : "—"}
+                          {currentBlock != null ? blocksAgo(currentBlock >= ev.blockNumber ? currentBlock - ev.blockNumber : 0n) : "—"}
                         </td>
                         <td className="px-4 py-3 text-right print:hidden">
                           <a
