@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Calendar,
   FileText,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
@@ -566,7 +567,7 @@ export default function EmployeeDashboard() {
                     .forEach((s) => handleWithdraw(s));
                 }}
                 disabled={isWithdrawPending || totalWithdrawableAccrued === 0}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-[14px] font-semibold text-white shadow-[var(--shadow-accent)] transition-colors hover:bg-[var(--accent-2)] disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
               >
                 <ArrowDownToLine size={15} strokeWidth={2.25} />
                 Withdraw all
@@ -596,6 +597,13 @@ export default function EmployeeDashboard() {
                 )}
               </button>
             </div>
+            <Link
+              href="/employee/payslip"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] py-3 text-[13px] font-semibold text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--fg)]"
+            >
+              <Download size={14} strokeWidth={2.25} />
+              Export payslip
+            </Link>
           </motion.div>
         )}
 
