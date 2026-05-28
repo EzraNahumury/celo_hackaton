@@ -8,3 +8,6 @@
 *.key
 *.pem
 wallets.json
+
+# Scripts folder (contains private keys and wallet data)
+scripts/
