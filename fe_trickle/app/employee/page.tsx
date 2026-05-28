@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Calendar,
   FileText,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
@@ -596,6 +597,13 @@ export default function EmployeeDashboard() {
                 )}
               </button>
             </div>
+            <Link
+              href="/employee/payslip"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] py-3 text-[13px] font-semibold text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--fg)]"
+            >
+              <Download size={14} strokeWidth={2.25} />
+              Export payslip
+            </Link>
           </motion.div>
         )}
 
