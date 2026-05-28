@@ -1,14 +1,22 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, Suspense } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/Button";
 import { parsePaymentRequestUrl } from "@/lib/invoiceLink";
 
-export default function PayPage() {
+export default function PayPageWrapper() {
+  return (
+    <Suspense>
+      <PayPage />
+    </Suspense>
+  );
+}
+
+function PayPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 

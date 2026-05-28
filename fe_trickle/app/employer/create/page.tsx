@@ -7,7 +7,7 @@ import {
   useReadContract,
 } from "wagmi";
 import { parseUnits, formatUnits, isAddress } from "viem";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
@@ -49,7 +49,15 @@ const PHASE_LABEL: Record<Phase, string> = {
 const STEPS_WITH_DEPOSIT = ["Approve", "Deposit", "Create stream"];
 const STEPS_NO_DEPOSIT = ["Create stream"];
 
-export default function CreateStream() {
+export default function CreateStreamPage() {
+  return (
+    <Suspense>
+      <CreateStream />
+    </Suspense>
+  );
+}
+
+function CreateStream() {
   const { address, isConnected } = useAccount();
   const router = useRouter();
   const queryClient = useQueryClient();
