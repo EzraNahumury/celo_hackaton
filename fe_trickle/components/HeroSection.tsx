@@ -48,9 +48,9 @@ export default function HeroSection() {
           className="text-center"
         >
           <h1 className="font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.028em] text-[var(--fg)]">
-            Stream your salary,
+            Automatic payroll,
             <br />
-            live on Celo.
+            every second.
           </h1>
         </motion.header>
 
@@ -89,7 +89,7 @@ export default function HeroSection() {
               ? "Wallet connected. Open your dashboard."
               : isMiniPay
               ? "Connecting your wallet…"
-              : "Payroll that flows per second. Ready when you are."}
+              : "Set a salary once. Your team gets paid continuously — no invoices, no delays."}
           </p>
 
           {showConnected ? (
