@@ -17,7 +17,9 @@ import {
   ArrowDownToLine,
   TrendingUp,
   Calendar,
+  FileText,
 } from "lucide-react";
+import Link from "next/link";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import { useVaultAddress, useChainTokenList } from "@/hooks/useChain";
 import type { TokenInfo } from "@/config/tokens";
@@ -475,6 +477,13 @@ export default function EmployeeDashboard() {
                   </>
                 )}
               </button>
+              <Link
+                href="/employee/request"
+                className="mt-2 inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-[12.5px] font-semibold text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--fg)]"
+              >
+                <FileText size={13} strokeWidth={2} />
+                Request payment
+              </Link>
             </Card>
           ) : (
             <div className="grid gap-3">
@@ -541,6 +550,13 @@ export default function EmployeeDashboard() {
             className="mt-6"
           >
             <div className="flex gap-2.5">
+              <Link
+                href="/employee/request"
+                className="flex items-center justify-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] px-4 py-3 text-[14px] font-semibold text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--fg)]"
+              >
+                <FileText size={15} strokeWidth={2.25} />
+                Request
+              </Link>
               <button
                 onClick={() => {
                   // Fire a withdraw tx for every stream that has something accrued.
