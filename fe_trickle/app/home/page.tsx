@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ArrowDownLeft, Users } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { memo, useEffect, useMemo, useState } from "react";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
@@ -91,18 +91,47 @@ useEffect(() => setMounted(true), []);
           <RoleCard
             href="/employer"
             title="Run payroll"
-            subtitle="Fund the flow, pay your team per second"
+            subtitle="Set salaries once. Payments happen automatically."
             meta={payerMeta}
             delay={0.06}
           />
           <RoleCard
             href="/employee"
             title="Collect earnings"
-            subtitle="Watch salary flow in, withdraw anytime"
+            subtitle="Your salary accrues every second. Withdraw anytime."
             meta={payeeMeta}
             delay={0.12}
           />
         </div>
+
+        {/* Batch payroll highlight */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-3"
+        >
+          <Link
+            href="/employer/batch"
+            className="group flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--color-surface)]/60 px-4 py-3 backdrop-blur-md transition-colors hover:border-[var(--border-strong)]"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-3)]/10 text-[var(--accent-3)]">
+              <Users size={15} strokeWidth={2} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-semibold text-[var(--fg)]">
+                Batch payroll
+                <span className="ml-2 inline-flex items-center rounded-full bg-[var(--accent-3)]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--accent-3)]">
+                  NEW
+                </span>
+              </p>
+              <p className="mt-0.5 truncate text-[11.5px] text-[var(--fg-mute)]">
+                Pay your entire team in one transaction
+              </p>
+            </div>
+            <ArrowRight size={14} strokeWidth={2.2} className="shrink-0 text-[var(--fg-faint)] transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </motion.div>
 
         {/* Live network strip — single row, real data, replaces the "Why Trickle" block */}
         <motion.div
