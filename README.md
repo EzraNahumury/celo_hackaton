@@ -155,10 +155,17 @@ celo_hackaton/
 │   └── test/...
 │
 ├── fe_trickle/         Next.js 16 MiniApp (React 19, Tailwind v4, wagmi v3, viem v2)
-│   ├── app/            App Router — /, /home, /employer, /employer/create, /employee
-│   ├── components/     UI primitives + dashboard surfaces
+│   ├── app/            App Router routes:
+│   │                     /, /home,
+│   │                     /employer, /employer/create, /employer/batch,
+│   │                     /employee, /employee/payslip, /employee/request,
+│   │                     /pay
+│   ├── components/     UI primitives, dashboard surfaces, ProfileSheet,
+│   │                   ThemeProvider, TransactionHistorySection
 │   ├── config/         chains.ts · contracts.ts · tokens.ts · wagmi.ts
-│   └── hooks/          useChain · useDeposit
+│   ├── hooks/          useChain · useDeposit · useMiniPay · useTransactionHistory
+│   └── lib/            invoiceLink.ts (payment request URLs) · parseStream.ts
+│                       (+ vitest tests in __tests__/)
 │
 ├── scripts/            Node CLI — onchain heartbeat that keeps Trickle on the
 │                       Celo Proof-of-Ship leaderboard (deposit ↔ withdrawBalance loop)
@@ -344,9 +351,13 @@ See [`scripts/README.md`](./scripts/README.md) for tuning knobs.
 | `/home` | both | Role select (Employer / Employee) after wallet connect |
 | `/employer` | payer | Vault overview · token tabs · 3-action row · active streams |
 | `/employer/create` | payer | New stream form — payee, token, monthly rate, review |
+| `/employer/batch` | payer | **Batch payroll** — add many payees in one flow (CSV import + multi-stream review) |
 | `/employee` | payee | Live withdrawable counter · area chart · withdraw all |
+| `/employee/payslip` | payee | **Payslip view** — earnings history, tx receipts, **PDF export** |
+| `/employee/request` | payee | **Payment request link** — generate shareable URL for one-off invoices |
+| `/pay` | payer | Landing for inbound request links — parsed amount, token, payee, one-click confirm |
 
-The visual system is a dark-indigo SaaS aesthetic (background `#0A0B14`, surfaces `#161927`, accent `#6366F1`), tuned for restraint — Stripe / Linear / Ramp as references, not generic web3 dApps.
+The visual system is a dark-indigo SaaS aesthetic (background `#0A0B14`, surfaces `#161927`, accent `#6366F1`), tuned for restraint — Stripe / Linear / Ramp as references, not generic web3 dApps. **Light/dark theme** toggle preserved via `ThemeProvider`.
 
 ---
 
@@ -429,17 +440,25 @@ LlamaPay validated the streaming-payroll category. Trickle ships it where the ne
 
 ## Roadmap
 
-### Shipped (Proof of Ship · April 2026)
+### Shipped (Proof of Ship · April – May 2026)
 - [x] `TrickleVault` deployed and Celoscan-verified on **Celo Mainnet**
 - [x] Sepolia deployment + mock USDC faucet for testing
 - [x] Per-second accrual, partial-funding payout, cancel-with-settlement
 - [x] Next.js 16 MiniApp — onboarding, employer + employee dashboards
 - [x] wagmi v3 / viem v2 with multi-RPC fallback
 - [x] `talent.app` Proof-of-Ship verification meta tag
+- [x] **Batch payroll** — add many payees in one review screen (`/employer/batch`)
+- [x] **Payslip view + PDF export** for employees (`/employee/payslip`)
+- [x] **Payment request links** — employee generates a shareable URL; employer
+      lands on `/pay` with the amount, token, and recipient pre-filled
+- [x] **Transaction history** with on-chain receipts and explorer links
+- [x] **Light / dark theme** toggle persisted across sessions
+- [x] Multi-token support: **USDm** (Mento Dollar, 18 decimals), USDC, tUSDC
+- [x] Vitest unit tests for `invoiceLink`, `parseStream`, `useTransactionHistory`
 
 ### Next
-- [ ] Batch payroll (CSV import → multicall `createStream`)
-- [ ] Low-balance + payment-received notifications
+- [ ] Stream scheduling — `startTime` to begin a stream at a future date
+- [ ] Low-balance + payment-received push notifications
 - [ ] Multi-sig / Safe support for company treasuries
 - [ ] Onchain payslip NFT (ERC-721 receipt per withdrawal)
 - [ ] Fiat off-ramp inside the MiniApp
