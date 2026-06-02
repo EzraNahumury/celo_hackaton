@@ -387,7 +387,10 @@ async function main() {
       );
   }
 
-  process.exit(fail > 0 ? 1 : 0);
+  // Only fail the run if EVERY wallet failed (real outage: RPC down, bad secret).
+  // Partial failures are normal — a few wallets drift low on gas/token between
+  // refunds — and shouldn't paint the whole scheduled run red.
+  process.exit(ok === 0 ? 1 : 0);
 }
 
 main().catch((e) => {
