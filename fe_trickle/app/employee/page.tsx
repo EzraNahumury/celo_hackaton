@@ -121,12 +121,41 @@ export default function EmployeeDashboard() {
     .map((r) => parseStream(r.result))
     .filter((s): s is Stream => s !== null && s.startTime > 0);
 
+  // Read each stream's payer vault balance. On-chain, withdraw() pays
+  // min(accrued, balances[payer][token]) — when the payer's vault is empty it
+  // pays NOTHING. Without this read the UI animates a growing "withdrawable" and
+  // keeps the withdraw button live even though nothing is actually claimable
+  // (the reported bug: employee withdrew 3x, got nothing).
+  const vaultBalanceCalls = streams.map((s) => ({
+    address: TRICKLE_VAULT_ADDRESS,
+    abi: TRICKLE_VAULT_ABI,
+    functionName: "balances" as const,
+    args: [s.payer as `0x${string}`, s.token as `0x${string}`] as const,
+  }));
+  const { data: vaultBalanceResults } = useReadContracts({
+    contracts: vaultBalanceCalls,
+    query: { enabled: vaultBalanceCalls.length > 0 },
+  });
+  const vaultBalances = streams.map((_, i) => {
+    const r = vaultBalanceResults?.[i];
+    return r && r.status === "success" ? (r.result as bigint) : undefined;
+  });
+  // Depleted = vault confirmed empty. Undefined (read still loading) counts as
+  // NOT depleted so we don't flash a warning before the balance resolves.
+  const isVaultDepleted = (i: number) =>
+    vaultBalances[i] !== undefined && vaultBalances[i] === 0n;
+
   const totalWithdrawableAccrued =
     now > 0
-      ? streams.reduce((acc, s) => acc + streamAccrued(TOKEN_LIST, s, now), 0)
+      ? streams.reduce(
+          (acc, s, i) =>
+            isVaultDepleted(i) ? acc : acc + streamAccrued(TOKEN_LIST, s, now),
+          0,
+        )
       : 0;
   const totalRatePerSec = streams.reduce(
-    (acc, s) => acc + streamRatePerSec(TOKEN_LIST, s),
+    (acc, s, i) =>
+      isVaultDepleted(i) ? acc : acc + streamRatePerSec(TOKEN_LIST, s),
     0,
   );
   const totalMonthly = streams.reduce(
@@ -563,7 +592,11 @@ export default function EmployeeDashboard() {
                   // Fire a withdraw tx for every stream that has something accrued.
                   // Wallets will queue prompts sequentially.
                   streams
-                    .filter((s) => streamAccrued(TOKEN_LIST, s, now) > 0)
+                    .filter(
+                      (s, i) =>
+                        streamAccrued(TOKEN_LIST, s, now) > 0 &&
+                        !isVaultDepleted(i),
+                    )
                     .forEach((s) => handleWithdraw(s));
                 }}
                 disabled={isWithdrawPending || totalWithdrawableAccrued === 0}
