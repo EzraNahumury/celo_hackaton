@@ -370,6 +370,12 @@ export default function PayslipPage() {
         @media print {
           body { background: white !important; color: black !important; }
           nav, header { display: none !important; }
+          /* Keep table rows whole across page breaks and repeat the header row
+             at the top of each printed page so multi-page statements stay readable. */
+          tr { break-inside: avoid; }
+          thead { display: table-header-group; }
+          h2 { break-after: avoid; }
+          @page { margin: 16mm; }
         }
       `}</style>
     </>
