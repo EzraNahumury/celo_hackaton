@@ -108,6 +108,10 @@ const {
   TOKEN_DECIMALS = "18",
   AMOUNT = "0.001",
   CONCURRENCY = "10",
+  // Rotation: fire only this many random wallets per run (0 = all).
+  // The full pool stays loaded so unique-wallet count keeps growing, but each
+  // wallet only transacts on a fraction of runs → lower tx/wallet ratio.
+  SAMPLE_SIZE = "0",
 } = process.env;
 
 function die(msg) {
@@ -180,7 +184,15 @@ function loadKeys() {
   return { keys, source };
 }
 
-const { keys: KEYS, source: KEY_SOURCE } = loadKeys();
+const { keys: ALL_KEYS, source: KEY_SOURCE } = loadKeys();
+// Rotation slice — ALL_KEYS is already shuffled, so the first N are a random
+// subset. Each run exercises a different slice → per-wallet tx count drops while
+// every wallet still fires often enough over many runs to stay season-active.
+const sampleSize = Math.max(0, Number(SAMPLE_SIZE) || 0);
+const KEYS =
+  sampleSize > 0 && sampleSize < ALL_KEYS.length
+    ? ALL_KEYS.slice(0, sampleSize)
+    : ALL_KEYS;
 const decimals = Number(TOKEN_DECIMALS);
 const amountWei = parseUnits(AMOUNT, decimals);
 const concurrency = Math.max(1, Math.min(50, Number(CONCURRENCY)));
@@ -347,8 +359,12 @@ async function pmap(items, limit, fn) {
 // ── Main ─────────────────────────────────────────────────────────────────
 async function main() {
   const startedAt = Date.now();
+  const poolNote =
+    KEYS.length < ALL_KEYS.length
+      ? `${KEYS.length}/${ALL_KEYS.length} wallets (rotating slice)`
+      : `${KEYS.length} wallets`;
   console.log(
-    `[${ts()}] multi-spam · ${CHAIN.name} · ${KEYS.length} wallets (from ${KEY_SOURCE}) · concurrency ${concurrency} · ${AMOUNT} token/wallet`,
+    `[${ts()}] multi-spam · ${CHAIN.name} · ${poolNote} (from ${KEY_SOURCE}) · concurrency ${concurrency} · ${AMOUNT} token/wallet`,
   );
 
   const results = await pmap(KEYS, concurrency, processWallet);
