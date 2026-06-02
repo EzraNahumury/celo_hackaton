@@ -40,4 +40,7 @@ jobs:
           AMOUNT: ${{ vars.AMOUNT || '0.001' }}
           CONCURRENCY: ${{ vars.CONCURRENCY || '10' }}
           CHAIN: ${{ vars.CHAIN || 'mainnet' }}
+          # Rotation: fire 30 random wallets per run (0 = all). Keeps per-wallet
+          # tx low as the pool grows with each new batch. Tune via repo var.
+          SAMPLE_SIZE: ${{ vars.SAMPLE_SIZE || '30' }}
         run: node multi-spam.mjs
