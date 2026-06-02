@@ -6,7 +6,7 @@ import { useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Download, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, FileSpreadsheet } from "lucide-react";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import { useVaultAddress, useChainTokenList, useExplorerUrl } from "@/hooks/useChain";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
@@ -33,6 +33,22 @@ function fmtMonth(list: TokenInfo[], s: Stream): string {
   return parseFloat(formatUnits(s.amountPerSec * 2592000n, m.decimals)).toLocaleString(undefined, {
     maximumFractionDigits: 4,
   });
+}
+
+/** Human label for a transaction event kind (shared by the table and CSV export). */
+function eventLabel(kind: string): string {
+  switch (kind) {
+    case "withdrawn": return "Salary claimed";
+    case "stream-created": return "Stream opened";
+    case "stream-cancelled": return "Stream cancelled";
+    case "deposit": return "Deposit";
+    default: return "Balance withdrawn";
+  }
+}
+
+/** RFC-4180 cell escaping: quote and double-up internal quotes when needed. */
+function csvCell(value: string): string {
+  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
 export default function PayslipPage() {
@@ -112,6 +128,37 @@ export default function PayslipPage() {
     return fmtDate(now - delta);
   };
 
+  // CSV export of the transaction history — for accounting / bookkeeping import,
+  // complementing the human-readable PDF. Pure client-side Blob download.
+  function handleCsvExport() {
+    if (!events.length) return;
+    const header = ["Date", "Type", "Amount", "Token", "Transaction Hash"];
+    const dataRows = events.map((ev) => {
+      const m = tokenFor(TOKEN_LIST, ev.tokenAddress);
+      const amount =
+        "amount" in ev
+          ? parseFloat(formatUnits(ev.amount, m.decimals)).toString()
+          : "";
+      const token = "amount" in ev ? m.symbol : "";
+      return [txDate(ev.blockNumber), eventLabel(ev.kind), amount, token, ev.txHash];
+    });
+    const body = [header, ...dataRows]
+      .map((row) => row.map((cell) => csvCell(String(cell))).join(","))
+      .join("\r\n");
+    // Leading BOM so Excel opens the UTF-8 file with correct encoding.
+    const BOM = String.fromCharCode(0xfeff);
+    const blob = new Blob([BOM + body], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `trickle-payslip-${address?.slice(0, 6) ?? "wallet"}-${stamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   if (!isConnected || !address) {
     return (
       <div className="mx-auto w-full max-w-[640px] px-5 pt-8">
@@ -141,16 +188,27 @@ export default function PayslipPage() {
           >
             <ArrowLeft size={13} /> Back
           </button>
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--fg)] px-4 py-2 text-[13px] font-semibold text-[var(--bg)] transition-opacity hover:opacity-80"
-          >
-            <Download size={13} />
-            Export PDF
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCsvExport}
+              disabled={!events.length}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--color-surface)] px-4 py-2 text-[13px] font-semibold text-[var(--fg)] transition-colors hover:bg-[var(--color-surface-2)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <FileSpreadsheet size={13} />
+              Export CSV
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--fg)] px-4 py-2 text-[13px] font-semibold text-[var(--bg)] transition-opacity hover:opacity-80"
+            >
+              <Download size={13} />
+              Export PDF
+            </button>
+          </div>
         </div>
         <p className="mb-4 text-[12px] text-[var(--fg-faint)]">
-          Use your browser's Print → Save as PDF to export. Chrome and Safari recommended.
+          <span className="font-medium text-[var(--fg-mute)]">PDF</span> — printable statement (browser Print → Save as PDF).{" "}
+          <span className="font-medium text-[var(--fg-mute)]">CSV</span> — transaction history for accounting / spreadsheets.
         </p>
         <div className="mb-4">
           <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--fg-faint)] mb-1.5">
@@ -312,12 +370,7 @@ export default function PayslipPage() {
                 <tbody>
                   {events.map((ev, i) => {
                     const m = tokenFor(TOKEN_LIST, ev.tokenAddress);
-                    const label =
-                      ev.kind === "withdrawn" ? "Salary claimed"
-                      : ev.kind === "stream-created" ? "Stream opened"
-                      : ev.kind === "stream-cancelled" ? "Stream cancelled"
-                      : ev.kind === "deposit" ? "Deposit"
-                      : "Balance withdrawn";
+                    const label = eventLabel(ev.kind);
                     const amount =
                       "amount" in ev
                         ? `${parseFloat(formatUnits(ev.amount, m.decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${m.symbol}`
