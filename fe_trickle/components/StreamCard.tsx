@@ -59,6 +59,8 @@ interface StreamCardProps {
   isPending?: boolean;
   /** Vault runway in days for this token — shows health warning when low */
   runwayDays?: number;
+  /** Payer's vault for this token is empty — pauses the inflow display and withdraw */
+  vaultDepleted?: boolean;
 }
 
 const TOKEN_COLORS: Record<string, { bg: string; fg: string }> = {
@@ -105,6 +107,7 @@ export default function StreamCard({
   onCancel,
   isPending,
   runwayDays,
+  vaultDepleted,
 }: StreamCardProps) {
   const [now, setNow] = React.useState(0);
   const [confirmingCancel, setConfirmingCancel] = React.useState(false);
@@ -192,29 +195,48 @@ export default function StreamCard({
 
       {/* Primary number */}
       {role === "payee" ? (
-        <div className="relative mb-5 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--color-bg-2)] px-4 py-3.5">
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-px animate-flow-stripe opacity-60"
-          />
-          <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--fg-mute)]">
+        vaultDepleted ? (
+          <div className="relative mb-5 overflow-hidden rounded-2xl border border-[var(--warn)]/30 bg-[var(--warn)]/[0.06] px-4 py-3.5">
+            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--warn)]">
+              <AlertTriangle size={11} strokeWidth={2.5} aria-hidden />
+              Paused — vault empty
+            </div>
+            <div className="font-mono text-[26px] font-bold leading-none tabular text-[var(--fg-mute)]">
+              0.00000000
+              <span className="ml-2 text-[13px] font-semibold text-[var(--fg-faint)]">
+                {info.symbol}
+              </span>
+            </div>
+            <p className="mt-1.5 text-[11.5px] leading-snug text-[var(--fg-mute)]">
+              Your employer&apos;s payroll vault ran out. Payments resume the
+              moment they top it up — nothing is withdrawable until then.
+            </p>
+          </div>
+        ) : (
+          <div className="relative mb-5 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--color-bg-2)] px-4 py-3.5">
             <span
-              className="h-1.5 w-1.5 rounded-full bg-[var(--accent-3)] animate-pulse-dot"
               aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-px animate-flow-stripe opacity-60"
             />
-            Flowing in
+            <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--fg-mute)]">
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-[var(--accent-3)] animate-pulse-dot"
+                aria-hidden
+              />
+              Flowing in
+            </div>
+            <div className="font-mono text-[26px] font-bold leading-none tabular text-[var(--fg)]">
+              <StreamTicker
+                ratePerSec={ratePerSec}
+                startValue={accrued}
+                decimals={8}
+              />
+              <span className="ml-2 text-[13px] font-semibold text-[var(--fg-mute)]">
+                {info.symbol}
+              </span>
+            </div>
           </div>
-          <div className="font-mono text-[26px] font-bold leading-none tabular text-[var(--fg)]">
-            <StreamTicker
-              ratePerSec={ratePerSec}
-              startValue={accrued}
-              decimals={8}
-            />
-            <span className="ml-2 text-[13px] font-semibold text-[var(--fg-mute)]">
-              {info.symbol}
-            </span>
-          </div>
-        </div>
+        )
       ) : (
         <div className="relative mb-5 flex items-center gap-2 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--color-bg-2)] px-4 py-3 text-[13px] text-[var(--fg-mute)]">
           <span
@@ -259,16 +281,28 @@ export default function StreamCard({
       </div>
 
       {role === "payee" && onWithdraw && (
-        <Button
-          shape="pill"
-          onClick={onWithdraw}
-          disabled={isPending || accrued === 0}
-          loading={isPending}
-          leftIcon={!isPending ? <ArrowDownToLine size={14} /> : null}
-          className="w-full"
-        >
-          Withdraw
-        </Button>
+        vaultDepleted ? (
+          <Button
+            variant="secondary"
+            shape="pill"
+            disabled
+            leftIcon={<AlertTriangle size={14} />}
+            className="w-full"
+          >
+            Paused — vault empty
+          </Button>
+        ) : (
+          <Button
+            shape="pill"
+            onClick={onWithdraw}
+            disabled={isPending || accrued === 0}
+            loading={isPending}
+            leftIcon={!isPending ? <ArrowDownToLine size={14} /> : null}
+            className="w-full"
+          >
+            Withdraw
+          </Button>
+        )
       )}
 
       {role === "payer" && onCancel && (
