@@ -524,6 +524,7 @@ export default function EmployeeDashboard() {
                   role="payee"
                   onWithdraw={() => handleWithdraw(s)}
                   isPending={isWithdrawPending}
+                  vaultDepleted={isVaultDepleted(i)}
                 />
               ))}
             </div>
