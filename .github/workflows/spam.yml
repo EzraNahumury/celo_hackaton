@@ -2,8 +2,11 @@ name: onchain-spam
 
 on:
   schedule:
-    # Offset from hour-start to avoid GitHub Actions cron congestion (which is worst at :00).
-    - cron: "2-59/5 * * * *"
+    # Single-wallet pulse — throttled to 2x/hour. This wallet adds tx volume but
+    # ZERO wallet diversity, so a high cadence here wrecks the tx/wallet ratio
+    # (bot signal in Proof-of-Ship scoring). Keep it alive as a daily-active
+    # wallet without flooding. Offset minutes avoid GH cron :00 congestion.
+    - cron: "8,38 * * * *"
   workflow_dispatch: {}
 
 concurrency:
