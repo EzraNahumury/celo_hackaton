@@ -2,8 +2,10 @@ name: onchain-multi-spam
 
 on:
   schedule:
+    # Throttled 6x/hour -> 3x/hour. 50 wallets stay daily-active (preserves DAU)
+    # but per-wallet tx count drops, easing the tx/wallet ratio (bot signal).
     # Offset menit non-bulat → GH cron lebih jarang delay (menit :00 high-load).
-    - cron: "3,13,23,33,43,53 * * * *"
+    - cron: "3,23,43 * * * *"
   workflow_dispatch: {}
 
 concurrency:
