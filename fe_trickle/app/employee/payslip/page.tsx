@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { TRICKLE_VAULT_ABI } from "@/config/contracts";
 import { useVaultAddress, useChainTokenList, useExplorerUrl } from "@/hooks/useChain";
-import { useTransactionHistory, blocksAgo } from "@/hooks/useTransactionHistory";
+import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { parseStream, type Stream } from "@/lib/parseStream";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
 import type { TokenInfo } from "@/config/tokens";
@@ -95,6 +95,22 @@ export default function PayslipPage() {
     }),
     [],
   );
+
+  // Symbol shown next to the monthly rate. Uses the first stream's token (payroll
+  // is almost always single-token) instead of the old hardcoded "USDm".
+  const primarySymbol = streams.length
+    ? tokenFor(TOKEN_LIST, streams[0].token).symbol
+    : TOKEN_LIST[0]?.symbol ?? "—";
+
+  // Approximate calendar date of a tx from its block height (Celo ≈ 1 block/sec).
+  // A dated statement reads better than "3d ago", which goes stale once the PDF
+  // is saved and viewed weeks later.
+  const txDate = (blockNumber: bigint): string => {
+    if (currentBlock == null || now === 0) return "—";
+    const delta =
+      currentBlock >= blockNumber ? Number(currentBlock - blockNumber) : 0;
+    return fmtDate(now - delta);
+  };
 
   if (!isConnected || !address) {
     return (
@@ -213,7 +229,7 @@ export default function PayslipPage() {
             {
               label: "Monthly rate",
               value: totalMonthly > 0
-                ? `${totalMonthly.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDm`
+                ? `${totalMonthly.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${primarySymbol}`
                 : "—",
             },
             { label: "Since", value: streams.length ? fmtDate(Math.min(...streams.map(s => s.startTime))) : "—" },
@@ -289,7 +305,7 @@ export default function PayslipPage() {
                   <tr className="border-b border-gray-200 dark:border-gray-700 print:border-gray-300 bg-gray-50 dark:bg-white/5 print:bg-gray-50">
                     <th className="px-4 py-2.5 text-left font-semibold text-gray-500 print:text-gray-600">Type</th>
                     <th className="px-4 py-2.5 text-right font-semibold text-gray-500 print:text-gray-600">Amount</th>
-                    <th className="px-4 py-2.5 text-right font-semibold text-gray-500 print:text-gray-600">When</th>
+                    <th className="px-4 py-2.5 text-right font-semibold text-gray-500 print:text-gray-600">Date</th>
                     <th className="px-4 py-2.5 text-right font-semibold text-gray-500 print:text-gray-600 print:hidden">Tx</th>
                   </tr>
                 </thead>
@@ -317,7 +333,7 @@ export default function PayslipPage() {
                           {amount}
                         </td>
                         <td className="px-4 py-3 text-right text-gray-500 print:text-gray-600">
-                          {currentBlock != null ? blocksAgo(currentBlock >= ev.blockNumber ? currentBlock - ev.blockNumber : 0n) : "—"}
+                          {txDate(ev.blockNumber)}
                         </td>
                         <td className="px-4 py-3 text-right print:hidden">
                           <a
