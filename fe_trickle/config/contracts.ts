@@ -263,3 +263,99 @@ export const ERC20_ABI = [
     stateMutability: "view",
   },
 ] as const;
+
+// StreamRegistry — companion contract for on-chain employer-attested payslip
+// metadata (see docs/superpowers/specs/2026-06-02-streamregistry-design.md).
+// Deployed + verified on Celo mainnet (chain 42220). Strictly non-critical: the
+// payslip falls back to the wallet address if reads are empty/fail.
+export const STREAM_REGISTRY_ADDRESS = (
+  process.env.NEXT_PUBLIC_STREAM_REGISTRY_ADDRESS ??
+  "0x84D03930631b37Ae71A1b3c6C333ADcD32B88d99"
+) as `0x${string}`;
+
+export const STREAM_REGISTRY_ABI = [
+  {
+    type: "function",
+    name: "setEmployerName",
+    inputs: [{ name: "name", type: "string" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setEmployment",
+    inputs: [
+      { name: "payee", type: "address" },
+      { name: "name", type: "string" },
+      { name: "role", type: "string" },
+      { name: "memo", type: "string" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "clearMyEmployment",
+    inputs: [{ name: "payer", type: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getEmployerName",
+    inputs: [{ name: "payer", type: "address" }],
+    outputs: [{ name: "", type: "string" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getEmployment",
+    inputs: [
+      { name: "payer", type: "address" },
+      { name: "payee", type: "address" },
+    ],
+    outputs: [
+      { name: "name", type: "string" },
+      { name: "role", type: "string" },
+      { name: "memo", type: "string" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "payeeCleared",
+    inputs: [
+      { name: "", type: "address" },
+      { name: "", type: "address" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "EmployerNameSet",
+    inputs: [
+      { name: "payer", type: "address", indexed: true },
+      { name: "name", type: "string", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "EmploymentSet",
+    inputs: [
+      { name: "payer", type: "address", indexed: true },
+      { name: "payee", type: "address", indexed: true },
+      { name: "name", type: "string", indexed: false },
+      { name: "role", type: "string", indexed: false },
+      { name: "memo", type: "string", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "EmploymentCleared",
+    inputs: [
+      { name: "payer", type: "address", indexed: true },
+      { name: "payee", type: "address", indexed: true },
+    ],
+  },
+] as const;

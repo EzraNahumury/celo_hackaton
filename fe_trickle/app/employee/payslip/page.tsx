@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useBlockNumber } from "wagmi";
-import { useReadContract, useReadContracts } from "wagmi";
+import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { formatUnits } from "viem";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Download, ExternalLink, FileSpreadsheet } from "lucide-react";
-import { TRICKLE_VAULT_ABI } from "@/config/contracts";
+import { TRICKLE_VAULT_ABI, STREAM_REGISTRY_ABI, STREAM_REGISTRY_ADDRESS } from "@/config/contracts";
 import { useVaultAddress, useChainTokenList, useExplorerUrl } from "@/hooks/useChain";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { parseStream, type Stream } from "@/lib/parseStream";
@@ -91,6 +91,55 @@ export default function PayslipPage() {
     .filter((r) => r.status === "success" && r.result)
     .map((r) => parseStream(r.result))
     .filter((s): s is Stream => s !== null && s.startTime > 0);
+
+  // ── On-chain payslip labels (StreamRegistry) ──────────────────────────────
+  // Strictly non-critical: every read is enabled-gated and the payslip renders
+  // regardless. On-chain values take precedence over the localStorage name; if
+  // empty or the read fails, we fall back to the wallet address as before.
+  // Primary payer = the first stream's payer (single-employer is the common case).
+  const primaryPayer = streams[0]?.payer as `0x${string}` | undefined;
+
+  const { data: onchainEmployerName } = useReadContract({
+    address: STREAM_REGISTRY_ADDRESS,
+    abi: STREAM_REGISTRY_ABI,
+    functionName: "getEmployerName",
+    args: primaryPayer ? [primaryPayer] : undefined,
+    query: { enabled: !!primaryPayer },
+  });
+
+  const { data: onchainEmployment } = useReadContract({
+    address: STREAM_REGISTRY_ADDRESS,
+    abi: STREAM_REGISTRY_ABI,
+    functionName: "getEmployment",
+    args: primaryPayer && address ? [primaryPayer, address] : undefined,
+    query: { enabled: !!primaryPayer && !!address },
+  });
+
+  const { data: cleared, refetch: refetchCleared } = useReadContract({
+    address: STREAM_REGISTRY_ADDRESS,
+    abi: STREAM_REGISTRY_ABI,
+    functionName: "payeeCleared",
+    args: primaryPayer && address ? [primaryPayer, address] : undefined,
+    query: { enabled: !!primaryPayer && !!address },
+  });
+
+  // Payee opt-out: suppress an employer's label about them (display-only).
+  const { writeContract: doClear, data: clearHash, isPending: clearing } = useWriteContract();
+  const { isSuccess: cleared_ok } = useWaitForTransactionReceipt({ hash: clearHash });
+  useEffect(() => {
+    if (cleared_ok) refetchCleared();
+  }, [cleared_ok, refetchCleared]);
+
+  const verifiedEmployerName =
+    typeof onchainEmployerName === "string" && onchainEmployerName.length > 0
+      ? onchainEmployerName
+      : "";
+  // On-chain name wins; otherwise the manual localStorage name; otherwise nothing.
+  const displayEmployerName = verifiedEmployerName || employerName;
+  const employeeName =
+    !cleared && Array.isArray(onchainEmployment) ? (onchainEmployment[0] as string) : "";
+  const employeeRole =
+    !cleared && Array.isArray(onchainEmployment) ? (onchainEmployment[1] as string) : "";
 
   const totalMonthly = useMemo(
     () => streams.reduce((acc, s) => {
@@ -210,6 +259,22 @@ export default function PayslipPage() {
           <span className="font-medium text-[var(--fg-mute)]">PDF</span> — printable statement (browser Print → Save as PDF).{" "}
           <span className="font-medium text-[var(--fg-mute)]">CSV</span> — transaction history for accounting / spreadsheets.
         </p>
+        {employeeName && !cleared && primaryPayer && (
+          <button
+            onClick={() =>
+              doClear({
+                address: STREAM_REGISTRY_ADDRESS,
+                abi: STREAM_REGISTRY_ABI,
+                functionName: "clearMyEmployment",
+                args: [primaryPayer],
+              })
+            }
+            disabled={clearing}
+            className="mb-4 text-[12px] text-[var(--fg-mute)] underline transition-colors hover:text-[var(--fg)] disabled:opacity-50"
+          >
+            {clearing ? "Hiding…" : "Hide my name from this payslip"}
+          </button>
+        )}
         <div className="mb-4">
           <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--fg-faint)] mb-1.5">
             Employer name (appears on payslip)
@@ -259,17 +324,27 @@ export default function PayslipPage() {
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {employerName && (
+            {displayEmployerName && (
               <div className="rounded-lg bg-gray-50 dark:bg-white/5 px-4 py-3 print:bg-gray-50 print:border print:border-gray-200">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 print:text-gray-500 mb-1">
                   Employer
+                  {verifiedEmployerName && (
+                    <span className="ml-1.5 normal-case tracking-normal text-[var(--success,#16a34a)]">
+                      · verified on-chain
+                    </span>
+                  )}
                 </p>
                 <p className="text-[13px] font-semibold text-[var(--fg)] print:text-black">
-                  {employerName}
+                  {displayEmployerName}
                 </p>
+                {employeeName && (
+                  <p className="mt-1 text-[12px] text-[var(--fg-mute)] print:text-gray-600">
+                    {employeeName}{employeeRole ? ` · ${employeeRole}` : ""}
+                  </p>
+                )}
               </div>
             )}
-            <div className={`rounded-lg bg-gray-50 dark:bg-white/5 px-4 py-3 print:bg-gray-50 print:border print:border-gray-200 ${employerName ? "" : "sm:col-span-2"}`}>
+            <div className={`rounded-lg bg-gray-50 dark:bg-white/5 px-4 py-3 print:bg-gray-50 print:border print:border-gray-200 ${displayEmployerName ? "" : "sm:col-span-2"}`}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 print:text-gray-500 mb-1">
                 Recipient wallet
               </p>
