@@ -5,8 +5,10 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { motion } from "framer-motion";
-import { Wallet } from "lucide-react";
+import { Wallet, HelpCircle } from "lucide-react";
 import { WalletModal } from "./ui/wallet-modal";
+import { HowItWorksModal } from "./HowItWorksModal";
+import { useGuideSeen } from "@/lib/useGuideSeen";
 import { useIsMiniPay } from "@/hooks/useMiniPay";
 import { MiniPayBadge } from "./ui/MiniPayBadge";
 import { usePathname } from "next/navigation";
@@ -15,6 +17,8 @@ import { ThemeToggle } from "./ui/ThemeToggle";
 export default function Navbar() {
   const { address, isConnected } = useAccount();
   const [walletOpen, setWalletOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const { seen, markSeen } = useGuideSeen();
   const [mounted, setMounted] = useState(false);
   const isMiniPay = useIsMiniPay();
   const pathname = usePathname();
@@ -24,6 +28,15 @@ export default function Navbar() {
     pathname.startsWith("/employee");
   // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration guard
   useEffect(() => setMounted(true), []);
+
+  // First-run: open the guide once after the wallet connects on a dashboard
+  // screen, then remember it so returning users are never nagged.
+  useEffect(() => {
+    if (mounted && isConnected && isDashboard && !seen) {
+      setGuideOpen(true);
+      markSeen();
+    }
+  }, [mounted, isConnected, isDashboard, seen, markSeen]);
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-center px-4 pt-4">
@@ -64,6 +77,16 @@ export default function Navbar() {
             {/* Right controls */}
             <div className="flex items-center gap-1.5">
               {isDashboard && <ThemeToggle />}
+              {isDashboard && (
+                <button
+                  type="button"
+                  onClick={() => setGuideOpen(true)}
+                  aria-label="How it works"
+                  className="grid h-9 w-9 place-items-center rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] text-[var(--fg-mute)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-3)] hover:text-[var(--fg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-3)]"
+                >
+                  <HelpCircle size={16} strokeWidth={2} />
+                </button>
+              )}
               {mounted && isMiniPay && <MiniPayBadge />}
               {mounted && isConnected && address && (
                 <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--color-surface-2)] px-3">
@@ -97,6 +120,7 @@ export default function Navbar() {
       </motion.nav>
 
       <WalletModal open={walletOpen} onClose={() => setWalletOpen(false)} />
+      <HowItWorksModal open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
   );
 }
