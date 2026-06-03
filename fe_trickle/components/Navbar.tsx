@@ -29,6 +29,15 @@ export default function Navbar() {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration guard
   useEffect(() => setMounted(true), []);
 
+  // First-run: open the guide once after the wallet connects on a dashboard
+  // screen, then remember it so returning users are never nagged.
+  useEffect(() => {
+    if (mounted && isConnected && isDashboard && !seen) {
+      setGuideOpen(true);
+      markSeen();
+    }
+  }, [mounted, isConnected, isDashboard, seen, markSeen]);
+
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-center px-4 pt-4">
       <motion.nav
