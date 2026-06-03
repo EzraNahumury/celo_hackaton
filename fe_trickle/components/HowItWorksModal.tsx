@@ -3,7 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Waves, Users, type LucideIcon } from "lucide-react";
+import { X, Waves, Users, Wallet, type LucideIcon } from "lucide-react";
 
 interface HowItWorksModalProps {
   open: boolean;
@@ -30,6 +30,16 @@ const STEPS: GuideStep[] = [
         Two sides: <strong className="text-[var(--fg)]">Payroll</strong> (you pay a
         team) and <strong className="text-[var(--fg)]">Earnings</strong> (you get
         paid). Switch them from the bottom bar.
+      </>
+    ),
+  },
+  {
+    icon: Wallet,
+    title: "Paying a team?",
+    body: (
+      <>
+        1. Deposit funds. 2. Create a stream (who + rate per second). 3. Watch the
+        runway and top up before it runs dry.
       </>
     ),
   },
