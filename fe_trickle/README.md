@@ -241,6 +241,12 @@ The reference layout pattern is a 3-screen crypto-mobile flow: **onboarding → 
 
 The app deploys cleanly to **Vercel** with no extra config (Next.js 16 is detected automatically). Set `NEXT_PUBLIC_TRICKLE_VAULT_ADDRESS` in the Vercel dashboard to repoint to a non-default vault.
 
+**Deploy policy** (`vercel.json` `ignoreCommand`): to stay under the Hobby-plan daily
+build-rate-limit, builds run **only on production** (`main`) **and only when files under
+`fe_trickle/` changed**. Preview deploys (per-branch-push) are skipped entirely, and
+repo-root commits that don't touch the app (e.g. activity logs, docs) never trigger a
+build. If you genuinely need a preview, deploy it manually with `vercel`.
+
 ---
 
 ## Related
