@@ -3,12 +3,26 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Waves, type LucideIcon } from "lucide-react";
 
 interface HowItWorksModalProps {
   open: boolean;
   onClose: () => void;
 }
+
+interface GuideStep {
+  icon: LucideIcon;
+  title: string;
+  body: React.ReactNode;
+}
+
+const STEPS: GuideStep[] = [
+  {
+    icon: Waves,
+    title: "What is Trickle?",
+    body: "Real-time payroll on Celo. Salaries flow every second — no batch runs, no waiting for payday.",
+  },
+];
 
 /**
  * "How It Works" onboarding guide — a 5-step carousel. Parent decides when it is
@@ -17,6 +31,8 @@ interface HowItWorksModalProps {
  */
 export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
   const [mounted, setMounted] = React.useState(false);
+  const [step, setStep] = React.useState(0);
+  const current = STEPS[step];
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => setMounted(true), []);
@@ -28,6 +44,7 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
+    setStep(0);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
@@ -76,7 +93,17 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
             <h2 id="guide-modal-title" className="sr-only">
               How Trickle works
             </h2>
-            {/* Carousel body added in Task 3+ */}
+            <div className="px-6 pb-7 pt-1 text-center">
+              <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                <current.icon size={26} strokeWidth={1.9} />
+              </span>
+              <h3 className="font-display text-[20px] font-semibold tracking-tight text-[var(--fg)]">
+                {current.title}
+              </h3>
+              <p className="mx-auto mt-2 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--fg-mute)]">
+                {current.body}
+              </p>
+            </div>
           </motion.div>
         </motion.div>
       )}
