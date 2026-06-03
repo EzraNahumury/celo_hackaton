@@ -4,6 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Waves, Users, Wallet, Download, BadgeCheck, type LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 interface HowItWorksModalProps {
   open: boolean;
@@ -70,6 +71,8 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
   const [mounted, setMounted] = React.useState(false);
   const [step, setStep] = React.useState(0);
   const current = STEPS[step];
+  const isFirst = step === 0;
+  const isLast = step === STEPS.length - 1;
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => setMounted(true), []);
@@ -156,6 +159,32 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
               <span className="ml-2 font-mono text-[11px] text-[var(--fg-faint)]">
                 {step + 1} / {STEPS.length}
               </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-[var(--divider)] bg-[var(--color-bg-2)] px-5 py-4">
+              {isFirst ? (
+                <button
+                  onClick={onClose}
+                  className="text-[13px] font-medium text-[var(--fg-mute)] transition-colors hover:text-[var(--fg)]"
+                >
+                  Skip
+                </button>
+              ) : (
+                <button
+                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  className="text-[13px] font-medium text-[var(--fg-mute)] transition-colors hover:text-[var(--fg)]"
+                >
+                  Back
+                </button>
+              )}
+              {isLast ? (
+                <Button shape="pill" onClick={onClose}>
+                  Got it
+                </Button>
+              ) : (
+                <Button shape="pill" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
+                  Next
+                </Button>
+              )}
             </div>
           </motion.div>
         </motion.div>
