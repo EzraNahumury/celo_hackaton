@@ -102,7 +102,7 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
         >
           <button
             aria-label="Close"
@@ -117,7 +117,7 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[420px] overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)]"
+            className="relative w-full max-w-[420px] overflow-hidden rounded-t-3xl border border-[var(--border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)] sm:rounded-3xl"
           >
             <div className="flex items-center justify-end px-4 pt-4">
               <button
@@ -134,15 +134,25 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
               How Trickle works
             </h2>
             <div className="px-6 pb-7 pt-1 text-center">
-              <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
-                <current.icon size={26} strokeWidth={1.9} />
-              </span>
-              <h3 className="font-display text-[20px] font-semibold tracking-tight text-[var(--fg)]">
-                {current.title}
-              </h3>
-              <p className="mx-auto mt-2 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--fg-mute)]">
-                {current.body}
-              </p>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <current.icon size={26} strokeWidth={1.9} />
+                  </span>
+                  <h3 className="font-display text-[20px] font-semibold tracking-tight text-[var(--fg)]">
+                    {current.title}
+                  </h3>
+                  <p className="mx-auto mt-2 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--fg-mute)]">
+                    {current.body}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
             </div>
             <div className="flex items-center justify-center gap-1.5 pb-4">
               {STEPS.map((_, i) => (

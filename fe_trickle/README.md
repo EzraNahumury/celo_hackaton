@@ -157,6 +157,9 @@ fe_trickle/
 ### Wallet discovery
 `config/wagmi.ts` ships **zero** hard-coded connectors. wagmi auto-discovers any EIP-6963 wallet (MiniPay, MetaMask, Rabby, OKX, Brave, Talisman, …) and renders each with its own `name` + `icon` + `rdns`. Inside MiniPay's WebView this means the user sees one option — MiniPay — already selected.
 
+### Onboarding guide
+A 5-step **"How It Works"** walkthrough (`components/HowItWorksModal.tsx`) auto-opens once for new users — gated by the `useGuideSeen` localStorage flag so returning users are never nagged — and is reopenable anytime from the `?` button in the navbar. It explains the streaming-payroll concept, the employer/employee split, and the on-chain verified payslip.
+
 ### Deposit flow
 ERC-20 approve → vault deposit is a notoriously fragile two-step. `useDeposit()` runs it as a real state machine driven by `useWaitForTransactionReceipt`, not by `setTimeout` guesses:
 
