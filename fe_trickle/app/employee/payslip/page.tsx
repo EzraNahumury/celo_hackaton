@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useBlockNumber } from "wagmi";
-import { useReadContract, useReadContracts } from "wagmi";
+import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { formatUnits } from "viem";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -115,13 +115,20 @@ export default function PayslipPage() {
     query: { enabled: !!primaryPayer && !!address },
   });
 
-  const { data: cleared } = useReadContract({
+  const { data: cleared, refetch: refetchCleared } = useReadContract({
     address: STREAM_REGISTRY_ADDRESS,
     abi: STREAM_REGISTRY_ABI,
     functionName: "payeeCleared",
     args: primaryPayer && address ? [primaryPayer, address] : undefined,
     query: { enabled: !!primaryPayer && !!address },
   });
+
+  // Payee opt-out: suppress an employer's label about them (display-only).
+  const { writeContract: doClear, data: clearHash, isPending: clearing } = useWriteContract();
+  const { isSuccess: cleared_ok } = useWaitForTransactionReceipt({ hash: clearHash });
+  useEffect(() => {
+    if (cleared_ok) refetchCleared();
+  }, [cleared_ok, refetchCleared]);
 
   const verifiedEmployerName =
     typeof onchainEmployerName === "string" && onchainEmployerName.length > 0
@@ -252,6 +259,22 @@ export default function PayslipPage() {
           <span className="font-medium text-[var(--fg-mute)]">PDF</span> — printable statement (browser Print → Save as PDF).{" "}
           <span className="font-medium text-[var(--fg-mute)]">CSV</span> — transaction history for accounting / spreadsheets.
         </p>
+        {employeeName && !cleared && primaryPayer && (
+          <button
+            onClick={() =>
+              doClear({
+                address: STREAM_REGISTRY_ADDRESS,
+                abi: STREAM_REGISTRY_ABI,
+                functionName: "clearMyEmployment",
+                args: [primaryPayer],
+              })
+            }
+            disabled={clearing}
+            className="mb-4 text-[12px] text-[var(--fg-mute)] underline transition-colors hover:text-[var(--fg)] disabled:opacity-50"
+          >
+            {clearing ? "Hiding…" : "Hide my name from this payslip"}
+          </button>
+        )}
         <div className="mb-4">
           <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--fg-faint)] mb-1.5">
             Employer name (appears on payslip)
