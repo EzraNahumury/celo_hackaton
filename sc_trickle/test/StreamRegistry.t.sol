@@ -85,4 +85,42 @@ contract StreamRegistryTest is Test {
         assertEq(n1, "Jane");
         assertEq(n2, "Bob");
     }
+
+    // ── Guards ───────────────────────────────────
+    function test_setEmployment_revert_zeroPayee() public {
+        vm.prank(employer);
+        vm.expectRevert("zero payee");
+        reg.setEmployment(address(0), "x", "y", "z");
+    }
+
+    function test_setEmployment_revert_selfPayee() public {
+        vm.prank(employer);
+        vm.expectRevert("self payee");
+        reg.setEmployment(employer, "x", "y", "z");
+    }
+
+    function test_setEmployment_revert_nameTooLong() public {
+        vm.prank(employer);
+        vm.expectRevert("name too long");
+        reg.setEmployment(employee, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "y", "z"); // 33 chars
+    }
+
+    function test_setEmployment_revert_roleTooLong() public {
+        vm.prank(employer);
+        vm.expectRevert("role too long");
+        reg.setEmployment(employee, "x", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "z"); // 33 chars
+    }
+
+    function test_setEmployment_revert_memoTooLong() public {
+        vm.prank(employer);
+        // 65 chars
+        vm.expectRevert("memo too long");
+        reg.setEmployment(employee, "x", "y", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    }
+
+    function test_setEmployerName_revert_tooLong() public {
+        vm.prank(employer);
+        vm.expectRevert("name too long");
+        reg.setEmployerName("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"); // 33 chars
+    }
 }
