@@ -25,6 +25,7 @@ import { TRICKLE_VAULT_ABI, ERC20_ABI } from "@/config/contracts";
 import { useVaultAddress, useChainTokens, useChainTokenList } from "@/hooks/useChain";
 import StreamCard, { StreamCardSkeleton } from "@/components/StreamCard";
 import DashboardLayout from "@/components/DashboardLayout";
+import { SetEmployerNameCard } from "@/components/SetEmployerNameCard";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
 import { FlowIllustration } from "@/components/ui/FlowIllustration";
 import { useDeposit } from "@/hooks/useDeposit";
@@ -504,6 +505,16 @@ export default function EmployerDashboard() {
               ))}
             </div>
           )}
+        </motion.div>
+
+        {/* On-chain employer identity (StreamRegistry) */}
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, delay: 0.16 }}
+          className="mt-8"
+        >
+          <SetEmployerNameCard />
         </motion.div>
 
         {/* Transaction history */}
