@@ -26,6 +26,7 @@ import { useVaultAddress, useChainTokens, useChainTokenList } from "@/hooks/useC
 import StreamCard, { StreamCardSkeleton } from "@/components/StreamCard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { SetEmployerNameCard } from "@/components/SetEmployerNameCard";
+import { SetEmploymentDialog } from "@/components/SetEmploymentDialog";
 import { ConnectWalletPrompt } from "@/components/ConnectWalletPrompt";
 import { FlowIllustration } from "@/components/ui/FlowIllustration";
 import { useDeposit } from "@/hooks/useDeposit";
@@ -63,6 +64,8 @@ export default function EmployerDashboard() {
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [panel, setPanel] = useState<"none" | "deposit" | "withdraw">("none");
+  // Which stream row has its "Add payslip details" (StreamRegistry) form open.
+  const [detailsOpen, setDetailsOpen] = useState<string | null>(null);
 
   const tokenInfo = TOKENS[selectedToken] ?? TOKEN_LIST[0];
 
@@ -493,16 +496,27 @@ export default function EmployerDashboard() {
             />
           ) : (
             <div className="grid gap-3">
-              {streams.map((s, i) => (
-                <StreamCard
-                  key={i}
-                  {...s}
-                  role="payer"
-                  onCancel={() => handleCancel(s)}
-                  isPending={isCancelPending}
-                  runwayDays={runway ?? undefined}
-                />
-              ))}
+              {streams.map((s, i) => {
+                const open = detailsOpen === s.payee;
+                return (
+                  <div key={i}>
+                    <StreamCard
+                      {...s}
+                      role="payer"
+                      onCancel={() => handleCancel(s)}
+                      isPending={isCancelPending}
+                      runwayDays={runway ?? undefined}
+                    />
+                    <button
+                      onClick={() => setDetailsOpen(open ? null : s.payee)}
+                      className="mt-1.5 text-[12px] font-medium text-[var(--accent-3)] transition-colors hover:text-[var(--accent)]"
+                    >
+                      {open ? "Hide payslip details" : "Add payslip details"}
+                    </button>
+                    {open && <SetEmploymentDialog payee={s.payee as `0x${string}`} />}
+                  </div>
+                );
+              })}
             </div>
           )}
         </motion.div>
