@@ -3,7 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Waves, Users, Wallet, Download, type LucideIcon } from "lucide-react";
+import { X, Waves, Users, Wallet, Download, BadgeCheck, type LucideIcon } from "lucide-react";
 
 interface HowItWorksModalProps {
   open: boolean;
@@ -47,6 +47,17 @@ const STEPS: GuideStep[] = [
     icon: Download,
     title: "Getting paid?",
     body: "Watch your balance tick up live, withdraw anytime, and export a payslip (PDF or CSV) as proof of income.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Verified payslips",
+    body: (
+      <>
+        Employers can stamp the company + your name on-chain, so your payslip shows a{" "}
+        <strong className="text-[var(--success)]">✓ verified</strong> badge. Optional —
+        you consent before anything is published.
+      </>
+    ),
   },
 ];
 
