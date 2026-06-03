@@ -40,4 +40,49 @@ contract StreamRegistryTest is Test {
         reg.setEmployerName("Acme Corp");
         assertEq(reg.getEmployerName(employer2), "");
     }
+
+    // ── Employment record ────────────────────────
+    function test_setEmployment() public {
+        vm.prank(employer);
+        reg.setEmployment(employee, "Jane Doe", "Engineer", "Payroll Q2");
+        (string memory name, string memory role, string memory memo) = reg.getEmployment(employer, employee);
+        assertEq(name, "Jane Doe");
+        assertEq(role, "Engineer");
+        assertEq(memo, "Payroll Q2");
+    }
+
+    function test_getEmployment_empty() public view {
+        (string memory name, string memory role, string memory memo) = reg.getEmployment(employer, employee);
+        assertEq(name, "");
+        assertEq(role, "");
+        assertEq(memo, "");
+    }
+
+    function test_setEmployment_overwrite() public {
+        vm.startPrank(employer);
+        reg.setEmployment(employee, "Jane Doe", "Engineer", "");
+        reg.setEmployment(employee, "Jane Doe", "Senior Engineer", "promo");
+        vm.stopPrank();
+        (, string memory role,) = reg.getEmployment(employer, employee);
+        assertEq(role, "Senior Engineer");
+    }
+
+    function test_employment_isolatedByCaller() public {
+        vm.prank(employer);
+        reg.setEmployment(employee, "Jane Doe", "Engineer", "");
+        // employer2 has written nothing for the same payee
+        (string memory name,,) = reg.getEmployment(employer2, employee);
+        assertEq(name, "");
+    }
+
+    function test_employment_perPayee() public {
+        vm.startPrank(employer);
+        reg.setEmployment(employee, "Jane", "Eng", "");
+        reg.setEmployment(employee2, "Bob", "Design", "");
+        vm.stopPrank();
+        (string memory n1,,) = reg.getEmployment(employer, employee);
+        (string memory n2,,) = reg.getEmployment(employer, employee2);
+        assertEq(n1, "Jane");
+        assertEq(n2, "Bob");
+    }
 }

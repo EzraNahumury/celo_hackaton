@@ -35,4 +35,30 @@ contract StreamRegistry {
     function getEmployerName(address payer) external view returns (string memory) {
         return _employerName[payer];
     }
+
+    /// @notice Attest an employment record about `payee`. Caller is the employer.
+    ///         Published PUBLICLY and PERMANENTLY on Celo.
+    function setEmployment(
+        address payee,
+        string calldata name,
+        string calldata role,
+        string calldata memo
+    ) external {
+        require(payee != address(0), "zero payee");
+        require(payee != msg.sender, "self payee");
+        require(bytes(name).length <= MAX_NAME, "name too long");
+        require(bytes(role).length <= MAX_ROLE, "role too long");
+        require(bytes(memo).length <= MAX_MEMO, "memo too long");
+        _employment[msg.sender][payee] = Employment(name, role, memo);
+        emit EmploymentSet(msg.sender, payee, name, role, memo);
+    }
+
+    function getEmployment(address payer, address payee)
+        external
+        view
+        returns (string memory name, string memory role, string memory memo)
+    {
+        Employment storage e = _employment[payer][payee];
+        return (e.name, e.role, e.memo);
+    }
 }
