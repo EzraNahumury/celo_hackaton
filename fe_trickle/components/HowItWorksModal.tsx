@@ -3,7 +3,8 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Waves, type LucideIcon } from "lucide-react";
+import { X, Waves, Users, Wallet, Download, BadgeCheck, type LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 interface HowItWorksModalProps {
   open: boolean;
@@ -22,6 +23,43 @@ const STEPS: GuideStep[] = [
     title: "What is Trickle?",
     body: "Real-time payroll on Celo. Salaries flow every second — no batch runs, no waiting for payday.",
   },
+  {
+    icon: Users,
+    title: "Pick your role",
+    body: (
+      <>
+        Two sides: <strong className="text-[var(--fg)]">Payroll</strong> (you pay a
+        team) and <strong className="text-[var(--fg)]">Earnings</strong> (you get
+        paid). Switch them from the bottom bar.
+      </>
+    ),
+  },
+  {
+    icon: Wallet,
+    title: "Paying a team?",
+    body: (
+      <>
+        1. Deposit funds. 2. Create a stream (who + rate per second). 3. Watch the
+        runway and top up before it runs dry.
+      </>
+    ),
+  },
+  {
+    icon: Download,
+    title: "Getting paid?",
+    body: "Watch your balance tick up live, withdraw anytime, and export a payslip (PDF or CSV) as proof of income.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Verified payslips",
+    body: (
+      <>
+        Employers can stamp the company + your name on-chain, so your payslip shows a{" "}
+        <strong className="text-[var(--success)]">✓ verified</strong> badge. Optional —
+        you consent before anything is published.
+      </>
+    ),
+  },
 ];
 
 /**
@@ -33,6 +71,8 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
   const [mounted, setMounted] = React.useState(false);
   const [step, setStep] = React.useState(0);
   const current = STEPS[step];
+  const isFirst = step === 0;
+  const isLast = step === STEPS.length - 1;
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => setMounted(true), []);
@@ -103,6 +143,48 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
               <p className="mx-auto mt-2 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--fg-mute)]">
                 {current.body}
               </p>
+            </div>
+            <div className="flex items-center justify-center gap-1.5 pb-4">
+              {STEPS.map((_, i) => (
+                <span
+                  key={i}
+                  aria-hidden
+                  className={
+                    i === step
+                      ? "h-1.5 w-4 rounded-full bg-[var(--accent)] transition-all"
+                      : "h-1.5 w-1.5 rounded-full bg-[var(--border-strong)] transition-all"
+                  }
+                />
+              ))}
+              <span className="ml-2 font-mono text-[11px] text-[var(--fg-faint)]">
+                {step + 1} / {STEPS.length}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-[var(--divider)] bg-[var(--color-bg-2)] px-5 py-4">
+              {isFirst ? (
+                <button
+                  onClick={onClose}
+                  className="text-[13px] font-medium text-[var(--fg-mute)] transition-colors hover:text-[var(--fg)]"
+                >
+                  Skip
+                </button>
+              ) : (
+                <button
+                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  className="text-[13px] font-medium text-[var(--fg-mute)] transition-colors hover:text-[var(--fg)]"
+                >
+                  Back
+                </button>
+              )}
+              {isLast ? (
+                <Button shape="pill" onClick={onClose}>
+                  Got it
+                </Button>
+              ) : (
+                <Button shape="pill" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
+                  Next
+                </Button>
+              )}
             </div>
           </motion.div>
         </motion.div>
