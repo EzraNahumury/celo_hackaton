@@ -142,4 +142,30 @@ contract StreamRegistryTest is Test {
         assertEq(reg.payeeCleared(employer, employee), true);
         assertEq(reg.payeeCleared(employer, employee2), false);
     }
+
+    // ── Events ───────────────────────────────────
+    event EmployerNameSet(address indexed payer, string name);
+    event EmploymentSet(address indexed payer, address indexed payee, string name, string role, string memo);
+    event EmploymentCleared(address indexed payer, address indexed payee);
+
+    function test_emit_employerNameSet() public {
+        vm.expectEmit(true, false, false, true);
+        emit EmployerNameSet(employer, "Acme Corp");
+        vm.prank(employer);
+        reg.setEmployerName("Acme Corp");
+    }
+
+    function test_emit_employmentSet() public {
+        vm.expectEmit(true, true, false, true);
+        emit EmploymentSet(employer, employee, "Jane", "Eng", "memo");
+        vm.prank(employer);
+        reg.setEmployment(employee, "Jane", "Eng", "memo");
+    }
+
+    function test_emit_employmentCleared() public {
+        vm.expectEmit(true, true, false, false);
+        emit EmploymentCleared(employer, employee);
+        vm.prank(employee);
+        reg.clearMyEmployment(employer);
+    }
 }
