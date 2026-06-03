@@ -3,7 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Waves, type LucideIcon } from "lucide-react";
+import { X, Waves, Users, type LucideIcon } from "lucide-react";
 
 interface HowItWorksModalProps {
   open: boolean;
@@ -21,6 +21,17 @@ const STEPS: GuideStep[] = [
     icon: Waves,
     title: "What is Trickle?",
     body: "Real-time payroll on Celo. Salaries flow every second — no batch runs, no waiting for payday.",
+  },
+  {
+    icon: Users,
+    title: "Pick your role",
+    body: (
+      <>
+        Two sides: <strong className="text-[var(--fg)]">Payroll</strong> (you pay a
+        team) and <strong className="text-[var(--fg)]">Earnings</strong> (you get
+        paid). Switch them from the bottom bar.
+      </>
+    ),
   },
 ];
 
