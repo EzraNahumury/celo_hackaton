@@ -141,6 +141,22 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
                 {current.body}
               </p>
             </div>
+            <div className="flex items-center justify-center gap-1.5 pb-4">
+              {STEPS.map((_, i) => (
+                <span
+                  key={i}
+                  aria-hidden
+                  className={
+                    i === step
+                      ? "h-1.5 w-4 rounded-full bg-[var(--accent)] transition-all"
+                      : "h-1.5 w-1.5 rounded-full bg-[var(--border-strong)] transition-all"
+                  }
+                />
+              ))}
+              <span className="ml-2 font-mono text-[11px] text-[var(--fg-faint)]">
+                {step + 1} / {STEPS.length}
+              </span>
+            </div>
           </motion.div>
         </motion.div>
       )}
