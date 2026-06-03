@@ -3,7 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Waves, Users, Wallet, type LucideIcon } from "lucide-react";
+import { X, Waves, Users, Wallet, Download, type LucideIcon } from "lucide-react";
 
 interface HowItWorksModalProps {
   open: boolean;
@@ -42,6 +42,11 @@ const STEPS: GuideStep[] = [
         runway and top up before it runs dry.
       </>
     ),
+  },
+  {
+    icon: Download,
+    title: "Getting paid?",
+    body: "Watch your balance tick up live, withdraw anytime, and export a payslip (PDF or CSV) as proof of income.",
   },
 ];
 
