@@ -134,15 +134,25 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
               How Trickle works
             </h2>
             <div className="px-6 pb-7 pt-1 text-center">
-              <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
-                <current.icon size={26} strokeWidth={1.9} />
-              </span>
-              <h3 className="font-display text-[20px] font-semibold tracking-tight text-[var(--fg)]">
-                {current.title}
-              </h3>
-              <p className="mx-auto mt-2 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--fg-mute)]">
-                {current.body}
-              </p>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <current.icon size={26} strokeWidth={1.9} />
+                  </span>
+                  <h3 className="font-display text-[20px] font-semibold tracking-tight text-[var(--fg)]">
+                    {current.title}
+                  </h3>
+                  <p className="mx-auto mt-2 max-w-[300px] text-[13.5px] leading-relaxed text-[var(--fg-mute)]">
+                    {current.body}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
             </div>
             <div className="flex items-center justify-center gap-1.5 pb-4">
               {STEPS.map((_, i) => (
