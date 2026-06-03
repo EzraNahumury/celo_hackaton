@@ -123,4 +123,23 @@ contract StreamRegistryTest is Test {
         vm.expectRevert("name too long");
         reg.setEmployerName("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"); // 33 chars
     }
+
+    // ── Payee clear ──────────────────────────────
+    function test_clearMyEmployment() public {
+        vm.prank(employer);
+        reg.setEmployment(employee, "Jane", "Eng", "");
+        assertEq(reg.payeeCleared(employer, employee), false);
+
+        vm.prank(employee);
+        reg.clearMyEmployment(employer);
+        assertEq(reg.payeeCleared(employer, employee), true);
+    }
+
+    function test_clearMyEmployment_isolatedByCaller() public {
+        // Only the payee (msg.sender) can set their own cleared flag.
+        vm.prank(employee);
+        reg.clearMyEmployment(employer);
+        assertEq(reg.payeeCleared(employer, employee), true);
+        assertEq(reg.payeeCleared(employer, employee2), false);
+    }
 }

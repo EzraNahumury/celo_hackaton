@@ -61,4 +61,11 @@ contract StreamRegistry {
         Employment storage e = _employment[payer][payee];
         return (e.name, e.role, e.memo);
     }
+
+    /// @notice Payee suppresses an employer's claim about them (display-only;
+    ///         does not erase on-chain history).
+    function clearMyEmployment(address payer) external {
+        payeeCleared[payer][msg.sender] = true;
+        emit EmploymentCleared(payer, msg.sender);
+    }
 }
