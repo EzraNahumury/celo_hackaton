@@ -102,7 +102,7 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
         >
           <button
             aria-label="Close"
@@ -117,7 +117,7 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[420px] overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)]"
+            className="relative w-full max-w-[420px] overflow-hidden rounded-t-3xl border border-[var(--border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)] sm:rounded-3xl"
           >
             <div className="flex items-center justify-end px-4 pt-4">
               <button
