@@ -77,6 +77,13 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
 
   React.useEffect(() => setMounted(true), []);
 
+  // Reset to the first step ONLY when the guide opens — not on every parent
+  // re-render. (onClose is an inline arrow in the parent, so keeping it in the
+  // effect below would re-fire on each Navbar render and snap the step back to 0.)
+  React.useEffect(() => {
+    if (open) setStep(0);
+  }, [open]);
+
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -84,7 +91,6 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
-    setStep(0);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
