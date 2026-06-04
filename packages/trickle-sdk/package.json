@@ -1,0 +1,47 @@
+{
+  "name": "trickle-sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Trickle — real-time payroll streaming on Celo (TrickleVault + StreamRegistry). Addresses, ABIs, and helpers for building MiniPay-native payroll dApps.",
+  "keywords": [
+    "celo",
+    "celo-blockchain",
+    "minipay",
+    "payroll",
+    "streaming",
+    "stablecoin",
+    "cusd",
+    "web3",
+    "viem",
+    "trickle"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EzraNahumury/celo_hackaton.git",
+    "directory": "packages/trickle-sdk"
+  },
+  "homepage": "https://trickle-black.vercel.app",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
