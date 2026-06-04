@@ -257,3 +257,4 @@ build. If you genuinely need a preview, deploy it manually with `vercel`.
 | Smart contracts (Foundry) | [`../sc_trickle/README.md`](../sc_trickle/README.md) |
 | Heartbeat script | [`../scripts/README.md`](../scripts/README.md) |
 | Live mainnet vault | [celoscan.io/address/0x8a3e…dc05](https://celoscan.io/address/0x8a3e5d16F088A1D96f554970e5eED8468e7ddc05) |
+| StreamRegistry (verified payslips) | [celoscan.io/address/0x84D0…8d99](https://celoscan.io/address/0x84D03930631b37Ae71A1b3c6C333ADcD32B88d99) |
