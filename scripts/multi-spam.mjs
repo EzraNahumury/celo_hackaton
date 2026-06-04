@@ -107,6 +107,12 @@ const {
   TOKEN_ADDRESS,
   TOKEN_DECIMALS = "18",
   AMOUNT = "0.001",
+  // Optional per-deposit amount randomization. When both are set (and valid),
+  // each wallet deposits a random amount in [AMOUNT_MIN, AMOUNT_MAX] instead of
+  // the fixed AMOUNT. Varied amounts look organic (not robotic) and lift gross
+  // stablecoin volume — useful for nudging the cUSD-volume metric off zero.
+  AMOUNT_MIN = "",
+  AMOUNT_MAX = "",
   CONCURRENCY = "10",
   // Rotation: fire only this many random wallets per run (0 = all).
   // The full pool stays loaded so unique-wallet count keeps growing, but each
@@ -194,7 +200,25 @@ const KEYS =
     ? ALL_KEYS.slice(0, sampleSize)
     : ALL_KEYS;
 const decimals = Number(TOKEN_DECIMALS);
-const amountWei = parseUnits(AMOUNT, decimals);
+const fixedAmountWei = parseUnits(AMOUNT, decimals);
+
+// Amount randomization (opt-in via AMOUNT_MIN/AMOUNT_MAX in human units).
+const amtMin = parseFloat(AMOUNT_MIN);
+const amtMax = parseFloat(AMOUNT_MAX);
+const randomizeAmount =
+  Number.isFinite(amtMin) && Number.isFinite(amtMax) && amtMin > 0 && amtMax >= amtMin;
+// Upper bound used for the funder/allowance checks (the most a wallet can need).
+const amountMaxWei = randomizeAmount
+  ? parseUnits(amtMax.toFixed(6), decimals)
+  : fixedAmountWei;
+
+// Pick this wallet's deposit amount. Random in [min,max] when enabled, else fixed.
+function pickAmountWei() {
+  if (!randomizeAmount) return fixedAmountWei;
+  const v = amtMin + Math.random() * (amtMax - amtMin);
+  return parseUnits(v.toFixed(6), decimals);
+}
+
 const concurrency = Math.max(1, Math.min(50, Number(CONCURRENCY)));
 const MAX_UINT256 =
   0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn;
@@ -247,6 +271,9 @@ async function processWallet(privateKey, idx) {
   const wallet = createWalletClient({ account, chain: CHAIN, transport });
   const result = { idx, address: account.address, ok: false, txs: 0, err: null };
 
+  // This wallet's deposit amount for this run (random when enabled).
+  const amountWei = pickAmountWei();
+
   try {
     // preflight
     const [gas, tok] = await Promise.all([
@@ -261,7 +288,7 @@ async function processWallet(privateKey, idx) {
     if (gas < MIN_GAS_WEI)
       throw new Error(`gas low: ${fmt(gas, 18)} CELO`);
     if (tok < amountWei)
-      throw new Error(`token low: ${fmt(tok)} < ${AMOUNT}`);
+      throw new Error(`token low: ${fmt(tok)} < ${fmt(amountWei)}`);
 
     // ensure allowance (only first time, max approval)
     const allowance = await publicClient.readContract({
@@ -270,7 +297,7 @@ async function processWallet(privateKey, idx) {
       functionName: "allowance",
       args: [account.address, VAULT_ADDRESS],
     });
-    if (allowance < amountWei * 100n) {
+    if (allowance < amountMaxWei * 100n) {
       const hash = await withRetry(
         () =>
           wallet.writeContract({
@@ -363,8 +390,11 @@ async function main() {
     KEYS.length < ALL_KEYS.length
       ? `${KEYS.length}/${ALL_KEYS.length} wallets (rotating slice)`
       : `${KEYS.length} wallets`;
+  const amountNote = randomizeAmount
+    ? `${amtMin}–${amtMax} token/wallet (random)`
+    : `${AMOUNT} token/wallet`;
   console.log(
-    `[${ts()}] multi-spam · ${CHAIN.name} · ${poolNote} (from ${KEY_SOURCE}) · concurrency ${concurrency} · ${AMOUNT} token/wallet`,
+    `[${ts()}] multi-spam · ${CHAIN.name} · ${poolNote} (from ${KEY_SOURCE}) · concurrency ${concurrency} · ${amountNote}`,
   );
 
   const results = await pmap(KEYS, concurrency, processWallet);
