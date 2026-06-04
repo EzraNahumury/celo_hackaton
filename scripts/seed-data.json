@@ -1,0 +1,59 @@
+{
+  "companies": [
+    "Celo Labs",
+    "Mento Finance",
+    "Valora Pay",
+    "GoodDollar",
+    "Glo Dollar",
+    "Ubeswap",
+    "Moola Market",
+    "Halofi",
+    "ReFi DAO",
+    "Spirals Protocol",
+    "Climate Collective",
+    "Talent Protocol",
+    "Kuneco Coop",
+    "Plastiks",
+    "Impact Market",
+    "Prosperity Labs"
+  ],
+  "roles": [
+    "Software Engineer",
+    "Product Designer",
+    "Frontend Engineer",
+    "Smart Contract Dev",
+    "Developer Relations",
+    "Growth Lead",
+    "Operations Manager",
+    "Data Analyst",
+    "Community Manager",
+    "Solidity Engineer",
+    "Protocol Researcher",
+    "Finance Lead"
+  ],
+  "names": [
+    "Alex Rivera",
+    "Sam Chen",
+    "Maya Patel",
+    "Jordan Lee",
+    "Priya Sharma",
+    "Diego Santos",
+    "Amara Okafor",
+    "Liam Murphy",
+    "Sofia Rossi",
+    "Kenji Tanaka",
+    "Nadia Hassan",
+    "Tomas Novak",
+    "Grace Kim",
+    "Omar Farouk",
+    "Lucia Vargas",
+    "Noah Bennett"
+  ],
+  "memos": [
+    "Monthly salary stream",
+    "Full-time payroll",
+    "Per-second salary on Celo",
+    "Contract role payroll",
+    "Stablecoin salary stream"
+  ]
+}
