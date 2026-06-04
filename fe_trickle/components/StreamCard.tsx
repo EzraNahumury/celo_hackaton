@@ -3,8 +3,10 @@
 import * as React from "react";
 import { formatUnits } from "viem";
 import { motion } from "framer-motion";
-import { ArrowDownToLine, Clock, X, ArrowRight, AlertTriangle } from "lucide-react";
+import { useReadContract } from "wagmi";
+import { ArrowDownToLine, Clock, X, ArrowRight, AlertTriangle, BadgeCheck } from "lucide-react";
 import { useChainTokenList } from "@/hooks/useChain";
+import { STREAM_REGISTRY_ABI, STREAM_REGISTRY_ADDRESS } from "@/config/contracts";
 import { Button } from "./ui/Button";
 import { StreamTicker } from "./ui/AnimatedNumber";
 import { TokenIcon } from "./ui/TokenIcon";
@@ -140,6 +142,20 @@ export default function StreamCard({
   const counterParty = role === "payer" ? payee : payer;
   const directionLabel = role === "payer" ? "Paying" : "From";
 
+  // Payee view: if the payer stamped a company name on-chain (StreamRegistry),
+  // show a verified-employer badge — the same attestation the payslip reads.
+  const { data: employerNameRaw } = useReadContract({
+    address: STREAM_REGISTRY_ADDRESS,
+    abi: STREAM_REGISTRY_ABI,
+    functionName: "getEmployerName",
+    args: [payer as `0x${string}`],
+    query: { enabled: role === "payee" },
+  });
+  const verifiedEmployer =
+    typeof employerNameRaw === "string" && employerNameRaw.length > 0
+      ? employerNameRaw
+      : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
@@ -183,6 +199,16 @@ export default function StreamCard({
               <ArrowRight size={10} className="opacity-60" />
               <span className="font-mono">{shortAddr(counterParty)}</span>
             </div>
+            {verifiedEmployer && (
+              <div
+                className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-[var(--success)]"
+                title={`${verifiedEmployer} verified this employment on-chain`}
+              >
+                <BadgeCheck size={11} strokeWidth={2.5} aria-hidden />
+                <span className="max-w-[150px] truncate">{verifiedEmployer}</span>
+                <span className="font-normal text-[var(--fg-faint)]">· verified</span>
+              </div>
+            )}
           </div>
         </div>
         <div className="shrink-0 text-right">
