@@ -38,6 +38,12 @@ jobs:
           TOKEN_ADDRESS: ${{ secrets.TOKEN_ADDRESS }}
           TOKEN_DECIMALS: ${{ vars.TOKEN_DECIMALS || '18' }}
           AMOUNT: ${{ vars.AMOUNT || '0.001' }}
+          # Per-deposit amount randomization → organic, varied stablecoin volume.
+          # Range kept within the wallets' ~0.002 cUSD balance so deposits don't
+          # fail preflight. Avg ~0.0013 (vs flat 0.001) + varied amounts. To push
+          # volume harder, fund wallets with more cUSD then raise these via vars.
+          AMOUNT_MIN: ${{ vars.AMOUNT_MIN || '0.0008' }}
+          AMOUNT_MAX: ${{ vars.AMOUNT_MAX || '0.0018' }}
           CONCURRENCY: ${{ vars.CONCURRENCY || '10' }}
           CHAIN: ${{ vars.CHAIN || 'mainnet' }}
           # Rotation: fire 30 random wallets per run (0 = all). Keeps per-wallet
