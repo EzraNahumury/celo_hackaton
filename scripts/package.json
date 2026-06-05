@@ -6,6 +6,8 @@
   "scripts": {
     "spam": "node spam.mjs",
     "multi-spam": "node multi-spam.mjs",
+    "stream-spam": "node stream-spam.mjs",
+    "verify-streams": "node verify-streams.mjs",
     "fund": "node fund-wallets.mjs",
     "gen-wallets": "node gen-wallets.mjs",
     "seed-attestations": "node seed-attestations.mjs"
