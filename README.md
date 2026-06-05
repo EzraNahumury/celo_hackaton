@@ -504,4 +504,5 @@ No payday. No payroll calendar. Just salary that exists in real time.
 
 ## License
 
+
 [MIT](./LICENSE) — open source, as required by Celo Proof of Ship eligibility.
