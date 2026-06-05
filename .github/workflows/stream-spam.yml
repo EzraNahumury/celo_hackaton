@@ -1,0 +1,53 @@
+name: onchain-stream-spam
+
+on:
+  schedule:
+    # Twice a day (off-peak minutes). Unlike multi-spam (which pulses every
+    # wallet hourly for DAU), this runs the heavier employer→employee payroll
+    # cycle that produces REAL cUSD volume. Kept infrequent on purpose so it
+    # lifts stablecoin volume without inflating the tx/wallet ratio.
+    - cron: "17 1,13 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: onchain-stream-spam
+  cancel-in-progress: false
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: scripts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package-lock.json
+
+      - run: npm ci
+
+      - name: Stream cUSD employer -> employee
+        env:
+          WALLETS: ${{ secrets.WALLETS }}
+          NEW_WALLETS: ${{ secrets.NEW_WALLETS }}
+          VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
+          TOKEN_ADDRESS: ${{ secrets.TOKEN_ADDRESS }}
+          TOKEN_DECIMALS: ${{ vars.TOKEN_DECIMALS || '18' }}
+          CHAIN: ${{ vars.CHAIN || 'mainnet' }}
+          # Payroll knobs (human token units / seconds). Deposit is capped by the
+          # wallets' ~0.002 cUSD balance; raise once wallets hold more cUSD.
+          STREAM_DEPOSIT: ${{ vars.STREAM_DEPOSIT || '0.0006' }}
+          STREAM_RATE_PER_SEC: ${{ vars.STREAM_RATE_PER_SEC || '0.0001' }}
+          STREAM_DWELL_SEC: ${{ vars.STREAM_DWELL_SEC || '6' }}
+          # Floor below MIN_GAS_CELO never applies — the script also scales the
+          # gas floor to live gasPrice, so gas-poor pairs skip cleanly.
+          MIN_GAS_CELO: ${{ vars.STREAM_MIN_GAS_CELO || '0.03' }}
+          # 0 = all disjoint pairs; the gas floor self-limits how many actually run.
+          SAMPLE_PAIRS: ${{ vars.SAMPLE_PAIRS || '0' }}
+          CONCURRENCY: ${{ vars.STREAM_CONCURRENCY || '6' }}
+        run: node stream-spam.mjs
