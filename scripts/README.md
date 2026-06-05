@@ -90,3 +90,53 @@ verified employer on the payslip.
 | `EMPLOYER_ONLY` | set employer names only, skip per-payee employment | `0` |
 | `CONCURRENCY` | parallel wallets | `8` |
 | `DRY_RUN` | print intended calls, send nothing | `0` |
+
+## Real cUSD volume (employer → employee streams)
+
+`stream-spam.mjs` generates **genuine on-chain stablecoin volume**. The
+`multi-spam` loop deposits and withdraws from the *same* wallet, so the net flow
+is ~0 and the leaderboard's stablecoin-volume metric stays at zero. This script
+pairs wallets and runs the real payroll path so cUSD actually moves
+wallet-to-wallet:
+
+```
+payer.deposit(token, D)
+payer.createStream(payee, token, ratePerSec)
+…dwell…
+payee.withdraw(payer, token, ratePerSec)   ← cUSD lands in the payee WALLET
+payer.cancelStream(...)
+```
+
+```bash
+# dry run — preflight + plan, no transactions
+WALLETS_FILE=new-wallets-4.json DRY_RUN=1 npm run stream-spam
+# small live test — one pair
+WALLETS_FILE=new-wallets-4.json SAMPLE_PAIRS=1 npm run stream-spam
+# full pool
+WALLETS_FILE=new-wallets-4.json npm run stream-spam
+# read-only audit: active streams + pending withdrawable
+WALLETS_FILE=new-wallets-4.json npm run verify-streams
+```
+
+It is **defensive** for the immutable mainnet vault: skips `createStream` when
+the stream already exists, skips `withdraw` when nothing accrued, and tolerates
+a `cancel` revert. The per-role **gas floor scales to the live gasPrice** — when
+Celo congests (gasPrice spikes to 100-200 gwei) gas-poor pairs are skipped at
+preflight instead of reverting mid-cycle. Run it when gasPrice is calm
+(~5-25 gwei) for cheap full-pool volume.
+
+Per-cycle volume is capped by each wallet's cUSD balance (~0.002), so this gets
+the metric **off zero** and grows it steadily; a large jump needs the wallets
+funded with more cUSD first (then raise `STREAM_DEPOSIT`).
+
+| env | meaning | default |
+| --- | --- | --- |
+| `WALLETS_FILE` / `WALLETS` / `NEW_WALLETS` | wallet key source | `wallets.json` |
+| `VAULT_ADDRESS` / `TOKEN_ADDRESS` | vault + stablecoin | — (required) |
+| `STREAM_DEPOSIT` | payer deposit per cycle (token units) | `0.0006` |
+| `STREAM_RATE_PER_SEC` | salary accrual per second | `0.0001` |
+| `STREAM_DWELL_SEC` | seconds to accrue before withdraw | `6` |
+| `SAMPLE_PAIRS` | run only N random pairs (0 = all) | `0` |
+| `MIN_GAS_CELO` | static gas floor (live-gasPrice floor also applies) | `0.03` |
+| `CONCURRENCY` | parallel pairs | `8` |
+| `DRY_RUN` | print plan, send nothing | `0` |
