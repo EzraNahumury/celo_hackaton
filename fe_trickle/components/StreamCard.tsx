@@ -5,6 +5,7 @@ import { formatUnits } from "viem";
 import { motion } from "framer-motion";
 import { useReadContract } from "wagmi";
 import { ArrowDownToLine, Clock, X, ArrowRight, AlertTriangle, BadgeCheck } from "lucide-react";
+import { shortenAddress } from "trickle-sdk";
 import { useChainTokenList } from "@/hooks/useChain";
 import { STREAM_REGISTRY_ABI, STREAM_REGISTRY_ADDRESS } from "@/config/contracts";
 import { Button } from "./ui/Button";
@@ -83,10 +84,6 @@ function tokenInfoFrom(
       icon: undefined as string | undefined,
     }
   );
-}
-
-function shortAddr(addr: string) {
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
 function elapsed(from: number, nowSec: number) {
@@ -197,7 +194,7 @@ export default function StreamCard({
             <div className="flex items-center gap-1 text-[12px] text-[var(--fg-mute)]">
               <span>{directionLabel}</span>
               <ArrowRight size={10} className="opacity-60" />
-              <span className="font-mono">{shortAddr(counterParty)}</span>
+              <span className="font-mono">{shortenAddress(counterParty)}</span>
             </div>
             {verifiedEmployer && (
               <div
@@ -336,7 +333,7 @@ export default function StreamCard({
           <div className="rounded-2xl border border-[var(--danger)]/20 bg-[var(--danger)]/5 p-4">
             <p className="mb-3 text-[12.5px] text-[var(--fg-dim)]">
               <span className="font-semibold text-[var(--danger)]">Cancel stream?</span>{" "}
-              <span className="font-mono">{shortAddr(payee)}</span> will stop receiving salary immediately. This cannot be undone.
+              <span className="font-mono">{shortenAddress(payee)}</span> will stop receiving salary immediately. This cannot be undone.
             </p>
             <div className="flex gap-2">
               <Button

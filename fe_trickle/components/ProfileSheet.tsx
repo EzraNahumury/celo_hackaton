@@ -20,6 +20,7 @@ import {
   ChevronRight,
   RefreshCw,
 } from "lucide-react";
+import { shortenAddress } from "trickle-sdk";
 import { cn } from "@/lib/cn";
 import { ERC20_ABI } from "@/config/contracts";
 import {
@@ -177,7 +178,7 @@ export function ProfileSheet({ open, onClose, onConnect }: ProfileSheetProps) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="font-mono text-[13.5px] font-semibold tracking-tight text-[var(--fg)]">
-                        {address.slice(0, 6)}…{address.slice(-4)}
+                        {shortenAddress(address)}
                       </p>
                       <button
                         onClick={copyAddress}
