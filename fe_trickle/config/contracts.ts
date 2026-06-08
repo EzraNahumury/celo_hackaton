@@ -1,4 +1,7 @@
-import { TRICKLE_VAULT_ADDRESS as SDK_TRICKLE_VAULT_ADDRESS } from "trickle-sdk";
+import {
+  TRICKLE_VAULT_ADDRESS as SDK_TRICKLE_VAULT_ADDRESS,
+  STREAM_REGISTRY_ADDRESS as SDK_STREAM_REGISTRY_ADDRESS,
+} from "trickle-sdk";
 
 // TrickleVault live on Celo Mainnet (chain 42220). Sepolia still supported via
 // the chain-aware lookup in config/chains.ts — use `useVaultAddress()` in
@@ -273,7 +276,7 @@ export const ERC20_ABI = [
 // payslip falls back to the wallet address if reads are empty/fail.
 export const STREAM_REGISTRY_ADDRESS = (
   process.env.NEXT_PUBLIC_STREAM_REGISTRY_ADDRESS ??
-  "0x84D03930631b37Ae71A1b3c6C333ADcD32B88d99"
+  SDK_STREAM_REGISTRY_ADDRESS
 ) as `0x${string}`;
 
 export const STREAM_REGISTRY_ABI = [
