@@ -20,6 +20,7 @@
     "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "trickle-sdk": "^0.1.0",
     "viem": "^2.47.10",
     "wagmi": "^3.6.1"
   },

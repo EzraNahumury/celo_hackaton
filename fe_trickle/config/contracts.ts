@@ -1,11 +1,17 @@
+import {
+  TRICKLE_VAULT_ADDRESS as SDK_TRICKLE_VAULT_ADDRESS,
+  STREAM_REGISTRY_ADDRESS as SDK_STREAM_REGISTRY_ADDRESS,
+} from "trickle-sdk";
+
 // TrickleVault live on Celo Mainnet (chain 42220). Sepolia still supported via
 // the chain-aware lookup in config/chains.ts — use `useVaultAddress()` in
 // components. This constant is the mainnet fallback for non-React code.
-// Override either env var to repoint without code changes.
+// Mainnet address is sourced from the published trickle-sdk (single source of
+// truth); override either env var to repoint without code changes.
 export const TRICKLE_VAULT_ADDRESS = (
   process.env.NEXT_PUBLIC_TRICKLE_VAULT_ADDRESS ??
   process.env.NEXT_PUBLIC_TRICKLE_VAULT_ADDRESS_MAINNET ??
-  "0x8a3e5d16F088A1D96f554970e5eED8468e7ddc05"
+  SDK_TRICKLE_VAULT_ADDRESS
 ) as `0x${string}`;
 
 // ABI generated from: forge inspect TrickleVault abi --json
@@ -270,7 +276,7 @@ export const ERC20_ABI = [
 // payslip falls back to the wallet address if reads are empty/fail.
 export const STREAM_REGISTRY_ADDRESS = (
   process.env.NEXT_PUBLIC_STREAM_REGISTRY_ADDRESS ??
-  "0x84D03930631b37Ae71A1b3c6C333ADcD32B88d99"
+  SDK_STREAM_REGISTRY_ADDRESS
 ) as `0x${string}`;
 
 export const STREAM_REGISTRY_ABI = [
