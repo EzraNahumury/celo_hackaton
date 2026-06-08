@@ -7,13 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       amount_celo:
-        description: "CELO per wallet target (default: 0.5)"
+        description: "CELO per wallet target (default: 0.3)"
         required: false
-        default: "0.5"
+        default: "0.3"
       skip_if_balance_ge:
-        description: "Skip wallet if already has >= this CELO (default: 0.4)"
+        description: "Skip wallet if already has >= this CELO (default: 0.25)"
         required: false
-        default: "0.4"
+        default: "0.25"
       dry_run:
         description: "1 = dry run (no tx sent)"
         required: false
@@ -41,10 +41,11 @@ jobs:
         env:
           FUNDER_KEY: ${{ secrets.PRIVATE_KEY }}
           WALLETS: ${{ secrets.WALLETS }}
+          NEW_WALLETS: ${{ secrets.NEW_WALLETS }}
           VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
           TOKEN_ADDRESS: ${{ secrets.TOKEN_ADDRESS }}
           CHAIN: ${{ vars.CHAIN || 'mainnet' }}
-          AMOUNT_CELO: ${{ inputs.amount_celo || '0.5' }}
-          SKIP_IF_BALANCE_GE: ${{ inputs.skip_if_balance_ge || '0.4' }}
+          AMOUNT_CELO: ${{ inputs.amount_celo || '0.3' }}
+          SKIP_IF_BALANCE_GE: ${{ inputs.skip_if_balance_ge || '0.25' }}
           DRY_RUN: ${{ inputs.dry_run || '0' }}
         run: node fund-wallets.mjs

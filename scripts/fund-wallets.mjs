@@ -49,6 +49,7 @@ const CHAIN =
 const {
   FUNDER_KEY,
   WALLETS,
+  NEW_WALLETS, // optional: additional keys (batch-2/4/5) merged with WALLETS
   WALLETS_FILE = "wallets.json",
   RECIPIENTS, // optional: JSON array OR comma-separated addresses
   AMOUNT_CELO = "0.5",
@@ -115,6 +116,25 @@ function loadRecipients() {
     if (!norm) die(`Invalid key at index ${i} in ${source}.`);
     addresses.push(privateKeyToAccount(norm).address);
   });
+
+  // Merge NEW_WALLETS (additive — keeps old WALLETS funded too). Without this,
+  // batches added to NEW_WALLETS never get auto-refilled and die off, dragging DAU.
+  if (NEW_WALLETS) {
+    let extra;
+    try {
+      extra = JSON.parse(NEW_WALLETS);
+    } catch (e) {
+      die(`NEW_WALLETS invalid JSON: ${e.message}`);
+    }
+    if (!Array.isArray(extra)) die(`NEW_WALLETS must be JSON array.`);
+    extra.forEach((k, i) => {
+      const norm = normalizeKey(k);
+      if (!norm) die(`Invalid key at index ${i} in NEW_WALLETS.`);
+      addresses.push(privateKeyToAccount(norm).address);
+    });
+    source += ` + NEW_WALLETS (${extra.length})`;
+  }
+
   return { addresses, source: `${source} (derived from ${addresses.length} keys)` };
 }
 
