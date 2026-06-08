@@ -1,0 +1,25 @@
+{
+  "name": "trickle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Trickle — real-time payroll streaming on Celo (MiniPay-native). Employers stream salaries per second via the TrickleVault; employees withdraw accrued earnings anytime. This repo's on-chain logic is published as the trickle-sdk npm package, consumed by the fe_trickle dApp.",
+  "keywords": [
+    "celo",
+    "celo-blockchain",
+    "minipay",
+    "payroll",
+    "streaming",
+    "stablecoin",
+    "cusd",
+    "web3"
+  ],
+  "dependencies": {
+    "trickle-sdk": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EzraNahumury/celo_hackaton.git"
+  },
+  "homepage": "https://trickle-black.vercel.app",
+  "license": "MIT"
+}
