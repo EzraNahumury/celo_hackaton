@@ -20,6 +20,7 @@ import {
   type TxEvent,
   type TxEventKind,
 } from "@/hooks/useTransactionHistory";
+import { shortenAddress } from "trickle-sdk";
 import { cn } from "@/lib/cn";
 import type { TokenInfo } from "@/config/tokens";
 
@@ -119,9 +120,7 @@ function TxRow({
     amountStr = `${prefix}${num.toFixed(dp)}${sym}`;
   }
 
-  const counterpartyShort = counterparty
-    ? `${counterparty.slice(0, 6)}…${counterparty.slice(-4)}`
-    : null;
+  const counterpartyShort = counterparty ? shortenAddress(counterparty) : null;
 
   const txUrl = `${explorerUrl}/tx/${event.txHash}`;
 
