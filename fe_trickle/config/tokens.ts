@@ -1,3 +1,5 @@
+import { TOKENS as SDK_TOKENS } from "trickle-sdk";
+
 export interface TokenInfo {
   address: `0x${string}`;
   symbol: string;
@@ -6,33 +8,36 @@ export interface TokenInfo {
   icon?: string;
 }
 
+// Canonical addresses + decimals come from the published trickle-sdk (single
+// source of truth); name/symbol/icon are dApp-side presentation. USDm is the
+// display symbol for Mento Dollar (cUSD on-chain).
 const MAINNET_TOKENS: Record<string, TokenInfo> = {
   USDm: {
-    address: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
+    address: SDK_TOKENS.cUSD.address as `0x${string}`,
     symbol: "USDm",
     name: "Mento Dollar",
-    decimals: 18,
+    decimals: SDK_TOKENS.cUSD.decimals,
     icon: "/tokens/cusd.svg",
   },
   USDC: {
-    address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
+    address: SDK_TOKENS.USDC.address as `0x${string}`,
     symbol: "USDC",
     name: "USD Coin",
-    decimals: 6,
+    decimals: SDK_TOKENS.USDC.decimals,
     icon: "/tokens/usdc.svg",
   },
   USDT: {
-    address: "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
+    address: SDK_TOKENS.USDT.address as `0x${string}`,
     symbol: "USDT",
     name: "Tether USD",
-    decimals: 6,
+    decimals: SDK_TOKENS.USDT.decimals,
     icon: "/tokens/usdt.svg",
   },
   CELO: {
-    address: "0x471EcE3750Da237f93B8E339c536989b8978a438",
+    address: SDK_TOKENS.CELO.address as `0x${string}`,
     symbol: "CELO",
     name: "Celo Native Token",
-    decimals: 18,
+    decimals: SDK_TOKENS.CELO.decimals,
     icon: "/tokens/celo.svg",
   },
 };
