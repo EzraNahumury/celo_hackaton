@@ -1,0 +1,53 @@
+name: onchain-heartbeat
+
+on:
+  schedule:
+    # Twice a day. Cheap DAU floor: each selected wallet sends a tiny random CELO
+    # p2p transfer (~21k gas). At a gas-price spike this is ~20x cheaper than the
+    # multi-spam vault cycle, so DAU stays up even when the heavier spam can't
+    # afford gas. HEARTBEAT_SAMPLE (repo var) ramps how many wallets fire per run.
+    - cron: "27 5,17 * * *"
+  workflow_dispatch:
+    inputs:
+      sample:
+        description: "Wallets to fire this run (0 = all). Overrides HEARTBEAT_SAMPLE."
+        required: false
+        default: ""
+
+concurrency:
+  group: onchain-heartbeat
+  cancel-in-progress: false
+
+jobs:
+  beat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: scripts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package-lock.json
+
+      - run: npm ci
+
+      - name: Heartbeat (cheap p2p DAU floor)
+        env:
+          WALLETS: ${{ secrets.WALLETS }}
+          NEW_WALLETS: ${{ secrets.NEW_WALLETS }}
+          CHAIN: ${{ vars.CHAIN || 'mainnet' }}
+          # Ramp lever: how many random wallets fire per run (0 = all). Bump the
+          # HEARTBEAT_SAMPLE repo var to grow DAU gradually.
+          SAMPLE_SIZE: ${{ github.event.inputs.sample || vars.HEARTBEAT_SAMPLE || '0' }}
+          # Random per-tx amount (organic p2p look, not a fixed robotic value).
+          AMOUNT_MIN: ${{ vars.HEARTBEAT_AMOUNT_MIN || '0.000001' }}
+          AMOUNT_MAX: ${{ vars.HEARTBEAT_AMOUNT_MAX || '0.00001' }}
+          # Must afford one ~21k-gas transfer at the current gas price.
+          MIN_GAS_CELO: ${{ vars.HEARTBEAT_MIN_GAS_CELO || '0.01' }}
+          CONCURRENCY: ${{ vars.HEARTBEAT_CONCURRENCY || '12' }}
+        run: node heartbeat.mjs
