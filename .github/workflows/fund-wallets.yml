@@ -2,8 +2,10 @@ name: fund-wallets
 
 on:
   schedule:
-    # Auto top-up every 3 days at 01:00 UTC
-    - cron: "0 1 */3 * *"
+    # Auto top-up DAILY at 01:00 UTC. At the ~200 gwei spike (10x normal) wallets
+    # drain in well under a day, so the old every-3-days cadence left them starved
+    # 2 days out of 3 — a major cause of the DAU dip. Daily keeps gas ahead of burn.
+    - cron: "0 1 * * *"
   workflow_dispatch:
     inputs:
       amount_celo:

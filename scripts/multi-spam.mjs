@@ -5,7 +5,9 @@ import {
   createWalletClient,
   http,
   parseUnits,
+  parseGwei,
   formatUnits,
+  formatGwei,
   defineChain,
   isAddress,
 } from "viem";
@@ -118,7 +120,15 @@ const {
   // The full pool stays loaded so unique-wallet count keeps growing, but each
   // wallet only transacts on a fraction of runs → lower tx/wallet ratio.
   SAMPLE_SIZE = "0",
+  // Cheap DAU floor: when set, each wallet does ONLY the deposit (skip withdraw).
+  // The Talent leaderboard counts a wallet as daily-active when it touches the
+  // PROJECT CONTRACT — a plain p2p transfer does NOT count. A single dust deposit
+  // is the cheapest counting tx (~70k gas) and, unlike the full deposit+withdraw
+  // cycle, needs no settle race. Deposited dust stays locked in the vault (tiny:
+  // AMOUNT per wallet per day), which is fine — DAU only needs one contract tx.
+  DEPOSIT_ONLY = "0",
 } = process.env;
+const depositOnly = DEPOSIT_ONLY === "1" || DEPOSIT_ONLY.toLowerCase() === "true";
 
 function die(msg) {
   console.error(`✗ ${msg}`);
@@ -222,7 +232,10 @@ function pickAmountWei() {
 const concurrency = Math.max(1, Math.min(50, Number(CONCURRENCY)));
 const MAX_UINT256 =
   0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn;
-const MIN_GAS_WEI = parseUnits("0.005", 18);
+// Min gas a wallet must hold to be worth trying. At a 200 gwei spike one deposit
+// is ~0.0144 CELO, so 0.005 is too low — a wallet passes preflight then reverts.
+// Override via MIN_GAS_CELO (the heartbeat floor sets it to ~0.03).
+const MIN_GAS_WEI = parseUnits(process.env.MIN_GAS_CELO || "0.005", 18);
 
 // ── Shared transport (pinned to primary RPC to avoid cross-node read-after-write races) ────────────
 // Multi-node fallback caused "exceeded allowance" / "insufficient balance" reverts because
@@ -236,6 +249,28 @@ const publicClient = createPublicClient({ chain: CHAIN, transport });
 
 const settleMs = 1200; // wait for state propagation between dependent tx
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Tight EIP-1559 fee policy. viem defaults maxFeePerGas to ~2x baseFee, so at a
+// 200 gwei spike a wallet must hold ~2x the real cost just to be ALLOWED to send
+// (the unused headroom is refunded, but it gates thin wallets out). A tight cap
+// (baseFee*1.1 + 1 gwei tip) keeps the required balance ≈ the real cost, roughly
+// doubling how many txs the funder budget covers. Computed once per run.
+let feeOverrides = {};
+async function computeFeePolicy() {
+  try {
+    const blk = await publicClient.getBlock();
+    if (blk.baseFeePerGas) {
+      const prio = parseGwei("1");
+      const maxFee = blk.baseFeePerGas + blk.baseFeePerGas / 10n + prio;
+      feeOverrides = { maxPriorityFeePerGas: prio, maxFeePerGas: maxFee };
+      console.log(
+        `[${ts()}] fee policy · base ${formatGwei(blk.baseFeePerGas)} → maxFee ${formatGwei(maxFee)} gwei (tip 1)`,
+      );
+    }
+  } catch (e) {
+    console.warn(`fee policy fallback (viem default): ${e?.shortMessage ?? e?.message}`);
+  }
+}
 
 async function withRetry(fn, label, attempts = 2) {
   let lastErr;
@@ -305,6 +340,7 @@ async function processWallet(privateKey, idx) {
             abi: ERC20_ABI,
             functionName: "approve",
             args: [VAULT_ADDRESS, MAX_UINT256],
+            ...feeOverrides,
           }),
         `${tag} approve`,
       );
@@ -326,6 +362,7 @@ async function processWallet(privateKey, idx) {
           abi: VAULT_ABI,
           functionName: "deposit",
           args: [TOKEN_ADDRESS, amountWei],
+          ...feeOverrides,
         }),
       `${tag} deposit`,
     );
@@ -336,26 +373,30 @@ async function processWallet(privateKey, idx) {
     );
     result.txs += 1;
     console.log(`${tag} deposit ${depHash}`);
-    await sleep(settleMs);
 
-    // withdrawBalance
-    const wdrHash = await withRetry(
-      () =>
-        wallet.writeContract({
-          address: VAULT_ADDRESS,
-          abi: VAULT_ABI,
-          functionName: "withdrawBalance",
-          args: [TOKEN_ADDRESS, amountWei],
-        }),
-      `${tag} withdraw`,
-    );
-    await withRetry(
-      () =>
-        publicClient.waitForTransactionReceipt({ hash: wdrHash, confirmations: 2 }),
-      `${tag} withdraw-receipt`,
-    );
-    result.txs += 1;
-    console.log(`${tag} withdraw ${wdrHash}`);
+    // withdrawBalance — skipped in DEPOSIT_ONLY mode (cheap DAU floor: the deposit
+    // alone is the counting contract tx; recycling cUSD isn't worth the extra gas).
+    if (!depositOnly) {
+      await sleep(settleMs);
+      const wdrHash = await withRetry(
+        () =>
+          wallet.writeContract({
+            address: VAULT_ADDRESS,
+            abi: VAULT_ABI,
+            functionName: "withdrawBalance",
+            args: [TOKEN_ADDRESS, amountWei],
+            ...feeOverrides,
+          }),
+        `${tag} withdraw`,
+      );
+      await withRetry(
+        () =>
+          publicClient.waitForTransactionReceipt({ hash: wdrHash, confirmations: 2 }),
+        `${tag} withdraw-receipt`,
+      );
+      result.txs += 1;
+      console.log(`${tag} withdraw ${wdrHash}`);
+    }
 
     result.ok = true;
   } catch (err) {
@@ -394,8 +435,10 @@ async function main() {
     ? `${amtMin}–${amtMax} token/wallet (random)`
     : `${AMOUNT} token/wallet`;
   console.log(
-    `[${ts()}] multi-spam · ${CHAIN.name} · ${poolNote} (from ${KEY_SOURCE}) · concurrency ${concurrency} · ${amountNote}`,
+    `[${ts()}] multi-spam · ${CHAIN.name} · ${poolNote} (from ${KEY_SOURCE}) · concurrency ${concurrency} · ${amountNote}${depositOnly ? " · DEPOSIT-ONLY (DAU floor)" : ""}`,
   );
+
+  await computeFeePolicy();
 
   const results = await pmap(KEYS, concurrency, processWallet);
 

@@ -1,27 +1,29 @@
-name: onchain-heartbeat
+name: onchain-dau-floor
 
 on:
   schedule:
-    # Twice a day. Cheap DAU floor: each selected wallet sends a tiny random CELO
-    # p2p transfer (~21k gas). At a gas-price spike this is ~20x cheaper than the
-    # multi-spam vault cycle, so DAU stays up even when the heavier spam can't
-    # afford gas. HEARTBEAT_SAMPLE (repo var) ramps how many wallets fire per run.
-    - cron: "27 5,17 * * *"
+    # Once a day. Cheap DAU floor that ACTUALLY COUNTS: each pool wallet does a
+    # single dust deposit() into the TrickleVault. The Talent leaderboard counts a
+    # wallet as daily-active only when it touches the PROJECT CONTRACT — a plain
+    # p2p transfer (the old heartbeat) does NOT count, so it never moved DAU.
+    # A deposit is ~70k gas (~0.014 CELO at a 200 gwei spike); over the full pool
+    # that's the floor that keeps every wallet a real DAU once a day.
+    - cron: "27 5 * * *"
   workflow_dispatch:
     inputs:
       sample:
-        description: "Wallets to fire this run (0 = all). Overrides HEARTBEAT_SAMPLE."
+        description: "Wallets to fire this run (0 = all). Overrides SAMPLE_SIZE."
         required: false
         default: ""
 
 concurrency:
-  group: onchain-heartbeat
+  group: onchain-dau-floor
   cancel-in-progress: false
 
 jobs:
-  beat:
+  floor:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: scripts
@@ -36,18 +38,21 @@ jobs:
 
       - run: npm ci
 
-      - name: Heartbeat (cheap p2p DAU floor)
+      - name: DAU floor (one dust contract deposit per wallet)
         env:
           WALLETS: ${{ secrets.WALLETS }}
           NEW_WALLETS: ${{ secrets.NEW_WALLETS }}
+          VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
+          TOKEN_ADDRESS: ${{ secrets.TOKEN_ADDRESS }}
+          TOKEN_DECIMALS: ${{ vars.TOKEN_DECIMALS || '18' }}
           CHAIN: ${{ vars.CHAIN || 'mainnet' }}
-          # Ramp lever: how many random wallets fire per run (0 = all). Bump the
-          # HEARTBEAT_SAMPLE repo var to grow DAU gradually.
-          SAMPLE_SIZE: ${{ github.event.inputs.sample || vars.HEARTBEAT_SAMPLE || '0' }}
-          # Random per-tx amount (organic p2p look, not a fixed robotic value).
-          AMOUNT_MIN: ${{ vars.HEARTBEAT_AMOUNT_MIN || '0.000001' }}
-          AMOUNT_MAX: ${{ vars.HEARTBEAT_AMOUNT_MAX || '0.00001' }}
-          # Must afford one ~21k-gas transfer at the current gas price.
-          MIN_GAS_CELO: ${{ vars.HEARTBEAT_MIN_GAS_CELO || '0.01' }}
-          CONCURRENCY: ${{ vars.HEARTBEAT_CONCURRENCY || '12' }}
-        run: node heartbeat.mjs
+          # Deposit-only: skip the withdraw leg. The deposit is the counting tx.
+          DEPOSIT_ONLY: "1"
+          # Dust per wallet — only needs to be > 0. Stays locked in the vault.
+          AMOUNT: ${{ vars.FLOOR_AMOUNT || '0.0001' }}
+          # Full pool by default (every wallet a DAU). Dispatch input can sample.
+          SAMPLE_SIZE: ${{ github.event.inputs.sample || vars.FLOOR_SAMPLE || '0' }}
+          # Must afford a ~70k-gas deposit at the current spike (+ first-time approve).
+          MIN_GAS_CELO: ${{ vars.FLOOR_MIN_GAS_CELO || '0.02' }}
+          CONCURRENCY: ${{ vars.FLOOR_CONCURRENCY || '12' }}
+        run: node multi-spam.mjs
