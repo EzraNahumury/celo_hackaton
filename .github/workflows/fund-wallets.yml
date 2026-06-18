@@ -47,7 +47,10 @@ jobs:
           VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
           TOKEN_ADDRESS: ${{ secrets.TOKEN_ADDRESS }}
           CHAIN: ${{ vars.CHAIN || 'mainnet' }}
-          AMOUNT_CELO: ${{ inputs.amount_celo || '0.3' }}
-          SKIP_IF_BALANCE_GE: ${{ inputs.skip_if_balance_ge || '0.25' }}
+          # Budget-safe daily target at the 200 gwei spike: ~0.06 CELO covers one
+          # counting deposit (~0.0145) + headroom for a heavy cycle, spread across
+          # the WHOLE pool instead of fully funding a few. Tune via repo vars.
+          AMOUNT_CELO: ${{ inputs.amount_celo || vars.FUND_AMOUNT_CELO || '0.06' }}
+          SKIP_IF_BALANCE_GE: ${{ inputs.skip_if_balance_ge || vars.FUND_SKIP_GE || '0.05' }}
           DRY_RUN: ${{ inputs.dry_run || '0' }}
         run: node fund-wallets.mjs
