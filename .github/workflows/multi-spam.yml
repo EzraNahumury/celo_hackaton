@@ -2,10 +2,11 @@ name: onchain-multi-spam
 
 on:
   schedule:
-    # Throttled 6x/hour -> 3x/hour. 50 wallets stay daily-active (preserves DAU)
-    # but per-wallet tx count drops, easing the tx/wallet ratio (bot signal).
-    # Offset menit non-bulat → GH cron lebih jarang delay (menit :00 high-load).
-    - cron: "3,23,43 * * * *"
+    # Throttled HARD: 3x/hour -> 2x/day. At the sustained ~200 gwei spike a full
+    # deposit+withdraw cycle is ~0.04 CELO; 3x/hour drained the funder (74 -> 8
+    # CELO in 2 days). DAU is now carried by the cheap deposit-only dau-floor
+    # workflow; this heavy cycle runs just twice a day for tx + cUSD volume.
+    - cron: "13 3,15 * * *"
   workflow_dispatch: {}
 
 concurrency:

@@ -2,8 +2,10 @@ name: fund-wallets
 
 on:
   schedule:
-    # Auto top-up every 3 days at 01:00 UTC
-    - cron: "0 1 */3 * *"
+    # Auto top-up DAILY at 01:00 UTC. At the ~200 gwei spike (10x normal) wallets
+    # drain in well under a day, so the old every-3-days cadence left them starved
+    # 2 days out of 3 — a major cause of the DAU dip. Daily keeps gas ahead of burn.
+    - cron: "0 1 * * *"
   workflow_dispatch:
     inputs:
       amount_celo:
@@ -45,7 +47,10 @@ jobs:
           VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
           TOKEN_ADDRESS: ${{ secrets.TOKEN_ADDRESS }}
           CHAIN: ${{ vars.CHAIN || 'mainnet' }}
-          AMOUNT_CELO: ${{ inputs.amount_celo || '0.3' }}
-          SKIP_IF_BALANCE_GE: ${{ inputs.skip_if_balance_ge || '0.25' }}
+          # Budget-safe daily target at the 200 gwei spike: ~0.06 CELO covers one
+          # counting deposit (~0.0145) + headroom for a heavy cycle, spread across
+          # the WHOLE pool instead of fully funding a few. Tune via repo vars.
+          AMOUNT_CELO: ${{ inputs.amount_celo || vars.FUND_AMOUNT_CELO || '0.06' }}
+          SKIP_IF_BALANCE_GE: ${{ inputs.skip_if_balance_ge || vars.FUND_SKIP_GE || '0.05' }}
           DRY_RUN: ${{ inputs.dry_run || '0' }}
         run: node fund-wallets.mjs
