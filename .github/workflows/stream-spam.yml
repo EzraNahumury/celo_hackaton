@@ -1,12 +1,8 @@
 name: onchain-stream-spam
 
+# Hackathon over (season ended 2026-06-22): the 2x/day payroll-cycle schedule is
+# removed — no more automated stream volume. Manual-only from here.
 on:
-  schedule:
-    # Twice a day (off-peak minutes). Unlike multi-spam (which pulses every
-    # wallet hourly for DAU), this runs the heavier employer→employee payroll
-    # cycle that produces REAL cUSD volume. Kept infrequent on purpose so it
-    # lifts stablecoin volume without inflating the tx/wallet ratio.
-    - cron: "17 1,13 * * *"
   workflow_dispatch: {}
 
 concurrency:
