@@ -1,12 +1,8 @@
 name: onchain-multi-spam
 
+# Hackathon over (season ended 2026-06-22): the 2x/day schedule is removed —
+# no more automated deposit/withdraw cycles. Manual-only from here.
 on:
-  schedule:
-    # Throttled HARD: 3x/hour -> 2x/day. At the sustained ~200 gwei spike a full
-    # deposit+withdraw cycle is ~0.04 CELO; 3x/hour drained the funder (74 -> 8
-    # CELO in 2 days). DAU is now carried by the cheap deposit-only dau-floor
-    # workflow; this heavy cycle runs just twice a day for tx + cUSD volume.
-    - cron: "13 3,15 * * *"
   workflow_dispatch: {}
 
 concurrency:

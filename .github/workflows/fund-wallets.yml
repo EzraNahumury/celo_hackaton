@@ -1,11 +1,8 @@
 name: fund-wallets
 
+# Hackathon over (season ended 2026-06-22): the daily 01:00 UTC schedule is
+# removed so nothing tops up the pool anymore. Manual-only from here.
 on:
-  schedule:
-    # Auto top-up DAILY at 01:00 UTC. At the ~200 gwei spike (10x normal) wallets
-    # drain in well under a day, so the old every-3-days cadence left them starved
-    # 2 days out of 3 — a major cause of the DAU dip. Daily keeps gas ahead of burn.
-    - cron: "0 1 * * *"
   workflow_dispatch:
     inputs:
       amount_celo:

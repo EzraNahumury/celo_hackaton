@@ -1,17 +1,8 @@
 name: onchain-dau-floor
 
+# Hackathon over (season ended 2026-06-22): the daily DAU-floor schedule is
+# removed — no more automated deposits. Manual-only from here.
 on:
-  schedule:
-    # Once a day. Cheap DAU floor that ACTUALLY COUNTS: each pool wallet does a
-    # single dust deposit() into the TrickleVault. The Talent leaderboard counts a
-    # wallet as daily-active only when it touches the PROJECT CONTRACT — a plain
-    # p2p transfer (the old heartbeat) does NOT count, so it never moved DAU.
-    # A deposit is ~70k gas (~0.014 CELO at a 200 gwei spike); over the full pool
-    # that's the floor that keeps every wallet a real DAU once a day.
-    # Runs at 01:47 — right after fund-wallets (01:00) tops up gas and BEFORE the
-    # heavy multi-spam (03:13) drains it, so every wallet secures its counting
-    # deposit on fresh gas. DAU first, volume second.
-    - cron: "47 1 * * *"
   workflow_dispatch:
     inputs:
       sample:
